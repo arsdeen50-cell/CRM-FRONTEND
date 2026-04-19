@@ -40,7 +40,7 @@ const PrivateRoute = ({ children }) => {
     return () => axios.interceptors.response.eject(interceptor);
   }, []);
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/loginByTrendsOfMedia" replace />;
   return children;
 };
 
@@ -67,7 +67,7 @@ function App() {
       element: <CandidateForm />,
     },
     {
-      path: "/login",
+      path: "/loginByTrendsOfMedia",
       element: <Login />,
     },
     {
@@ -75,7 +75,7 @@ function App() {
   element: <ForgotPassword />,
 },
     {
-      path: "/signup",
+      path: "/signupOnlyCompanyEmployee",
       element: <Signup />,
     },
     {

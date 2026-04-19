@@ -38,8 +38,8 @@ axiosInstance.interceptors.response.use(
         localStorage.removeItem('token');
         delete axiosInstance.defaults.headers.common['Authorization'];
 
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
+        if (window.location.pathname !== '/loginByTrendsOfMedia') {
+          window.location.href = '/loginByTrendsOfMedia';
         }
       } 
       else {

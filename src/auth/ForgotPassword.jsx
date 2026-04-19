@@ -81,7 +81,7 @@ const ForgotPassword = () => {
 
       if (res.data.success) {
         toast.success(res.data.message);
-        navigate("/login");
+        navigate("/loginByTrendsOfMedia");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Reset failed");
@@ -118,7 +118,7 @@ const ForgotPassword = () => {
             </Button>
 
             <p className="text-sm text-center mt-4">
-              <Link to="/login" className="text-blue-600">
+              <Link to="/loginByTrendsOfMedia" className="text-blue-600">
                 Back to Login
               </Link>
             </p>

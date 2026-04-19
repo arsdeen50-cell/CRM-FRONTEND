@@ -38,7 +38,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
                 dispatch(logout());
 
                 // Navigate to login
-                navigate("/login");
+                navigate("/loginByTrendsOfMedia");
                 toast.success(res.data.message);
             }
         } catch (error) {

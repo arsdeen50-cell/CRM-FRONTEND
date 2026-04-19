@@ -67,29 +67,25 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
     const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [showDuplicatePopup, setShowDuplicatePopup] = useState(false);
+    const [isDuplicate, setIsDuplicate] = useState(false);
 
     useEffect(() => {
   fetchOnboardings();
 }, []);
 
-    useEffect(() => {
-  if (showSuccessPopup) {
-    setTimeout(() => {
-      navigate("/login");
-    }, 1000);
+useEffect(() => {
+  const duplicate = onboardings.some((item) =>
+    item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
+    item.email?.toLowerCase() === email.toLowerCase() &&
+    item.mobileNo === mobileNo
+  );
+
+  setIsDuplicate(duplicate);
+
+  if (duplicate) {
+    setShowDuplicatePopup(true);
   }
-}, [showSuccessPopup]);
-
-const isDuplicate = onboardings.some((item) => 
-  item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
-  item.email?.toLowerCase() === email.toLowerCase() &&
-  item.mobileNo === mobileNo
-);
-
-if (isDuplicate) {
-  setShowDuplicatePopup(true);
-  return; // STOP submission
-}
+}, [candidateName, email, mobileNo, onboardings]);
 
     useEffect(() => {
         const fixed = parseFloat(offeredFixedCtc) || 0;
@@ -151,6 +147,17 @@ if (isDuplicate) {
     // Submit handler
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+          const duplicate = onboardings.some((item) =>
+    item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
+    item.email?.toLowerCase() === email.toLowerCase() &&
+    item.mobileNo === mobileNo
+  );
+
+  if (duplicate) {
+    setShowDuplicatePopup(true);
+    return;
+  }
 
         const formData = new FormData();
 
@@ -618,14 +625,7 @@ if (isDuplicate) {
 
                         {/* Form Actions */}
                         <div className="flex justify-end gap-3 pt-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={onClose || (() => navigate("/crm/goonboarding"))}
-                            >
-                                Cancel
-                            </Button>
-                            <Button type="submit" disabled={loading}>
+                            <Button type="submit" disabled={loading || isDuplicate}>
                                 {loading ? "Creating..." : "Create Onboarding"}
                             </Button>
                         </div>
@@ -667,7 +667,6 @@ if (isDuplicate) {
   message="Onboarding Created Successfully 🎉"
   onClose={() => {
     setShowSuccessPopup(false);
-    navigate("/crm/goonboardingdata");
   }}
 />
 

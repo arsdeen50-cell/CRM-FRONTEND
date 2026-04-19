@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 const EmployeeRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/loginByTrendsOfMedia" replace />;
   }
   if (user.role === "employee") {
     return null; 

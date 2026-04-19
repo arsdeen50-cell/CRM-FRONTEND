@@ -243,12 +243,46 @@ whatYoullGain.forEach((gain, index) => {
         });
 
         try {
-            await updateOnboarding(id, formData);
-            navigate("/crm/goonboardingdata");
-        } catch (error) {
-            console.error("Error updating onboarding:", error);
+           if (candidateStatus === "Approved") {
+            // Show confirmation dialog
+            const confirmApproval = window.confirm(
+                `Are you sure you want to approve ${candidateName}? This will create a user account and send login credentials to ${email}.`
+            );
+            
+            if (!confirmApproval) {
+                return; // Cancel approval
+            }
         }
-    };
+        
+        const response = await updateOnboarding(id, formData);
+
+            // Check if response indicates duplicate email
+        if (response?.error === "DUPLICATE_EMAIL") {
+            alert(`Cannot approve: User with email ${response.email} already exists in the system. Please use a different email address.`);
+            // Reset status back to previous value
+            setCandidateStatus(prevStatus);
+            return;
+        }
+        
+        // Success message
+        if (candidateStatus === "Approved") {
+            alert(`Candidate approved successfully! Login credentials have been sent to ${email}.`);
+        }
+        
+        navigate("/crm/goonboardingdata");
+        } catch (error) {
+        console.error("Error updating onboarding:", error);
+        
+        // Handle duplicate email error from API response
+        if (error.response?.data?.error === "DUPLICATE_EMAIL") {
+            alert(error.response.data.message || "User with this email already exists!");
+            // Reset status back to previous value
+            setCandidateStatus(prevStatus);
+        } else {
+            alert("Error updating onboarding. Please try again.");
+        }
+    }
+};
 
     if (isLoading) {
         return (

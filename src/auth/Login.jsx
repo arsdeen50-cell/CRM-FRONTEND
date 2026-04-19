@@ -153,16 +153,17 @@ const submitHandler = async (e) => {
                             Login
                         </Button>
                     )}
-
-                    <span className="text-sm">
-                        Dont have an account?{" "}
-                        <Link
-                            to="/signup"
-                            className="text-blue-600"
-                        >
-                            Signup
-                        </Link>
-                    </span>
+{user?.role === "admin" && (
+  <span className="text-sm">
+    Dont have an account?{" "}
+    <Link
+      to="/signupOnlyCompanyEmployee"
+      className="text-blue-600"
+    >
+      Signup
+    </Link>
+  </span>
+)}
                 </form>
             
             </div>
