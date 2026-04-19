@@ -140,11 +140,11 @@ export const navbarLinks = [
 //     },
 // ];
 
-export const backend_url = "http://localhost:8000/api"
+// export const backend_url = "http://localhost:8000/api"
 
 // http://localhost:3000
 
-// export const backend_url = "https://api.crm.arsdeen.cloud/api"
+export const backend_url = "https://api.crm.arsdeen.cloud/api"
 
 export const USER_API_END_POINT = `${backend_url}/v1/user`;
 
