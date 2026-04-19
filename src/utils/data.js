@@ -30,6 +30,53 @@ export const calculateDuration = (start, end) => {
 };
 
 
+export const calculateWorkDuration = (record) => {
+  if (!record.punchIn) return "0h 0m 0s";
+
+  const start = new Date(record.punchIn);
+  const end = record.punchOut ? new Date(record.punchOut) : new Date();
+
+  const totalSeconds = Math.floor((end - start) / 1000);
+
+  // Calculate break time including current break if any
+  let breakSeconds = 0;
+
+  record.breaks?.forEach((b) => {
+    if (b.breakStart) {
+      const breakStart = new Date(b.breakStart);
+      const breakEnd = b.breakEnd ? new Date(b.breakEnd) : new Date();
+      breakSeconds += (breakEnd - breakStart) / 1000;
+    }
+  });
+
+  const workSeconds = Math.max(0, totalSeconds - breakSeconds);
+
+  const hrs = Math.floor(workSeconds / 3600);
+  const mins = Math.floor((workSeconds % 3600) / 60);
+  const secs = Math.floor(workSeconds % 60);
+
+  return `${hrs}h ${mins}m ${secs}s`;
+};
+
+export const calculateBreakTime = (breaks = []) => {
+  let totalSeconds = 0;
+
+  breaks.forEach((b) => {
+    if (b.breakStart) {
+      const start = new Date(b.breakStart);
+      const end = b.breakEnd ? new Date(b.breakEnd) : new Date(); // ✅ LIVE BREAK
+
+      totalSeconds += (end - start) / 1000;
+    }
+  });
+
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = Math.floor(totalSeconds % 60);
+
+  return `${hrs}h ${mins}m ${secs}s`;
+};
+
 export const getLightBorder = (status) => {
   switch (status) {
     case "Pending":

@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { calculateDuration, formatDateSafe } from "@/utils/data";
+import { calculateBreakTime, calculateDuration, calculateWorkDuration, formatDateSafe } from "@/utils/data";
 
 const EmployeeAttendanceTable = ({ attendanceRecords }) => {
+
+    const [, forceUpdate] = useState(0);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    forceUpdate((prev) => prev + 1);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
     return (
         <div>
 
@@ -15,8 +25,10 @@ const EmployeeAttendanceTable = ({ attendanceRecords }) => {
                              <TableHead>Sr. No</TableHead> 
                             <TableHead>Date</TableHead>
                             <TableHead>Punch In</TableHead>
+                             <TableHead>Break Time</TableHead>
+                            <TableHead>Work Time</TableHead>
                             <TableHead>Punch Out</TableHead>
-                            <TableHead>Duration</TableHead>
+                            {/* <TableHead>Duration</TableHead> */}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -26,8 +38,15 @@ const EmployeeAttendanceTable = ({ attendanceRecords }) => {
                                      <TableCell>{index + 1}</TableCell>
                                     <TableCell>{formatDateSafe(record.punchIn, "dd MMM yyyy")}</TableCell>
                                     <TableCell>{formatDateSafe(record.punchIn, "h:mm a")}</TableCell>
+                                     <TableCell>
+                                      {calculateBreakTime(record.breaks)}
+                                    </TableCell>
+                                    
+                                    <TableCell className="font-semibold text-blue-500">
+                                      {calculateWorkDuration(record)}
+                                    </TableCell>
                                     <TableCell>{record.punchOut ? formatDateSafe(record.punchOut, "h:mm a") : "Not punched out"}</TableCell>
-                                    <TableCell>{calculateDuration(record.punchIn, record.punchOut)}</TableCell>
+                                    {/* <TableCell>{calculateDuration(record.punchIn, record.punchOut)}</TableCell> */}
                                 </TableRow>
                             ))
                         ) : (

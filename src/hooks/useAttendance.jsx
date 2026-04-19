@@ -22,51 +22,63 @@ const useAttendance = () => {
     const dispatch = useDispatch();
     const { token } = useSelector((state) => state.auth);
 
-    const punchIn = async () => {
-        try {
-            dispatch(punchInStart());
+ const punchIn = async () => {
+  try {
+    dispatch(punchInStart());
 
-            const res = await axiosInstance.post(
-                `${ATTENDANCE_API_END_POINT}/punch-in`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    withCredentials: true,
-                },
-            );
+    const res = await axiosInstance.post(
+      `${ATTENDANCE_API_END_POINT}/punch-in`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      }
+    );
 
-            dispatch(punchInSuccess(res.data));
-            toast.success("Punched in successfully");
-        } catch (error) {
-            dispatch(punchInFailure(error.message));
-            toast.error(error.message);
-        }
-    };
+    dispatch(punchInSuccess(res.data));
+
+    // ✅ ADD THIS (VERY IMPORTANT)
+    await getMyAttendance(); 
+
+    toast.success("Punched in successfully");
+
+    return { success: true };
+  } catch (error) {
+    dispatch(punchInFailure(error.message));
+    toast.error(error.message);
+    return { success: false };
+  }
+};
 
     const punchOut = async () => {
-        try {
-            dispatch(punchOutStart());
+  try {
+    dispatch(punchOutStart());
 
-            const res = await axiosInstance.post(
-                `${ATTENDANCE_API_END_POINT}/punch-out`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    withCredentials: true,
-                },
-            );
+    const res = await axiosInstance.post(
+      `${ATTENDANCE_API_END_POINT}/punch-out`,
+      {}, // ✅ FIX 2 also here (explained below)
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      }
+    );
 
-            dispatch(punchOutSuccess(res.data));
-            toast.success("Punched out successfully");
-        } catch (error) {
-            dispatch(punchOutFailure(error.response?.data?.message || error.message));
-            toast.error(error.response?.data?.message || "Failed to punch out");
-        }
-    };
+    dispatch(punchOutSuccess(res.data));
+
+    // ✅ VERY IMPORTANT (same as punchIn)
+    await getMyAttendance();
+
+    toast.success("Punched out successfully");
+
+    return { success: true }; // ✅ also return success
+  } catch (error) {
+    dispatch(punchOutFailure(error.response?.data?.message || error.message));
+    toast.error(error.response?.data?.message || "Failed to punch out");
+    return { success: false };
+  }
+};
 
     const getMyAttendance = async () => {
         try {
@@ -100,7 +112,41 @@ const useAttendance = () => {
         }
     };
 
-    return { punchIn, punchOut, getMyAttendance, deleteAttendance };
+const startBreak = async () => {
+  try {
+    const response = await axiosInstance.post(`${ATTENDANCE_API_END_POINT}/break-start`, {}, {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    toast.success("Break started");
+    return { success: true, data: response.data };
+  } catch (error) {
+    toast.error(error.response?.data?.msg || "Failed to start break");
+    return { success: false, error: error.response?.data?.msg };
+  }
+};
+
+const endBreak = async () => {
+  try {
+    const response = await axiosInstance.post(`${ATTENDANCE_API_END_POINT}/break-end`, {}, {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    toast.success("Break ended");
+    return { success: true, data: response.data };
+  } catch (error) {
+    toast.error(error.response?.data?.msg || "Failed to end break");
+    return { success: false, error: error.response?.data?.msg };
+  }
+};
+
+    return { punchIn, punchOut, getMyAttendance, deleteAttendance, startBreak, endBreak };
 };
 
 export default useAttendance;
