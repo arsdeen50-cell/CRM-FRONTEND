@@ -30,26 +30,22 @@ axiosInstance.interceptors.response.use(
       const { status, data } = error.response;
       const message = data?.message || 'Something went wrong';
 
-      // 🔴 ONLY handle auth failure
-      if (status === 401 && message.toLowerCase().includes('token')) {
+      // 🔴 Handle ALL 401 errors
+      if (status === 401) {
         toast.error('Session expired. Please login again.');
 
-        // Clear auth only for token issues
         store.dispatch(logout());
         localStorage.removeItem('token');
         delete axiosInstance.defaults.headers.common['Authorization'];
 
-        // Redirect ONLY if not already on login
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
       } 
-      // 🟡 All other errors → stay on same page
       else {
         toast.error(message);
       }
     } 
-    // Network / no response error
     else {
       toast.error('Network error. Please check your connection.');
     }

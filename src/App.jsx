@@ -55,6 +55,14 @@ function App() {
   const router = createBrowserRouter([
     // 🟢 Public routes (no login required)
     {
+          path: "crm/create-goonboarding",
+          element: (
+            // <EmployeeRoute>
+              <CreateGoOnBoardingForm />
+            // </EmployeeRoute>
+          ),
+        },
+    {
       path: "/candidate-form/:id",
       element: <CandidateForm />,
     },
@@ -142,14 +150,6 @@ function App() {
           element: (
             <EmployeeRoute>
               <GoOnBoarding />
-            </EmployeeRoute>
-          ),
-        },
-        {
-          path: "crm/create-goonboarding",
-          element: (
-            <EmployeeRoute>
-              <CreateGoOnBoardingForm />
             </EmployeeRoute>
           ),
         },

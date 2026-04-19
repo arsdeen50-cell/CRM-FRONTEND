@@ -10,11 +10,15 @@ import useGoOnBoarding from "@/hooks/useGoOnBoarding";
 import FilePreview from "./FilePreview";
 import ResponsibilitiesPopup from "./ResponsibilitiesPopup";
 import OfferLetterPreviewPopup from "./OfferLetterPreviewPopup";
+import { useSelector } from "react-redux";
+import SuccessPopup from "./SuccessPopup";
 
 
 const CreateGoOnBoardingForm = ({ onClose }) => {
     const navigate = useNavigate();
     const { createOnboarding, loading, previewOfferLetter } = useGoOnBoarding();
+    const { onboardings, fetchOnboardings } = useGoOnBoarding();
+    const { user } = useSelector((state) => state.auth);
 
     // Personal Information
     const [recruiterName, setRecruiterName] = useState("");
@@ -61,6 +65,31 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
     const [showOfferLetterPreview, setShowOfferLetterPreview] = useState(false);
     const [offerLetterPdfUrl, setOfferLetterPdfUrl] = useState(null);
     const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+    const [showDuplicatePopup, setShowDuplicatePopup] = useState(false);
+
+    useEffect(() => {
+  fetchOnboardings();
+}, []);
+
+    useEffect(() => {
+  if (showSuccessPopup) {
+    setTimeout(() => {
+      navigate("/login");
+    }, 1000);
+  }
+}, [showSuccessPopup]);
+
+const isDuplicate = onboardings.some((item) => 
+  item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
+  item.email?.toLowerCase() === email.toLowerCase() &&
+  item.mobileNo === mobileNo
+);
+
+if (isDuplicate) {
+  setShowDuplicatePopup(true);
+  return; // STOP submission
+}
 
     useEffect(() => {
         const fixed = parseFloat(offeredFixedCtc) || 0;
@@ -169,7 +198,8 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
 
         try {
             await createOnboarding(formData);
-            navigate("/crm/goonboardingdata");
+            // navigate("/crm/goonboardingdata");
+            setShowSuccessPopup(true);
         } catch (error) {
             console.error("Error creating onboarding:", error);
         }
@@ -190,10 +220,16 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                         <section className="space-y-4">
                             <h3 className="text-lg font-semibold">Personal Information</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Recruiter Name</Label>
-                                    <Input value={recruiterName} onChange={(e) => setRecruiterName(e.target.value)} required />
-                                </div>
+                              {user?.role === "admin" && (
+  <div>
+    <Label>Recruiter Name</Label>
+    <Input
+      value={recruiterName}
+      onChange={(e) => setRecruiterName(e.target.value)}
+      required
+    />
+  </div>
+)}
 
                                 <div>
                                     <Label>Profile Picture</Label>
@@ -267,6 +303,8 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                     <Label>Date of Joining</Label>
                                     <Input type="date" value={doj} onChange={(e) => setDoj(e.target.value)} required />
                                 </div>
+                                
+{user?.role === "admin" && (
                                 <div>
                                     <Label>Date of Ending (DOE)</Label>
                                     <Input 
@@ -275,6 +313,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                         onChange={(e) => setDoe(e.target.value)} 
                                     />
                                 </div>
+)}
 
                                 <div>
                                     <Label>Position Type</Label>
@@ -291,6 +330,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                     </Select>
                                 </div>
                             </div>
+                            {user?.role === "admin" && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                     <div className="space-y-3">
                                         <Label>Key Responsibilities</Label>
@@ -350,6 +390,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                         </div>
                                     </div>
                                 </div>
+                            )}
                             </section>
 
                         {/* Address Information */}
@@ -504,6 +545,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                     />
                                 </div>
 
+{user?.role === "admin" && (
                                 <div>
                                     <Label>Offered Fixed CTC</Label>
                                     <Input
@@ -512,7 +554,9 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                         onChange={(e) => setOfferedFixedCtc(e.target.value)}
                                     />
                                 </div>
+)}
 
+{user?.role === "admin" && (
                                 <div>
                                     <Label>Offered Variable CTC</Label>
                                     <Input
@@ -521,27 +565,33 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                         onChange={(e) => setOfferedVariableCtc(e.target.value)}
                                     />
                                 </div>
+)}
+
+{user?.role === "admin" && (
                                 <div>
                                     <Label>Offered Total CTC (Auto Calculated)</Label>
                                     <Input type="number" value={offeredTotalCtc} readOnly className="bg-gray-100 cursor-not-allowed" />
                                 </div>
+                            )}
 
-                                <div>
-                                    <Label>Candidate Status</Label>
-                                    <Select value={candidateStatus} onValueChange={setCandidateStatus}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Pending">Pending</SelectItem>
-                                            <SelectItem value="Send Link To Candidate">Send Link To Candidate</SelectItem>
-                                            <SelectItem value="Documents Submitted">Documents Submitted</SelectItem>
-                                            <SelectItem value="In Progress">In Progress</SelectItem>
-                                            <SelectItem value="Approved">Approved</SelectItem>
-                                            <SelectItem value="Rejected">Rejected</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                          {user?.role === "admin" && (
+  <div>
+    <Label>Candidate Status</Label>
+    <Select value={candidateStatus} onValueChange={setCandidateStatus}>
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="Pending">Pending</SelectItem>
+        <SelectItem value="Send Link To Candidate">Send Link To Candidate</SelectItem>
+        <SelectItem value="Documents Submitted">Documents Submitted</SelectItem>
+        <SelectItem value="In Progress">In Progress</SelectItem>
+        <SelectItem value="Approved">Approved</SelectItem>
+        <SelectItem value="Rejected">Rejected</SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+)}
 
                                       {/* NEW: Preview Offer Letter Button */}
                                       {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -611,6 +661,21 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                     pdfUrl={offerLetterPdfUrl}
                     isLoading={isGeneratingPreview}
                 />
+
+                <SuccessPopup
+  isOpen={showSuccessPopup}
+  message="Onboarding Created Successfully 🎉"
+  onClose={() => {
+    setShowSuccessPopup(false);
+    navigate("/crm/goonboardingdata");
+  }}
+/>
+
+<SuccessPopup
+  isOpen={showDuplicatePopup}
+  message="Form already submitted 🚫 You cannot fill it again"
+  onClose={() => setShowDuplicatePopup(false)}
+/>
             </div>
         </div>
     );

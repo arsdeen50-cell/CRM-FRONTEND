@@ -47,6 +47,9 @@ const DashboardPage = () => {
     const { data: userAttendance, loading: userLoading, error: userError, refetch } = useGetAttendance();
     const { punchIn, punchOut, loading: attendanceActionLoading } = useAttendance();
     const [isAnimating, setIsAnimating] = useState(false);
+    const [seconds, setSeconds] = useState(0);
+const [isRunning, setIsRunning] = useState(false);
+const [isBreak, setIsBreak] = useState(false);
 
     useGetAllAttendance();
 
@@ -54,35 +57,53 @@ const DashboardPage = () => {
     const attendanceRecords = Array.isArray(allAttendance) ? allAttendance : allAttendance?.attendance || [];
     const userAttendanceRecords = Array.isArray(userAttendance) ? userAttendance : userAttendance?.attendance || [];
 
+    useEffect(() => {
+  let interval;
+
+  if (isRunning && !isBreak) {
+    interval = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+  }
+
+  return () => clearInterval(interval);
+}, [isRunning, isBreak]);
+
     // Handle punch actions with animation
     const handlePunchIn = async () => {
         setIsAnimating(true);
         await punchIn();
         await refetch();
-        setTimeout(() => setIsAnimating(false), 1000);
+        setIsRunning(true);
+  setIsBreak(false);
+  setSeconds(0); 
+
+  setTimeout(() => setIsAnimating(false), 1000);
     };
+
+    const handleBreakToggle = () => {
+  setIsBreak((prev) => !prev);
+};
 
     const handlePunchOut = async () => {
         setIsAnimating(true);
         await punchOut();
         await refetch();
-        setTimeout(() => setIsAnimating(false), 1000);
+       setIsRunning(false);
+  setIsBreak(false);
+
+  setTimeout(() => setIsAnimating(false), 1000);
     };
 
-    const formatDateSafe = (date, formatStr = "h:mm a") => {
-        if (!date) return "N/A";
-        try {
-            const dateObj = new Date(date);
-            if (isNaN(dateObj.getTime())) return "Invalid Date";
-            return new Intl.DateTimeFormat("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-            }).format(dateObj);
-        } catch (e) {
-            return "Invalid Date";
-        }
-    };
+const formatTime = (totalSeconds) => {
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+
+  return `${hrs.toString().padStart(2, "0")}:${mins
+    .toString()
+    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
 
     const calculateDuration = (start, end) => {
         if (!start) return "0h 0m";
@@ -478,6 +499,17 @@ const DashboardPage = () => {
     <CheckCircle className="mr-2 h-4 w-4" />
     Punch In
   </Button>
+
+
+   {isRunning && (
+    <Button
+      onClick={handleBreakToggle}
+      className="w-full bg-yellow-500 text-white"
+    >
+      {isBreak ? "Resume Work" : "Take Break"}
+    </Button>
+  )}
+
 
   {/* Punch Out Button */}
   <Button

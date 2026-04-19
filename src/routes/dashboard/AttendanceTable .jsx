@@ -27,9 +27,18 @@ const AttendanceTable = ({ attendanceRecords }) => {
   });
   const [filteredRecords, setFilteredRecords] = useState(attendanceRecords || []);
   const [currentPage, setCurrentPage] = useState(1);
+  const [, forceUpdate] = useState(0);
   const recordsPerPage = 10;
 
   const { deleteAttendance, getMyAttendance } = useAttendance();
+
+  useEffect(() => {
+  const interval = setInterval(() => {
+    forceUpdate(prev => prev + 1); // re-render every second
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
 
   useEffect(() => {
     setFilteredRecords(attendanceRecords || []);
@@ -174,7 +183,7 @@ const AttendanceTable = ({ attendanceRecords }) => {
             <TableBody>
               {paginatedRecords.length ? (
                 paginatedRecords.map((record, index) => (
-                  <TableRow key={index}>
+                  <TableRow key={record._id}>
                     <TableCell>
                       <div className="flex items-center gap-x-4">
                         <button
@@ -197,7 +206,7 @@ const AttendanceTable = ({ attendanceRecords }) => {
                     </TableCell>
                     {/* <TableCell>{record.punchOutLocationName}</TableCell> */}
                     <TableCell className={`font-semibold ${!record.punchIn || !record.punchOut ? "dark:text-white" : "text-blue-500"}`}>
-                      {calculateDuration(record.punchIn, record.punchOut)}
+          {calculateDuration(record.punchIn, record.punchOut)}
                     </TableCell>
                   </TableRow>
                 ))

@@ -8,21 +8,26 @@ export const formatDateSafe = (date, dateFormat) => {
     return isValid(dateObj) ? format(dateObj, dateFormat) : "Invalid Date";
 };
 
-export function calculateDuration(punchIn, punchOut) {
-  if (!punchIn || !punchOut) return "N/A";
+export const calculateDuration = (start, end) => {
+  if (!start) return "N/A";
 
-  const inTime = new Date(punchIn);
-  const outTime = new Date(punchOut);
-  const diffMs = outTime - inTime;
+  const startDate = new Date(start);
+  const endDate = end ? new Date(end) : new Date();
 
-  if (isNaN(diffMs) || diffMs < 0) return "N/A";
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return "N/A";
+  }
 
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+  const diffMs = endDate - startDate;
 
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
+  const totalSeconds = Math.floor(diffMs / 1000);
+
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+
+  return `${hrs}h ${mins}m ${secs}s`;
+};
 
 
 export const getLightBorder = (status) => {

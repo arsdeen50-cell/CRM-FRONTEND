@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { useParams, useNavigate } from "react-router-dom";
 import FilePreview from "./FilePreview";
 import { ONBOARDING_API_END_POINT } from "@/constants";
+import FormAlreadySubmitted from "./FormAlreadySubmitted";
+import FormSubmittedSuccess from "./FormSubmittedSuccess";
 
 const CandidateForm = () => {
   const { id } = useParams();
@@ -33,6 +35,7 @@ const CandidateForm = () => {
   const [IfcCode, setIfcCode] = useState("");
   const [emergencyContactName, setEmergencyContactName] = useState("");
   const [emergencyContactNo, setEmergencyContactNo] = useState("");
+  const [isAlreadyVisited, setIsAlreadyVisited] = useState(false);
 
   // File states
   const [chequePassBookImage, setChequePassBookImage] = useState(null);
@@ -59,6 +62,7 @@ const CandidateForm = () => {
 
           if (data.onboarding.candidateFormSubmitted) {
             setIsSubmitted(true);
+            setIsAlreadyVisited(true);
           }
         }
       } catch (error) {
@@ -70,6 +74,14 @@ const CandidateForm = () => {
 
     if (id) fetchCandidateData();
   }, [id]);
+
+  if (isSubmitted && isAlreadyVisited) {
+  return <FormAlreadySubmitted />;
+}
+
+if (isSubmitted) {
+  return <FormSubmittedSuccess />;
+}
 
   // File handling
   const handleFileUpload = (file, setter) => {
