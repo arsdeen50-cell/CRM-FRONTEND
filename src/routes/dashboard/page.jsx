@@ -29,6 +29,9 @@ import {
     AlertCircle,
     CheckCircle2,
     Timer,
+    Key,
+    Copy,
+    Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useAttendance from "@/hooks/useAttendance";
@@ -54,6 +57,7 @@ import {
     Area,
 } from "recharts";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const DashboardPage = () => {
     const { theme } = useTheme();
@@ -67,6 +71,10 @@ const DashboardPage = () => {
     const [isWorking, setIsWorking] = useState(false);
     const [isBreak, setIsBreak] = useState(false);
     const [lastUpdateTime, setLastUpdateTime] = useState(null);
+    
+    // State for copy functionality
+    const [copiedSignup, setCopiedSignup] = useState(false);
+    const [copiedForgot, setCopiedForgot] = useState(false);
 
     useGetAllAttendance();
 
@@ -231,6 +239,21 @@ const DashboardPage = () => {
         }
     };
 
+    // Copy link function
+    const copyToClipboard = (text, type) => {
+        navigator.clipboard.writeText(text).then(() => {
+            if (type === 'signup') {
+                setCopiedSignup(true);
+                setTimeout(() => setCopiedSignup(false), 2000);
+            } else if (type === 'forgot') {
+                setCopiedForgot(true);
+                setTimeout(() => setCopiedForgot(false), 2000);
+            }
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    };
+
     // Calculate advanced statistics
     const calculateStats = () => {
         const records = user?.role === "admin" ? attendanceRecords : userAttendanceRecords;
@@ -388,6 +411,9 @@ const DashboardPage = () => {
         safeTodayAttendance.punchOut && safeTodayAttendance.punchIn
             ? calculateDurationFn(safeTodayAttendance.punchIn, safeTodayAttendance.punchOut)
             : "0h 0m";
+            
+    // Get the current URL base
+    const baseUrl = window.location.origin;
 
     return (
         <div className="flex min-h-screen flex-col gap-6 bg-gradient-to-br from-slate-50 to-blue-50 p-6 dark:from-slate-900 dark:to-slate-800">
@@ -425,6 +451,57 @@ const DashboardPage = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Admin Only Buttons with Copy Functionality */}
+                    {user?.role === "admin" && (
+                        <div className="flex flex-wrap gap-2">
+                            {/* Signup Button with Copy */}
+                            <div className="flex gap-1">
+                                <Link to="/signup">
+                                    <Button className="bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700">
+                                        {/* <Plus className="mr-2 h-4 w-4" /> */}
+                                        New sign up employee
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="border-green-500 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30"
+                                    onClick={() => copyToClipboard(`${baseUrl}/signup`, 'signup')}
+                                    title="Copy signup link"
+                                >
+                                    {copiedSignup ? (
+                                        <Check className="h-4 w-4" />
+                                    ) : (
+                                        <Copy className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </div>
+
+                            {/* Forgot Password Button with Copy */}
+                            <div className="flex gap-1">
+                                <Link to="/forgot-password">
+                                    <Button variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30">
+                                        <Key className="mr-2 h-4 w-4" />
+                                        Reset password
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="border-amber-500 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                                    onClick={() => copyToClipboard(`${baseUrl}/forgot-password`, 'forgot')}
+                                    title="Copy forgot password link"
+                                >
+                                    {copiedForgot ? (
+                                        <Check className="h-4 w-4" />
+                                    ) : (
+                                        <Copy className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -493,6 +570,7 @@ const DashboardPage = () => {
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <Users className="h-5 w-5 text-blue-500" />
                                 {user?.role === "admin" ? "All Employees Attendance" : "Your Attendance History"}
+                                
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">

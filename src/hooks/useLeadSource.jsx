@@ -1,4 +1,3 @@
-// useLeadSource.js
 import { useState } from "react";
 import axiosInstance from "@/utils/axiosConfig";
 import { toast } from "sonner";
@@ -28,12 +27,10 @@ const useLeadSource = () => {
     try {
       setLoading(true);
       const res = await axiosInstance.post(LEAD_SOURCE_API, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Lead created successfully");
-      await fetchLeads(); // Refresh list
+      await fetchLeads();
       return res.data.lead;
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Failed to create lead";
@@ -50,9 +47,7 @@ const useLeadSource = () => {
     try {
       setLoading(true);
       const res = await axiosInstance.put(`${LEAD_SOURCE_API}/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Lead updated successfully");
       await fetchLeads();
@@ -61,6 +56,52 @@ const useLeadSource = () => {
       const errorMessage = err.response?.data?.message || "Failed to update lead";
       toast.error(errorMessage);
       console.error("Update error:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔹 Move a lead between pipeline stages (Kanban drag, dropdown, Won/Lost action)
+  const updateLeadStage = async (id, stage, changedBy, reason) => {
+    try {
+      // Optimistic update so Kanban drag feels instant
+      setLeads((prev) =>
+        prev.map((lead) => (lead._id === id ? { ...lead, pipelineStage: stage } : lead))
+      );
+      const res = await axiosInstance.patch(`${LEAD_SOURCE_API}/${id}/stage`, {
+        stage,
+        changedBy,
+        reason,
+      });
+      toast.success(`Moved to "${stage}"`);
+      await fetchLeads();
+      return res.data.lead;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Failed to update stage";
+      toast.error(errorMessage);
+      console.error("Stage update error:", err);
+      await fetchLeads(); // revert optimistic update
+      throw err;
+    }
+  };
+
+  // 🔹 Log a quick activity (call / email / meeting / note)
+  const logActivity = async (id, { type, note, loggedBy }) => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.post(`${LEAD_SOURCE_API}/${id}/activity`, {
+        type,
+        note,
+        loggedBy,
+      });
+      toast.success("Activity logged");
+      await fetchLeads();
+      return res.data.lead;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Failed to log activity";
+      toast.error(errorMessage);
+      console.error("Log activity error:", err);
       throw err;
     } finally {
       setLoading(false);
@@ -107,8 +148,10 @@ const useLeadSource = () => {
     fetchLeads,
     createLead,
     updateLead,
+    updateLeadStage,
+    logActivity,
     deleteLead,
-    deleteDocument
+    deleteDocument,
   };
 };
 

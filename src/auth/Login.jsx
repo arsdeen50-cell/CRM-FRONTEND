@@ -157,7 +157,7 @@ const submitHandler = async (e) => {
   <span className="text-sm">
     Dont have an account?{" "}
     <Link
-      to="/signupOnlyCompanyEmployee"
+      to="/signup"
       className="text-blue-600"
     >
       Signup

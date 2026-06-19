@@ -7,7 +7,7 @@ const CrmRoute = ({ children }) => {
 
   // If not logged in, send to login
   if (!user) {
-    return <Navigate to="/loginByTrendsOfMedia" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // If user is not admin, show unauthorized message
