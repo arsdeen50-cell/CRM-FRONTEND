@@ -9,6 +9,11 @@ export const navbarLinks = [
                 icon: Home,
                 path: "/",
             },
+              {
+                label: "CRM",
+                icon: PackagePlus,
+                path: "/crm",
+            },
             {
                 label: "Task",
                 icon: NotepadText,
@@ -28,11 +33,6 @@ export const navbarLinks = [
                 label: "Leave",
                 icon: Users,
                 path: "/leave",
-            },
-            {
-                label: "CRM",
-                icon: PackagePlus,
-                path: "/crm",
             },
 
         ],

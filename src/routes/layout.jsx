@@ -29,14 +29,14 @@ const Layout = () => {
     }
   });
 
-  if (shouldHideSidebar) {
-    // Simple clean layout without sidebar/header
-    return (
-      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 p-6">
-        <Outlet />
-      </div>
-    );
-  }
+  // if (shouldHideSidebar) {
+  //   // Simple clean layout without sidebar/header
+  //   return (
+  //     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 p-6">
+  //       <Outlet />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-slate-100 transition-colors dark:bg-slate-950">

@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Clock, 
   Mail, 
@@ -122,7 +123,7 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
                 <p>No stage history available</p>
               </div>
             ) : (
-              <div className="max-h-[250px] overflow-y-auto border rounded-md p-2">
+              <ScrollArea className="h-[250px] rounded-md border p-2">
                 <div className="space-y-2 pr-2">
                   {lead.stageHistory.map((item, index) => (
                     <div 
@@ -152,7 +153,7 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </ScrollArea>
             )}
           </div>
 
@@ -172,7 +173,7 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
                 <p>No activity logs available</p>
               </div>
             ) : (
-              <div className="max-h-[250px] overflow-y-auto border rounded-md p-2">
+              <ScrollArea className="h-[250px] rounded-md border p-2">
                 <div className="space-y-2 pr-2">
                   {lead.activityLog.map((log, index) => (
                     <div 
@@ -203,7 +204,7 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </ScrollArea>
             )}
           </div> */}
         </div>

@@ -25,15 +25,16 @@ const Crm = () => {
       icon: <BarChart3 className="text-blue-600" size={20} />,
       options: [
         // { label: "Leads", icon: <Users size={18} className="text-blue-500" /> },
+         {
+          label: "Leads client",
+          icon: <Users size={18} className="text-blue-500" />,
+          route: "/crm/lead-list",
+        },
         {
-          label: "Lead Source",
+          label: "Lead source",
           icon: <Target size={18} className="text-blue-500" />,
           route: "/crm/lead-source",
         },
-        // {
-        //   label: "Appointments",
-        //   icon: <CalendarDays size={18} className="text-blue-500" />,
-        // },
       ],
     },
     {

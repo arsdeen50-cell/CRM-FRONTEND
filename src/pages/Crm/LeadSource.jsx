@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CrmRoute from "@/components/crm/CrmRoute";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,9 @@ import {
   Search,
   Filter,
   X,
+  BookOpen,
+  Trash2,
+  Users,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import useLeadSource from "@/hooks/useLeadSource";
@@ -32,6 +36,7 @@ import KanbanBoard from "@/components/crm/Kanbanboard";
 import SummaryStats from "@/components/crm/SummaryStats";
 import MultiSelectFilter from "@/components/crm/Multiselectfilter";
 import { formatCurrency, isOverdue, PIPELINE_STAGES, STAGE_COLORS } from "@/hooks/Pipelineconstants";
+import LeadLogsDialog from "@/components/crm/Activitylogdialog";
 
 const STATUS_OPTIONS = [
   "New Lead",
@@ -75,10 +80,11 @@ const emptyFilters = {
 };
 
 const LeadSource = () => {
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const currentUser = user?.fullname || "Unknown";
 
-  const { leads, loading, fetchLeads, createLead, updateLead, updateLeadStage, logActivity } =
+  const { leads, loading, fetchLeads, createLead, updateLead, updateLeadStage, logActivity, deleteLead } =
     useLeadSource();
 
   const [draftFilters, setDraftFilters] = useState(emptyFilters);
@@ -90,6 +96,10 @@ const LeadSource = () => {
   const [editData, setEditData] = useState(null);
   const [activityLead, setActivityLead] = useState(null);
   const [openActivityModal, setOpenActivityModal] = useState(false);
+  const [logsLead, setLogsLead] = useState(null);
+  const [openLogsModal, setOpenLogsModal] = useState(false);
+  const [deleteLeadId, setDeleteLeadId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [sortBy, setSortBy] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
 
@@ -112,6 +122,7 @@ const LeadSource = () => {
           lead.createdBy || "",
           lead.pipelineStage || "",
           lead.notes || "",
+          lead.clientName || "",
           lead.companyName || "",
           lead.contactName || "",
           lead.email || "",
@@ -219,6 +230,24 @@ const LeadSource = () => {
     setOpenActivityModal(true);
   };
 
+  const handleOpenLogs = (lead) => {
+    setLogsLead(lead);
+    setOpenLogsModal(true);
+  };
+
+  const handleDeleteClick = (id) => {
+    setDeleteLeadId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteLeadId) {
+      await deleteLead(deleteLeadId);
+      setDeleteLeadId(null);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const applyFilters = () => {
     setFilters(draftFilters);
     setCurrentPage(1);
@@ -245,6 +274,7 @@ const LeadSource = () => {
   const handleExport = () => {
     const headers = [
       "Series",
+      "Client Name",
       "Stage",
       "Status",
       "Priority",
@@ -259,6 +289,7 @@ const LeadSource = () => {
 
     const rows = sortedLeads.map((lead) => [
       lead.series || "",
+      lead.clientName || "",
       lead.pipelineStage || "Lead",
       lead.leadStatusType || "",
       lead.priority || "",
@@ -397,6 +428,16 @@ const LeadSource = () => {
                   <LayoutGrid className="h-4 w-4 mr-1" /> Kanban
                 </Button>
               </div>
+
+              {/* View All Clients Button - Redirects to /crm/lead-list */}
+              <Button
+                variant="outline"
+                onClick={() => navigate("/crm/lead-list")}
+                className="flex items-center gap-2"
+              >
+                <Users className="h-4 w-4" />
+                View All Clients
+              </Button>
 
               <Button variant="outline" onClick={handleExport} disabled={sortedLeads.length === 0}>
                 <Download className="h-4 w-4 mr-2" /> Export
@@ -586,6 +627,7 @@ const LeadSource = () => {
                     <TableRow>
                       <TableHead>Action</TableHead>
                       <TableHead>Series</TableHead>
+                      <TableHead>Client Name</TableHead>
                       <TableHead>Stage</TableHead>
                       <TableHead className="cursor-pointer select-none" onClick={() => handleSort("dealValue")}>
                         Deal Value {sortBy === "dealValue" ? (sortDir === "asc" ? "↑" : "↓") : ""}
@@ -608,7 +650,7 @@ const LeadSource = () => {
                       return (
                         <TableRow key={lead._id}>
                           <TableCell>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-0.5 flex-wrap">
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -626,6 +668,15 @@ const LeadSource = () => {
                                 onClick={() => handleOpenActivity(lead)}
                               >
                                 <Clock className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-600 hover:text-red-800 h-7 w-7"
+                                title="Delete"
+                                onClick={() => handleDeleteClick(lead._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                               {!["Won", "Lost"].includes(stage) && (
                                 <>
@@ -655,6 +706,7 @@ const LeadSource = () => {
                             </div>
                           </TableCell>
                           <TableCell>{lead.series || "—"}</TableCell>
+                          <TableCell className="font-medium">{lead.clientName || "—"}</TableCell>
                           <TableCell>{getStageBadge(lead)}</TableCell>
                           <TableCell className="font-medium">
                             {formatCurrency(lead.dealValue, lead.currency)}
@@ -753,6 +805,32 @@ const LeadSource = () => {
           currentUser={currentUser}
           onSubmit={logActivity}
         />
+
+        {/* Simple Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Are you sure?</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                This action cannot be undone. This will permanently delete the lead and all associated data.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </CrmRoute>
   );

@@ -23,6 +23,7 @@ import CreateGoOnBoardingForm from "./components/crm/GoOnBoarding/CreateGoOnBoar
 import EditGoOnBoardingForm from "./components/crm/GoOnBoarding/EditGoOnBoardingForm";
 import CandidateForm from "./components/crm/GoOnBoarding/CandidateForm";
 import ForgotPassword from "./auth/ForgotPassword";
+import LeadClientList from "./pages/Crm/LeadClientList";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -142,6 +143,15 @@ function App() {
           element: (
             <EmployeeRoute>
               <LeadSource />
+            </EmployeeRoute>
+          ),
+        },
+
+         {
+          path: "crm/lead-list",
+          element: (
+            <EmployeeRoute>
+              <LeadClientList />
             </EmployeeRoute>
           ),
         },
