@@ -21,8 +21,18 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
 
     // Lead Details Form (Step 2 only)
     const [formData, setFormData] = useState({
-        clientId: "",
-        clientName: "",
+        // Client fields (from LeadClientList)
+        leadInformation: "",
+        brandName: "",
+        contactPerson: "",
+        email: "",
+        phone: "",
+        role: "",
+        industry: "",
+        location: "",
+        instagramLink: "",
+        websiteLink: "",
+        // Lead fields
         serviceType: [],
         leadSourceType: "",
         leadStatusType: "",
@@ -37,12 +47,15 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
 
     const [files, setFiles] = useState([]);
     const [existingDocuments, setExistingDocuments] = useState([]);
-    const [clients, setClients] = useState([]);
-    const [loadingClients, setLoadingClients] = useState(false);
+    const [loading, setLoading] = useState(false);
     
     // Activity Logs
     const [activityLogs, setActivityLogs] = useState([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
+
+    // Won Stage Popup
+    const [showWonPopup, setShowWonPopup] = useState(false);
+    const [pendingSubmitData, setPendingSubmitData] = useState(null);
 
     const teamOptions = {
         "Website Team": ["UI Developer", "Backend Developer", "SEO Specialist"],
@@ -67,20 +80,6 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
         "performance marketing"
     ];
 
-    // Fetch clients for dropdown
-    const fetchClients = async () => {
-        try {
-            setLoadingClients(true);
-            const res = await axiosInstance.get("/v1/leadclient");
-            setClients(res.data?.clients || []);
-        } catch (err) {
-            toast.error("Failed to fetch clients");
-            console.error("Fetch clients error:", err);
-        } finally {
-            setLoadingClients(false);
-        }
-    };
-
     // Fetch activity logs for a specific lead
     const fetchActivityLogs = async (leadId) => {
         if (!leadId) return;
@@ -97,7 +96,6 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
 
     useEffect(() => {
         if (open) {
-            fetchClients();
             if (isEditMode && editData?._id) {
                 fetchActivityLogs(editData._id);
             }
@@ -108,8 +106,18 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
     useEffect(() => {
         if (isEditMode && editData) {
             setFormData({
-                clientId: editData.clientId || "",
-                clientName: editData.clientName || "",
+                // Client fields from editData
+                leadInformation: editData.leadInformation || "",
+                brandName: editData.brandName || "",
+                contactPerson: editData.contactPerson || "",
+                email: editData.email || "",
+                phone: editData.phone || "",
+                role: editData.role || "",
+                industry: editData.industry || "",
+                location: editData.location || "",
+                instagramLink: editData.instagramLink || "",
+                websiteLink: editData.websiteLink || "",
+                // Lead fields
                 serviceType: editData.serviceType || [],
                 leadSourceType: editData.leadSourceType || "",
                 leadStatusType: editData.leadStatusType || "",
@@ -125,8 +133,16 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
         } else if (!open) {
             // Reset on close
             setFormData({
-                clientId: "",
-                clientName: "",
+                leadInformation: "",
+                brandName: "",
+                contactPerson: "",
+                email: "",
+                phone: "",
+                role: "",
+                industry: "",
+                location: "",
+                instagramLink: "",
+                websiteLink: "",
                 serviceType: [],
                 leadSourceType: "",
                 leadStatusType: "",
@@ -141,6 +157,8 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
             setFiles([]);
             setExistingDocuments([]);
             setActivityLogs([]);
+            setShowWonPopup(false);
+            setPendingSubmitData(null);
         }
     }, [editData, isEditMode, open, currentUser]);
 
@@ -150,18 +168,6 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
             [field]: value,
             ...(field === "teamAssigned" ? { teamMember: "" } : {}),
         }));
-    };
-
-    // Handle client selection from dropdown
-    const handleClientChange = (clientId) => {
-        const selectedClient = clients.find(c => c._id === clientId);
-        if (selectedClient) {
-            setFormData((prev) => ({
-                ...prev,
-                clientId: selectedClient._id,
-                clientName: selectedClient.brandName,
-            }));
-        }
     };
 
     const handleFileChange = (e) => {
@@ -180,38 +186,83 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
         setExistingDocuments(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!formData.clientId) {
-            toast.error("Please select a client from the dropdown");
-            return;
-        }
-
-        if (!formData.serviceType.length || !formData.leadSourceType || !formData.leadStatusType) {
-            toast.error("Please fill in required fields: Service Type, Lead Source, and Lead Status");
-            return;
-        }
-
+    // Create client entry in LeadClient
+    const createLeadClient = async (clientData) => {
         try {
+            const payload = {
+                leadInformation: clientData.leadInformation,
+                brandName: clientData.brandName,
+                contactPerson: clientData.contactPerson,
+                email: clientData.email,
+                phone: clientData.phone,
+                role: clientData.role || "",
+                industry: clientData.industry || "",
+                location: clientData.location || "",
+                instagramLink: clientData.instagramLink || "",
+                websiteLink: clientData.websiteLink || "",
+                createdBy: currentUser,
+            };
+
+            const res = await axiosInstance.post("/v1/leadclient", payload);
+            return res.data.client;
+        } catch (err) {
+            console.error("Error creating lead client:", err);
+            throw err;
+        }
+    };
+
+    const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    if (!formData.brandName || !formData.contactPerson || !formData.email || !formData.phone) {
+        toast.error("Please fill in all required client fields: Brand Name, Contact Person, Email, and Phone");
+        return;
+    }
+
+    if (!formData.serviceType.length || !formData.leadSourceType || !formData.leadStatusType) {
+        toast.error("Please fill in required fields: Service Type, Lead Source, and Lead Status");
+        return;
+    }
+
+    // Check if stage is Won - only for new leads (not edit mode)
+    // In edit mode, the parent component handles the stage change
+    if (formData.leadStatusType === "Won" && !isEditMode) {
+        // Show popup before creating
+        setPendingSubmitData(formData);
+        setShowWonPopup(true);
+        return;
+    }
+
+    // Proceed with normal submit
+    await performSubmit(formData);
+};
+
+    const performSubmit = async (data) => {
+        try {
+            setLoading(true);
             const submitData = new FormData();
 
-            // Append client info
-            if (formData.clientId) {
-                submitData.append('clientId', formData.clientId);
-            }
-            if (formData.clientName) {
-                submitData.append('clientName', formData.clientName);
-            }
+            // Append all client fields
+            submitData.append('leadInformation', data.leadInformation || "");
+            submitData.append('brandName', data.brandName || "");
+            submitData.append('contactPerson', data.contactPerson || "");
+            submitData.append('email', data.email || "");
+            submitData.append('phone', data.phone || "");
+            submitData.append('role', data.role || "");
+            submitData.append('industry', data.industry || "");
+            submitData.append('location', data.location || "");
+            submitData.append('instagramLink', data.instagramLink || "");
+            submitData.append('websiteLink', data.websiteLink || "");
 
             // Append all form fields
-            Object.keys(formData).forEach(key => {
+            Object.keys(data).forEach(key => {
                 if (key === 'serviceType') {
-                    formData.serviceType.forEach(value => {
+                    data.serviceType.forEach(value => {
                         submitData.append('serviceType', value);
                     });
-                } else if (!['clientId', 'clientName'].includes(key)) {
-                    submitData.append(key, formData[key]);
+                } else if (!['leadInformation', 'brandName', 'contactPerson', 'email', 'phone', 'role', 'industry', 'location', 'instagramLink', 'websiteLink'].includes(key)) {
+                    submitData.append(key, data[key]);
                 }
             });
 
@@ -231,8 +282,16 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
             if (!isEditMode) {
                 setFiles([]);
                 setFormData({
-                    clientId: "",
-                    clientName: "",
+                    leadInformation: "",
+                    brandName: "",
+                    contactPerson: "",
+                    email: "",
+                    phone: "",
+                    role: "",
+                    industry: "",
+                    location: "",
+                    instagramLink: "",
+                    websiteLink: "",
                     serviceType: [],
                     leadSourceType: "",
                     leadStatusType: "",
@@ -246,9 +305,54 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                 });
             }
 
+            setShowWonPopup(false);
+            setPendingSubmitData(null);
+
         } catch (error) {
             console.error("Error submitting lead:", error);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    // Handle Won popup confirmation
+    const handleWonConfirm = async () => {
+        try {
+            // First, create the client entry
+            const clientData = {
+                leadInformation: pendingSubmitData.leadInformation,
+                brandName: pendingSubmitData.brandName,
+                contactPerson: pendingSubmitData.contactPerson,
+                email: pendingSubmitData.email,
+                phone: pendingSubmitData.phone,
+                role: pendingSubmitData.role,
+                industry: pendingSubmitData.industry,
+                location: pendingSubmitData.location,
+                instagramLink: pendingSubmitData.instagramLink,
+                websiteLink: pendingSubmitData.websiteLink,
+            };
+
+            const newClient = await createLeadClient(clientData);
+            toast.success("Client created successfully!");
+
+            // Now submit the lead with the client ID
+            const leadData = {
+                ...pendingSubmitData,
+                clientId: newClient._id,
+                clientName: newClient.brandName,
+            };
+
+            await performSubmit(leadData);
+
+        } catch (err) {
+            toast.error("Failed to create client entry. Please try again.");
+            console.error(err);
+        }
+    };
+
+    const handleWonCancel = () => {
+        setShowWonPopup(false);
+        setPendingSubmitData(null);
     };
 
     // Format date for display
@@ -275,438 +379,472 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[90vh] overflow-y-auto p-4 sm:max-w-[900px] sm:p-6">
-                <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-semibold">
-                            {isEditMode ? "Edit Lead" : "Add New Lead"}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {isEditMode
-                                ? "Update the details below and save changes."
-                                : "Select a client and fill in the lead details below."}
-                        </DialogDescription>
-                    </DialogHeader>
+        <>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="max-h-[90vh] overflow-y-auto p-4 sm:max-w-[900px] sm:p-6">
+                    <form onSubmit={handleSubmit}>
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-semibold">
+                                {isEditMode ? "Edit Lead" : "Add New Lead"}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {isEditMode
+                                    ? "Update the details below and save changes."
+                                    : "Fill in the client and lead details below."}
+                            </DialogDescription>
+                        </DialogHeader>
 
-                    <div className="py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {/* Client Dropdown - Shows existing clients from other module */}
-                            <div className="grid gap-2">
-                                <Label>Select Client *</Label>
-                                <div className="flex gap-2">
+                        <div className="py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {/* CLIENT FIELDS - Top Section */}
+                                <div className="col-span-full">
+                                    <h3 className="text-sm font-semibold text-gray-700 mb-2 border-b pb-1">Client Information</h3>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Lead Information *</Label>
+                                    <Input
+                                        value={formData.leadInformation}
+                                        onChange={(e) => handleChange("leadInformation", e.target.value)}
+                                        placeholder="Enter lead information"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Brand Name *</Label>
+                                    <Input
+                                        value={formData.brandName}
+                                        onChange={(e) => handleChange("brandName", e.target.value)}
+                                        placeholder="Enter brand name"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Contact Person *</Label>
+                                    <Input
+                                        value={formData.contactPerson}
+                                        onChange={(e) => handleChange("contactPerson", e.target.value)}
+                                        placeholder="Enter contact person name"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Email *</Label>
+                                    <Input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => handleChange("email", e.target.value)}
+                                        placeholder="Enter email"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Phone *</Label>
+                                    <Input
+                                        value={formData.phone}
+                                        onChange={(e) => handleChange("phone", e.target.value)}
+                                        placeholder="Enter phone number"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Role</Label>
+                                    <Input
+                                        value={formData.role}
+                                        onChange={(e) => handleChange("role", e.target.value)}
+                                        placeholder="Enter role"
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Industry</Label>
+                                    <Input
+                                        value={formData.industry}
+                                        onChange={(e) => handleChange("industry", e.target.value)}
+                                        placeholder="Enter industry"
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Location</Label>
+                                    <Input
+                                        value={formData.location}
+                                        onChange={(e) => handleChange("location", e.target.value)}
+                                        placeholder="Enter location"
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Instagram Link</Label>
+                                    <Input
+                                        value={formData.instagramLink}
+                                        onChange={(e) => handleChange("instagramLink", e.target.value)}
+                                        placeholder="Enter Instagram URL"
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Website Link</Label>
+                                    <Input
+                                        value={formData.websiteLink}
+                                        onChange={(e) => handleChange("websiteLink", e.target.value)}
+                                        placeholder="Enter website URL"
+                                    />
+                                </div>
+
+                                {/* LEAD FIELDS - Below Client Fields */}
+                                <div className="col-span-full mt-4">
+                                    <h3 className="text-sm font-semibold text-gray-700 mb-2 border-b pb-1">Lead Details</h3>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Service Type *</Label>
                                     <Select
-                                        value={formData.clientId || ""}
-                                        onValueChange={handleClientChange}
-                                        disabled={isEditMode}
+                                        value={formData.serviceType?.length > 0 ? formData.serviceType[0] : ""}
+                                        onValueChange={(value) => {
+                                            setFormData((prev) => {
+                                                const current = prev.serviceType || [];
+                                                if (current.includes(value)) {
+                                                    return { ...prev, serviceType: current.filter((v) => v !== value) };
+                                                } else {
+                                                    return { ...prev, serviceType: [...current, value] };
+                                                }
+                                            });
+                                        }}
                                     >
-                                        <SelectTrigger className="flex-1">
-                                            <SelectValue placeholder="Select Client">
-                                                {formData.clientName && (
-                                                    <span className="font-medium">{formData.clientName}</span>
-                                                )}
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Service Type">
+                                                {formData.serviceType?.length > 0 
+                                                    ? `${formData.serviceType.length} selected` 
+                                                    : "Select Service Type"}
                                             </SelectValue>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {clients.length === 0 ? (
-                                                <div className="p-2 text-sm text-gray-500 text-center">
-                                                    No clients available. Please create a client first.
-                                                </div>
-                                            ) : (
-                                                clients.map((client) => (
-                                                    <SelectItem key={client._id} value={client._id}>
-                                                        <div className="flex flex-col">
-                                                            <span className="font-medium">{client.brandName}</span>
-                                                            <span className="text-xs text-gray-500">
-                                                                {client.contactPerson} • {client.email}
-                                                            </span>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => {
-                                            fetchClients();
-                                            toast.success("Clients refreshed");
-                                        }}
-                                        disabled={loadingClients}
-                                        className="flex-shrink-0"
-                                    >
-                                        <RefreshCw className={`h-4 w-4 ${loadingClients ? 'animate-spin' : ''}`} />
-                                    </Button>
-                                </div>
-                                {formData.clientId && (
-                                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                                        <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                                        Selected: <span className="font-medium">{formData.clientName}</span>
-                                    </p>
-                                )}
-                                {!formData.clientId && !isEditMode && (
-                                    <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                                        <span className="inline-block w-2 h-2 bg-amber-500 rounded-full"></span>
-                                        Please select a client
-                                    </p>
-                                )}
-                            </div>
-
-                           {/* Service Type - Alternative using Select */}
-<div className="grid gap-2">
-  <Label>Service Type *</Label>
-  <Select
-    value={formData.serviceType?.length > 0 ? formData.serviceType[0] : ""}
-    onValueChange={(value) => {
-      setFormData((prev) => {
-        const current = prev.serviceType || [];
-        if (current.includes(value)) {
-          return { ...prev, serviceType: current.filter((v) => v !== value) };
-        } else {
-          return { ...prev, serviceType: [...current, value] };
-        }
-      });
-    }}
-  >
-    <SelectTrigger>
-      <SelectValue placeholder="Select Service Type">
-        {formData.serviceType?.length > 0 
-          ? `${formData.serviceType.length} selected` 
-          : "Select Service Type"}
-      </SelectValue>
-    </SelectTrigger>
-    <SelectContent>
-      {serviceOptions.map((option) => (
-        <SelectItem key={option} value={option}>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={formData.serviceType.includes(option)}
-              className="h-4 w-4"
-              onClick={(e) => e.stopPropagation()}
-            />
-            {option}
-          </div>
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
-
-                            <div className="grid gap-2">
-                                <Label>Lead Source *</Label>
-                                <Select
-                                    value={formData.leadSourceType}
-                                    onValueChange={(v) => handleChange("leadSourceType", v)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Lead Source" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {[
-                                            "Website Enquiry",
-                                            "Instagram DM",
-                                            "Facebook Ad",
-                                            "Google Ad",
-                                            "Referral",
-                                            "Cold Call / Email",
-                                            "WhatsApp",
-                                            "Event / Exhibition",
-                                            "Existing Client",
-                                            "Others",
-                                        ].map((source) => (
-                                            <SelectItem key={source} value={source}>
-                                                {source}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label>Lead Status *</Label>
-                                <Select
-                                    value={formData.leadStatusType}
-                                    onValueChange={(v) => handleChange("leadStatusType", v)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Lead Status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {[
-                                            "New Lead",
-                                            "Hot Lead",
-                                            "Contacted",
-                                            "Discussion in Progress",
-                                            "Proposal Sent",
-                                            "Negotiation",
-                                            "Converted to Project",
-                                            "Lost",
-                                            "On Hold",
-                                        ].map((status) => (
-                                            <SelectItem key={status} value={status}>
-                                                {status}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label>Priority</Label>
-                                <Select
-                                    value={formData.priority}
-                                    onValueChange={(v) => handleChange("priority", v)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Priority" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {["Low", "Medium", "High", "Critical"].map((p) => (
-                                            <SelectItem key={p} value={p}>
-                                                {p}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label>Project Account Handled By</Label>
-                                <Select
-                                    value={formData.projectAccountHandledBy}
-                                    onValueChange={(v) => handleChange("projectAccountHandledBy", v)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Account Handler" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Arsalan">Arsalan</SelectItem>
-                                        <SelectItem value="Fardeen">Fardeen</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label>Team Assigned</Label>
-                                <Select
-                                    value={formData.teamAssigned}
-                                    onValueChange={(v) => handleChange("teamAssigned", v)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Team" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {Object.keys(teamOptions).map((team) => (
-                                            <SelectItem key={team} value={team}>
-                                                {team}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {formData.teamAssigned && (
-                                <div className="grid gap-2">
-                                    <Label>{formData.teamAssigned} Members</Label>
-                                    <Select
-                                        value={formData.teamMember}
-                                        onValueChange={(v) => handleChange("teamMember", v)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Team Member" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {teamOptions[formData.teamAssigned]?.map((member) => (
-                                                <SelectItem key={member} value={member}>
-                                                    {member}
+                                            {serviceOptions.map((option) => (
+                                                <SelectItem key={option} value={option}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Checkbox
+                                                            checked={formData.serviceType.includes(option)}
+                                                            className="h-4 w-4"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        />
+                                                        {option}
+                                                    </div>
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            )}
 
-                            <div className="grid gap-2">
-                                <Label>Proposal Sent?</Label>
-                                <Select
-                                    value={formData.proposalSent}
-                                    onValueChange={(v) => handleChange("proposalSent", v)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Option" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Yes">Yes</SelectItem>
-                                        <SelectItem value="No">No</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label>Converted to Project?</Label>
-                                <Select
-                                    value={formData.convertedToProject}
-                                    onValueChange={(v) => handleChange("convertedToProject", v)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Option" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Yes">Yes</SelectItem>
-                                        <SelectItem value="No">No</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Documents Upload */}
-                            <div className="grid gap-2 col-span-full">
-                                <Label>Documents</Label>
-                                <Input
-                                    type="file"
-                                    multiple
-                                    onChange={handleFileChange}
-                                    className="cursor-pointer"
-                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                    disabled={files.length >= 5}
-                                />
-                                <p className="text-xs text-gray-500">
-                                    {files.length >= 5
-                                        ? "Maximum 5 files reached"
-                                        : `You can upload ${5 - files.length} more files (PDF, Word, Images)`}
-                                </p>
-                            </div>
-
-                            {/* Selected Files Preview */}
-                            {files.length > 0 && (
-                                <div className="col-span-full">
-                                    <Label>Selected Files:</Label>
-                                    <div className="mt-2 space-y-2">
-                                        {files.map((file, index) => (
-                                            <div key={index} className="flex items-center justify-between p-2 border rounded">
-                                                <div className="flex items-center gap-2">
-                                                    <Paperclip className="h-4 w-4" />
-                                                    <span className="text-sm">{file.name}</span>
-                                                    <span className="text-xs text-gray-500">
-                                                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                                                    </span>
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => removeFile(index)}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
+                                <div className="grid gap-2">
+                                    <Label>Lead Source *</Label>
+                                    <Select
+                                        value={formData.leadSourceType}
+                                        onValueChange={(v) => handleChange("leadSourceType", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Lead Source" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {[
+                                                "Website Enquiry",
+                                                "Instagram DM",
+                                                "Facebook Ad",
+                                                "Google Ad",
+                                                "Referral",
+                                                "Cold Call / Email",
+                                                "WhatsApp",
+                                                "Event / Exhibition",
+                                                "Existing Client",
+                                                "Others",
+                                            ].map((source) => (
+                                                <SelectItem key={source} value={source}>
+                                                    {source}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            )}
 
-                            {/* Existing Documents */}
-                            {existingDocuments.length > 0 && (
-                                <div className="col-span-full">
-                                    <Label>Existing Documents:</Label>
-                                    <div className="mt-2 space-y-2">
-                                        {existingDocuments.map((doc, index) => (
-                                            <div key={index} className="flex items-center justify-between p-2 border rounded">
-                                                <div className="flex items-center gap-2">
-                                                    <Paperclip className="h-4 w-4" />
-                                                    <a
-                                                        href={doc.fileUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-sm text-blue-600 hover:underline"
+                                <div className="grid gap-2">
+                                    <Label>Lead Status *</Label>
+                                    <Select
+                                        value={formData.leadStatusType}
+                                        onValueChange={(v) => handleChange("leadStatusType", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Lead Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {[
+                                                "New Lead",
+                                                "Hot Lead",
+                                                "Contacted",
+                                                "Discussion in Progress",
+                                                "Proposal Sent",
+                                                "Negotiation",
+                                                "Won",
+                                                "Lost",
+                                                "On Hold",
+                                            ].map((status) => (
+                                                <SelectItem key={status} value={status}>
+                                                    {status}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Priority</Label>
+                                    <Select
+                                        value={formData.priority}
+                                        onValueChange={(v) => handleChange("priority", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Priority" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {["Low", "Medium", "High", "Critical"].map((p) => (
+                                                <SelectItem key={p} value={p}>
+                                                    {p}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Project Account Handled By</Label>
+                                    <Select
+                                        value={formData.projectAccountHandledBy}
+                                        onValueChange={(v) => handleChange("projectAccountHandledBy", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Account Handler" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Arsalan">Arsalan</SelectItem>
+                                            <SelectItem value="Fardeen">Fardeen</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Team Assigned</Label>
+                                    <Select
+                                        value={formData.teamAssigned}
+                                        onValueChange={(v) => handleChange("teamAssigned", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Team" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.keys(teamOptions).map((team) => (
+                                                <SelectItem key={team} value={team}>
+                                                    {team}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {formData.teamAssigned && (
+                                    <div className="grid gap-2">
+                                        <Label>{formData.teamAssigned} Members</Label>
+                                        <Select
+                                            value={formData.teamMember}
+                                            onValueChange={(v) => handleChange("teamMember", v)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Team Member" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {teamOptions[formData.teamAssigned]?.map((member) => (
+                                                    <SelectItem key={member} value={member}>
+                                                        {member}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                <div className="grid gap-2">
+                                    <Label>Proposal Sent?</Label>
+                                    <Select
+                                        value={formData.proposalSent}
+                                        onValueChange={(v) => handleChange("proposalSent", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Option" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Yes">Yes</SelectItem>
+                                            <SelectItem value="No">No</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label>Converted to Project?</Label>
+                                    <Select
+                                        value={formData.convertedToProject}
+                                        onValueChange={(v) => handleChange("convertedToProject", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Option" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Yes">Yes</SelectItem>
+                                            <SelectItem value="No">No</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Documents Upload */}
+                                <div className="grid gap-2 col-span-full">
+                                    <Label>Documents</Label>
+                                    <Input
+                                        type="file"
+                                        multiple
+                                        onChange={handleFileChange}
+                                        className="cursor-pointer"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                        disabled={files.length >= 5}
+                                    />
+                                    <p className="text-xs text-gray-500">
+                                        {files.length >= 5
+                                            ? "Maximum 5 files reached"
+                                            : `You can upload ${5 - files.length} more files (PDF, Word, Images)`}
+                                    </p>
+                                </div>
+
+                                {/* Selected Files Preview */}
+                                {files.length > 0 && (
+                                    <div className="col-span-full">
+                                        <Label>Selected Files:</Label>
+                                        <div className="mt-2 space-y-2">
+                                            {files.map((file, index) => (
+                                                <div key={index} className="flex items-center justify-between p-2 border rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <Paperclip className="h-4 w-4" />
+                                                        <span className="text-sm">{file.name}</span>
+                                                        <span className="text-xs text-gray-500">
+                                                            ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                                        </span>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => removeFile(index)}
                                                     >
-                                                        {doc.fileName}
-                                                    </a>
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => removeExistingDocument(index)}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ACTIVITY LOGS SECTION - Shown below the form */}
-                            {/* {isEditMode && (
-                                <div className="col-span-full mt-6 pt-4 border-t">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Clock className="h-5 w-5 text-gray-600" />
-                                        <h3 className="text-lg font-semibold">Activity Logs</h3>
-                                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                            {activityLogs.length}
-                                        </span>
-                                    </div>
-                                    
-                                    {loadingLogs ? (
-                                        <div className="text-center py-4 text-gray-500">
-                                            Loading activity logs...
-                                        </div>
-                                    ) : activityLogs.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-dashed">
-                                            <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                                            <p>No activity logs yet</p>
-                                            <p className="text-xs">Activities will appear here as they are logged</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                                            {activityLogs.map((log, index) => (
-                                                <div 
-                                                    key={index} 
-                                                    className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                                                >
-                                                    <div className="mt-0.5">
-                                                        {getActivityIcon(log.type)}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="font-medium text-sm">
-                                                                {log.type || "Note"}
-                                                            </span>
-                                                            <span className="text-xs text-gray-400">
-                                                                {formatDate(log.loggedAt)}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-sm text-gray-700 mt-1 break-words">
-                                                            {log.note || "No details provided"}
-                                                        </p>
-                                                        {log.loggedBy && (
-                                                            <p className="text-xs text-gray-400 mt-1">
-                                                                By: {log.loggedBy}
-                                                            </p>
-                                                        )}
-                                                    </div>
+                                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                                    </Button>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
-                                </div>
-                            )} */}
-                        </div>
+                                    </div>
+                                )}
 
-                        <DialogFooter className="flex flex-col justify-end gap-2 mt-6 sm:flex-row sm:gap-4">
-                            <Button
-                                type="submit"
-                                className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
-                            >
-                                {isEditMode ? "Update Lead" : "Create Lead"}
-                            </Button>
-                        </DialogFooter>
+                                {/* Existing Documents */}
+                                {existingDocuments.length > 0 && (
+                                    <div className="col-span-full">
+                                        <Label>Existing Documents:</Label>
+                                        <div className="mt-2 space-y-2">
+                                            {existingDocuments.map((doc, index) => (
+                                                <div key={index} className="flex items-center justify-between p-2 border rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <Paperclip className="h-4 w-4" />
+                                                        <a
+                                                            href={doc.fileUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm text-blue-600 hover:underline"
+                                                        >
+                                                            {doc.fileName}
+                                                        </a>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => removeExistingDocument(index)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <DialogFooter className="flex flex-col justify-end gap-2 mt-6 sm:flex-row sm:gap-4">
+                                <Button
+                                    type="submit"
+                                    className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
+                                    disabled={loading}
+                                >
+                                    {loading ? "Processing..." : (isEditMode ? "Update Lead" : "Create Lead")}
+                                </Button>
+                            </DialogFooter>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Won Stage Popup */}
+            <Dialog open={showWonPopup} onOpenChange={setShowWonPopup}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-green-600">
+                            🎉 Won Stage Selected
+                        </DialogTitle>
+                        <DialogDescription>
+                            This lead is marked as <span className="font-bold text-green-600">Won</span>. 
+                            A new client entry will be created in the Client List with the following information:
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                            <p><span className="font-medium">Brand Name:</span> {pendingSubmitData?.brandName}</p>
+                            <p><span className="font-medium">Contact Person:</span> {pendingSubmitData?.contactPerson}</p>
+                            <p><span className="font-medium">Email:</span> {pendingSubmitData?.email}</p>
+                            <p><span className="font-medium">Phone:</span> {pendingSubmitData?.phone}</p>
+                            {pendingSubmitData?.role && <p><span className="font-medium">Role:</span> {pendingSubmitData?.role}</p>}
+                            {pendingSubmitData?.industry && <p><span className="font-medium">Industry:</span> {pendingSubmitData?.industry}</p>}
+                            {pendingSubmitData?.location && <p><span className="font-medium">Location:</span> {pendingSubmitData?.location}</p>}
+                            {pendingSubmitData?.instagramLink && <p><span className="font-medium">Instagram:</span> {pendingSubmitData?.instagramLink}</p>}
+                            {pendingSubmitData?.websiteLink && <p><span className="font-medium">Website:</span> {pendingSubmitData?.websiteLink}</p>}
+                            <p className="text-xs text-gray-500 mt-2">This will create a new entry in the Client List.</p>
+                        </div>
                     </div>
-                </form>
-            </DialogContent>
-        </Dialog>
+                    <DialogFooter className="flex gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleWonCancel}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={handleWonConfirm}
+                        >
+                            Yes, Create Client & Lead
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 

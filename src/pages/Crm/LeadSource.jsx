@@ -27,6 +27,7 @@ import {
   BookOpen,
   Trash2,
   Users,
+  UserPlus,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import useLeadSource from "@/hooks/useLeadSource";
@@ -36,7 +37,8 @@ import KanbanBoard from "@/components/crm/Kanbanboard";
 import SummaryStats from "@/components/crm/SummaryStats";
 import MultiSelectFilter from "@/components/crm/Multiselectfilter";
 import { formatCurrency, isOverdue, PIPELINE_STAGES, STAGE_COLORS } from "@/hooks/Pipelineconstants";
-import LeadLogsDialog from "@/components/crm/Activitylogdialog";
+import axiosInstance from "@/utils/axiosConfig";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
   "New Lead",
@@ -102,6 +104,9 @@ const LeadSource = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [sortBy, setSortBy] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
+
+  // Loading state for create client button
+  const [creatingClient, setCreatingClient] = useState(null);
 
   useEffect(() => {
     fetchLeads();
@@ -216,10 +221,102 @@ const LeadSource = () => {
     } catch (error) {}
   };
 
+  // Handle edit click - merge client data
   const handleEditClick = (lead) => {
-    setEditData(lead);
+    const editDataWithClient = {
+      ...lead,
+      ...(lead.clientId && {
+        leadInformation: lead.clientId.leadInformation || "",
+        brandName: lead.clientId.brandName || "",
+        contactPerson: lead.clientId.contactPerson || "",
+        email: lead.clientId.email || "",
+        phone: lead.clientId.phone || "",
+        role: lead.clientId.role || "",
+        industry: lead.clientId.industry || "",
+        location: lead.clientId.location || "",
+        instagramLink: lead.clientId.instagramLink || "",
+        websiteLink: lead.clientId.websiteLink || "",
+        clientId: lead.clientId._id,
+      }),
+      ...(!lead.clientId && {
+        leadInformation: lead.leadInformation || "",
+        brandName: lead.clientName || "",
+        contactPerson: lead.contactPerson || "",
+        email: lead.email || "",
+        phone: lead.phone || "",
+        role: lead.role || "",
+        industry: lead.industry || "",
+        location: lead.location || "",
+        instagramLink: lead.instagramLink || "",
+        websiteLink: lead.websiteLink || "",
+      }),
+    };
+    
+    setEditData(editDataWithClient);
     setOpenLeadModal(true);
   };
+
+  // Create client entry in LeadClient - Simple function
+ // Create client entry in LeadClient - Simple function
+const createLeadClient = async (lead) => {
+  try {
+    setCreatingClient(lead._id);
+    
+    // Get client data from the lead
+    const clientData = {
+      leadInformation: lead.leadInformation || "",
+      brandName: lead.clientName || lead.brandName || "Unknown Client",
+      contactPerson: lead.contactPerson || "",
+      email: lead.email || "",
+      phone: lead.phone || "",
+      role: lead.role || "",
+      industry: lead.industry || "",
+      location: lead.location || "",
+      instagramLink: lead.instagramLink || "",
+      websiteLink: lead.websiteLink || "",
+      createdBy: currentUser,
+    };
+
+    // Check if client already exists with same brand name
+    const existingClient = await axiosInstance.get("/v1/leadclient", {
+      params: { search: clientData.brandName }
+    });
+
+    if (existingClient.data?.clients?.length > 0) {
+      const existing = existingClient.data.clients[0];
+      // Update lead with existing client
+      await updateLead(lead._id, {
+        clientId: existing._id,
+        clientName: existing.brandName,
+      });
+      toast.success(`Client "${existing.brandName}" linked to lead!`);
+      await fetchLeads();
+      setCreatingClient(null);
+      return;
+    }
+
+    // Create new client
+    const res = await axiosInstance.post("/v1/leadclient", clientData);
+    const newClient = res.data.client;
+    
+    // Update the lead with clientId
+    await updateLead(lead._id, {
+      clientId: newClient._id,
+      clientName: newClient.brandName,
+    });
+
+    toast.success(`Client "${newClient.brandName}" created and linked!`);
+    
+    // Refresh leads
+    await fetchLeads();
+    
+  } catch (err) {
+    console.error("Error creating client:", err);
+    toast.error(err.response?.data?.message || "Failed to create client. Please try again.");
+  } finally {
+    setCreatingClient(null);
+  }
+};
 
   const handleStageChange = (id, stage, changedBy, reason) => {
     updateLeadStage(id, stage, changedBy, reason);
@@ -429,7 +526,7 @@ const LeadSource = () => {
                 </Button>
               </div>
 
-              {/* View All Clients Button - Redirects to /crm/lead-list */}
+              {/* View All Clients Button */}
               <Button
                 variant="outline"
                 onClick={() => navigate("/crm/lead-list")}
@@ -647,6 +744,11 @@ const LeadSource = () => {
                     {currentLeads.map((lead) => {
                       const overdue = isOverdue(lead);
                       const stage = lead.pipelineStage || "Lead";
+                      // Check if stage is Won and no client exists
+                      const isWon = stage === "Won";
+                      const hasClient = !!lead.clientId || !!lead.clientName;
+                      const isCreating = creatingClient === lead._id;
+                      
                       return (
                         <TableRow key={lead._id}>
                           <TableCell>
@@ -702,6 +804,26 @@ const LeadSource = () => {
                                     <XCircle className="h-4 w-4" />
                                   </Button>
                                 </>
+                              )}
+                              {/* Lead Client Button - Shows when stage is Won and no client exists */}
+                              {isWon && !hasClient && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-blue-600 border-blue-600 hover:bg-blue-50 h-7 px-2 text-xs"
+                                  title="Lead Client"
+                                  onClick={() => createLeadClient(lead)}
+                                  disabled={isCreating}
+                                >
+                                  <UserPlus className="h-3 w-3 mr-1" />
+                                  {isCreating ? "Creating..." : "Lead Client"}
+                                </Button>
+                              )}
+                              {/* Client exists badge */}
+                              {isWon && hasClient && (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                  Client Linked
+                                </span>
                               )}
                             </div>
                           </TableCell>

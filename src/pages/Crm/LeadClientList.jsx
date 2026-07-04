@@ -282,6 +282,7 @@ const LeadClientList = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Client ID</TableHead>
                     <TableHead>Lead ID</TableHead>
                     <TableHead>Brand Name</TableHead>
                     <TableHead>Contact Person</TableHead>
@@ -294,14 +295,15 @@ const LeadClientList = () => {
                 <TableBody>
                   {paginatedClients.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                         No clients found
                       </TableCell>
                     </TableRow>
                   ) : (
                     paginatedClients.map((client) => (
                       <TableRow key={client._id}>
-                        <TableCell className="font-mono text-xs">{client.leadId}</TableCell>
+                        <TableCell className="font-mono text-xs">{client._id?.slice(-6) || "—"}</TableCell>
+                        <TableCell className="font-mono text-xs">{client.leadId || "—"}</TableCell>
                         <TableCell className="font-medium">{client.brandName}</TableCell>
                         <TableCell>{client.contactPerson}</TableCell>
                         <TableCell>{client.email}</TableCell>
@@ -359,7 +361,7 @@ const LeadClientList = () => {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Client Modal - Client Information only */}
+      {/* Add/Edit Client Modal */}
       <Dialog open={openModal} onOpenChange={handleCloseModal}>
         <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
           <DialogHeader>
@@ -370,7 +372,7 @@ const LeadClientList = () => {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
               <div className="col-span-full">
-                <Label>Lead Information *</Label>
+                <Label>Lead Information</Label>
                 <Input
                   value={formData.leadInformation}
                   onChange={(e) =>
