@@ -1,18 +1,16 @@
+// Signup.js - Updated (don't store file in localStorage)
+
 import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-// import { RadioGroup } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import { USER_API_END_POINT } from "@/constants/index";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 import darkText from "@/assets/blacktext.png";
 import whiteText from "@/assets/whitetext.png";
-import axiosInstance from "@/utils/axiosConfig";
 
 const Signup = () => {
     const [input, setInput] = useState({
@@ -20,16 +18,13 @@ const Signup = () => {
         email: "",
         phoneNumber: "",
         password: "",
-        // role: "",
         file: null,
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
-
     const { user } = useSelector((store) => store.auth);
-    const dispatch = useDispatch();
 
     useEffect(() => {
         if (user) {
@@ -42,38 +37,41 @@ const Signup = () => {
     };
 
     const changeFileHandler = (e) => {
-        setInput({ ...input, file: e.target.files?.[0] });
+        const file = e.target.files?.[0];
+        if (file) {
+            // Check file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error("Profile image size should be less than 2MB");
+                return;
+            }
+            setInput({ ...input, file: file });
+        }
     };
 
     const submitHandler = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
-        const formData = new FormData();
-        formData.append("fullname", input.fullname);
-        formData.append("email", input.email);
-        formData.append("phoneNumber", String(input.phoneNumber));
-        formData.append("password", input.password);
-        formData.append("role", input.role);
-
-        // Only append file if it exists
-        if (input.file) {
-            formData.append("file", input.file);
-        }
         try {
-            setLoading(true);
-            const res = await axiosInstance.post(`${USER_API_END_POINT}/register`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-                withCredentials: true,
-            });
+            // Store signup credentials WITHOUT the file to avoid size issues
+            const signupData = {
+                fullname: input.fullname.trim(),
+                email: input.email.trim().toLowerCase(),
+                phoneNumber: input.phoneNumber.trim(),
+                password: input.password,
+                role: 'employee',
+                createdAt: new Date().toISOString(),
+            };
 
-            if (res.data.success) {
-                navigate("/");
-                toast.success(res.data.message);
-            }
+            // Store in localStorage (text only)
+            localStorage.setItem('signupCredentials', JSON.stringify(signupData));
+
+            toast.success("Signup successful! Please complete your onboarding details.");
+            navigate("/crm/create-goonboarding");
+            
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong");
+            console.error("Signup error:", error);
+            toast.error("Signup failed. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -109,6 +107,7 @@ const Signup = () => {
                                 name="fullname"
                                 onChange={changeEventhandler}
                                 placeholder="Enter Full Name"
+                                required
                             />
                         </div>
 
@@ -120,6 +119,7 @@ const Signup = () => {
                                 name="email"
                                 onChange={changeEventhandler}
                                 placeholder="Enter Email"
+                                required
                             />
                         </div>
                     </div>
@@ -132,6 +132,7 @@ const Signup = () => {
                             name="phoneNumber"
                             onChange={changeEventhandler}
                             placeholder="Enter Phone Number"
+                            required
                         />
                     </div>
 
@@ -144,6 +145,8 @@ const Signup = () => {
                             onChange={changeEventhandler}
                             placeholder="Enter Password"
                             className="pr-10"
+                            required
+                            minLength={6}
                         />
                         <div
                             className="absolute right-3 top-[38px] cursor-pointer"
@@ -171,10 +174,11 @@ const Signup = () => {
                             onChange={changeFileHandler}
                             className="cursor-pointer"
                         />
+                        <span className="text-xs text-gray-500">Max 2MB</span>
                     </div>
 
                     {loading ? (
-                        <Button className="my-4 w-full">
+                        <Button className="my-4 w-full" disabled>
                             <Loader className="mr-2 h-4 w-4 animate-spin" /> Please Wait
                         </Button>
                     ) : (
@@ -182,19 +186,9 @@ const Signup = () => {
                             type="submit"
                             className="my-4 w-full"
                         >
-                            Signup
+                            Sign Up & Continue
                         </Button>
                     )}
-
-                    <span className="text-sm">
-                        Already have an account?{" "}
-                        <Link
-                            to="/"
-                            className="text-blue-600"
-                        >
-                            Login
-                        </Link>
-                    </span>
                 </form>
             </div>
         </div>

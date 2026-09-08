@@ -14,6 +14,7 @@ import AdminRoute from "@/utils/AdminRoute";
 
 export const Sidebar = forwardRef(({ collapsed }, ref) => {
     const { user } = useSelector((state) => state.auth);
+    console.log("User role in Sidebar:", user); // Debugging line to check the user role
 
     return (
         <aside

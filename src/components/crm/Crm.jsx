@@ -26,12 +26,12 @@ const Crm = () => {
       options: [
         // { label: "Leads", icon: <Users size={18} className="text-blue-500" /> },
          {
-          label: "Leads client",
+          label: "Current cliental",
           icon: <Users size={18} className="text-blue-500" />,
           route: "/crm/lead-list",
         },
         {
-          label: "Lead source",
+          label: "Leads",
           icon: <Target size={18} className="text-blue-500" />,
           route: "/crm/lead-source",
         },

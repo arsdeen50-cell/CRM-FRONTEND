@@ -1,3 +1,5 @@
+// CreateGoOnBoardingForm.js - Updated to handle localStorage properly
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,8 @@ import ResponsibilitiesPopup from "./ResponsibilitiesPopup";
 import OfferLetterPreviewPopup from "./OfferLetterPreviewPopup";
 import { useSelector } from "react-redux";
 import SuccessPopup from "./SuccessPopup";
-
+import { toast } from "sonner";
+import useDesignation from "@/hooks/useDesignation";
 
 const CreateGoOnBoardingForm = ({ onClose }) => {
     const navigate = useNavigate();
@@ -53,10 +56,13 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
     const [offeredTotalCtc, setOfferedTotalCtc] = useState("");
     const [candidateStatus, setCandidateStatus] = useState("Pending");
 
-    
     // NEW FIELDS
     const [keyResponsibilities, setKeyResponsibilities] = useState([]);
     const [whatYoullGain, setWhatYoullGain] = useState([]);
+
+    // Add state for designation manager
+    const [showDesignationManager, setShowDesignationManager] = useState(false);
+    const { designations, fetchDesignations } = useDesignation();
     
     // POPUP STATES
     const [showResponsibilitiesPopup, setShowResponsibilitiesPopup] = useState(false);
@@ -68,24 +74,52 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [showDuplicatePopup, setShowDuplicatePopup] = useState(false);
     const [isDuplicate, setIsDuplicate] = useState(false);
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
 
+    // Load signup credentials from localStorage
     useEffect(() => {
-  fetchOnboardings();
-}, []);
+        try {
+            const signupData = localStorage.getItem('signupCredentials');
+            if (signupData) {
+                const data = JSON.parse(signupData);
+                setCandidateName(data.fullname || "");
+                setEmail(data.email || "");
+                setMobileNo(data.phoneNumber || "");
+                toast.success("Welcome! Your signup data has been loaded.");
+            }
+        } catch (error) {
+            console.error("Error loading signup data:", error);
+        }
+        setIsDataLoaded(true);
+    }, []);
 
-useEffect(() => {
-  const duplicate = onboardings.some((item) =>
-    item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
-    item.email?.toLowerCase() === email.toLowerCase() &&
-    item.mobileNo === mobileNo
-  );
+    // Fetch onboardings and designations
+    useEffect(() => {
+        fetchOnboardings();
+        fetchDesignations().catch(() => {
+            // Silently fail - designations are optional
+            console.log("Designations not available");
+        });
+    }, []);
 
-  setIsDuplicate(duplicate);
+    // Check for duplicates - only run when data is loaded and we have onboardings
+    useEffect(() => {
+        if (!isDataLoaded || !onboardings.length || !candidateName || !email || !mobileNo) {
+            return;
+        }
 
-  if (duplicate) {
-    setShowDuplicatePopup(true);
-  }
-}, [candidateName, email, mobileNo, onboardings]);
+        const duplicate = onboardings.some((item) =>
+            item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
+            item.email?.toLowerCase() === email.toLowerCase() &&
+            item.mobileNo === mobileNo
+        );
+
+        setIsDuplicate(duplicate);
+
+        if (duplicate) {
+            setShowDuplicatePopup(true);
+        }
+    }, [candidateName, email, mobileNo, onboardings, isDataLoaded]);
 
     useEffect(() => {
         const fixed = parseFloat(offeredFixedCtc) || 0;
@@ -95,35 +129,44 @@ useEffect(() => {
 
     useEffect(() => {
         return () => {
-          if (offerLetterPdfUrl) {
-            URL.revokeObjectURL(offerLetterPdfUrl);
-          }
+            if (offerLetterPdfUrl) {
+                URL.revokeObjectURL(offerLetterPdfUrl);
+            }
         };
-      }, [offerLetterPdfUrl]);
+    }, [offerLetterPdfUrl]);
 
     const handlePreviewOfferLetter = async () => {
-        try {
-          setIsGeneratingPreview(true);
-          const pdfUrl = await previewOfferLetter(id);
-          setOfferLetterPdfUrl(pdfUrl);
-          setShowOfferLetterPreview(true);
-        } catch (error) {
-          console.error("Error generating offer letter preview:", error);
-        } finally {
-          setIsGeneratingPreview(false);
-        }
-      };
+        toast.info("Please create the onboarding first, then you can preview the offer letter.");
+        return;
+    };
 
     // File handling functions
     const handleSingleFileUpload = (file, setter) => {
         if (file) {
+            // Check file size (max 5MB for documents)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error("File size should be less than 5MB");
+                return;
+            }
             setter(file);
         }
     };
 
     const handleMultipleFileUpload = (files, setter) => {
         if (files && files.length > 0) {
-            setter(prev => [...prev, ...Array.from(files)]);
+            const validFiles = [];
+            let hasError = false;
+            Array.from(files).forEach(file => {
+                if (file.size > 5 * 1024 * 1024) {
+                    toast.error(`File "${file.name}" is too large (max 5MB)`);
+                    hasError = true;
+                } else {
+                    validFiles.push(file);
+                }
+            });
+            if (!hasError && validFiles.length > 0) {
+                setter(prev => [...prev, ...validFiles]);
+            }
         }
     };
 
@@ -144,20 +187,29 @@ useEffect(() => {
         setWhatYoullGain(gains);
     };
 
-    // Submit handler
+    // Submit handler - uses createOnboarding API
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-          const duplicate = onboardings.some((item) =>
-    item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
-    item.email?.toLowerCase() === email.toLowerCase() &&
-    item.mobileNo === mobileNo
-  );
+        // Validate required fields
+        if (!candidateName || !email || !mobileNo) {
+            toast.error("Please fill in all required fields");
+            return;
+        }
 
-  if (duplicate) {
-    setShowDuplicatePopup(true);
-    return;
-  }
+        // Check for duplicates
+        if (onboardings.length > 0) {
+            const duplicate = onboardings.some((item) =>
+                item.candidateName?.toLowerCase() === candidateName.toLowerCase() &&
+                item.email?.toLowerCase() === email.toLowerCase() &&
+                item.mobileNo === mobileNo
+            );
+
+            if (duplicate) {
+                setShowDuplicatePopup(true);
+                return;
+            }
+        }
 
         const formData = new FormData();
 
@@ -185,32 +237,75 @@ useEffect(() => {
         formData.append("offeredTotalCtc", offeredTotalCtc);
         formData.append("candidateStatus", candidateStatus);
 
-        keyResponsibilities.forEach((responsibility, index) => {
+        keyResponsibilities.forEach((responsibility) => {
             formData.append("keyResponsibilities", responsibility);
         });
-        whatYoullGain.forEach((gain, index) => {
+        whatYoullGain.forEach((gain) => {
             formData.append("whatYoullGain", gain);
         });
 
-        // Append single files
-        if (uploadProfile) formData.append("uploadProfile", uploadProfile);
+        // Get signup credentials from localStorage and append to formData
+        const signupData = localStorage.getItem('signupCredentials');
+        if (signupData) {
+            try {
+                const data = JSON.parse(signupData);
+                // Only append text data, no file
+                formData.append("signupCredentials", JSON.stringify({
+                    fullname: data.fullname,
+                    email: data.email,
+                    phoneNumber: data.phoneNumber,
+                    password: data.password,
+                    role: data.role || 'employee',
+                    createdAt: new Date().toISOString(),
+                }));
+                
+                formData.append("signupFullname", data.fullname);
+                formData.append("signupEmail", data.email);
+                formData.append("signupPhone", data.phoneNumber);
+                formData.append("signupPassword", data.password);
+            } catch (error) {
+                console.error("Error parsing signup data:", error);
+            }
+        }
+
+        // Append files - only if they exist
+        if (uploadProfile) {
+            formData.append("uploadProfile", uploadProfile);
+        }
         if (aadharFront) formData.append("aadharFront", aadharFront);
         if (aadharBack) formData.append("aadharBack", aadharBack);
         if (resume) formData.append("resume", resume);
 
         // Append multiple files
-        lastThreeMonthSalary.forEach((file, index) => {
+        lastThreeMonthSalary.forEach((file) => {
             formData.append("lastThreeMonthSalary", file);
         });
 
         try {
+            const loadingToast = toast.loading("Creating onboarding...");
             await createOnboarding(formData);
-            // navigate("/crm/goonboardingdata");
+            toast.dismiss(loadingToast);
+            
+            // Clear signup data from localStorage after successful submission
+            localStorage.removeItem('signupCredentials');
             setShowSuccessPopup(true);
         } catch (error) {
             console.error("Error creating onboarding:", error);
+            const errorMsg = error.response?.data?.message || error.message || "Failed to create onboarding. Please try again.";
+            toast.error(errorMsg);
         }
     };
+
+    // If data is not loaded yet, show loading
+    if (!isDataLoaded) {
+        return (
+            <div className="flex justify-center items-center py-10 bg-gray-50 min-h-screen">
+                <div className="text-center">
+                    <p className="text-lg">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex justify-center items-start py-10 bg-gray-50 min-h-screen overflow-y-auto">
@@ -227,19 +322,18 @@ useEffect(() => {
                         <section className="space-y-4">
                             <h3 className="text-lg font-semibold">Personal Information</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {user?.role === "admin" && (
-  <div>
-    <Label>Recruiter Name</Label>
-    <Input
-      value={recruiterName}
-      onChange={(e) => setRecruiterName(e.target.value)}
-      required
-    />
-  </div>
-)}
+                                {user?.role === "admin" && (
+                                    <div>
+                                        <Label>Recruiter Name</Label>
+                                        <Input
+                                            value={recruiterName}
+                                            onChange={(e) => setRecruiterName(e.target.value)}
+                                        />
+                                    </div>
+                                )}
 
                                 <div>
-                                    <Label>Profile Picture</Label>
+                                    <Label>Profile Picture (Max 5MB)</Label>
                                     <Input
                                         type="file"
                                         accept="image/*"
@@ -250,30 +344,46 @@ useEffect(() => {
                                             <FilePreview
                                                 file={uploadProfile}
                                                 onRemove={() => removeSingleFile(setUploadProfile)}
-                                                index={0} // Add index for single files
+                                                index={0}
                                             />
                                         </div>
                                     )}
                                 </div>
 
                                 <div>
-                                    <Label>Candidate Name</Label>
-                                    <Input value={candidateName} onChange={(e) => setCandidateName(e.target.value)} required />
+                                    <Label>Candidate Name *</Label>
+                                    <Input 
+                                        value={candidateName} 
+                                        onChange={(e) => setCandidateName(e.target.value)} 
+                                        required 
+                                    />
                                 </div>
 
                                 <div>
-                                    <Label>Email</Label>
-                                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                                    <Label>Email *</Label>
+                                    <Input 
+                                        type="email" 
+                                        value={email} 
+                                        onChange={(e) => setEmail(e.target.value)} 
+                                        required 
+                                    />
                                 </div>
 
                                 <div>
                                     <Label>Father's Name</Label>
-                                    <Input value={fatherName} onChange={(e) => setFatherName(e.target.value)} />
+                                    <Input 
+                                        value={fatherName} 
+                                        onChange={(e) => setFatherName(e.target.value)} 
+                                    />
                                 </div>
 
                                 <div>
                                     <Label>Date of Birth</Label>
-                                    <Input type="date" value={DOB} onChange={(e) => setDOB(e.target.value)} />
+                                    <Input 
+                                        type="date" 
+                                        value={DOB} 
+                                        onChange={(e) => setDOB(e.target.value)} 
+                                    />
                                 </div>
 
                                 <div>
@@ -291,8 +401,12 @@ useEffect(() => {
                                 </div>
 
                                 <div>
-                                    <Label>Mobile No</Label>
-                                    <Input value={mobileNo} onChange={(e) => setMobileNo(e.target.value)} required />
+                                    <Label>Mobile No *</Label>
+                                    <Input 
+                                        value={mobileNo} 
+                                        onChange={(e) => setMobileNo(e.target.value)} 
+                                        required 
+                                    />
                                 </div>
                             </div>
                         </section>
@@ -301,26 +415,61 @@ useEffect(() => {
                         <section className="space-y-4">
                             <h3 className="text-lg font-semibold">Professional Information</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Designation</Label>
-                                    <Input value={designation} onChange={(e) => setDesignation(e.target.value)} required />
-                                </div>
+                                {user?.role === "admin" && (
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <Label>Designation</Label>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setShowDesignationManager(true)}
+                                                className="text-blue-600 hover:text-blue-800"
+                                            >
+                                                Manage
+                                            </Button>
+                                        </div>
+                                        <Select onValueChange={setDesignation} value={designation}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select designation" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {designations.length > 0 ? (
+                                                    designations.map((des) => (
+                                                        <SelectItem key={des._id} value={des.name}>
+                                                            {des.name}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-2 py-1.5 text-sm text-gray-500">
+                                                        No designations available
+                                                    </div>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
 
                                 <div>
-                                    <Label>Date of Joining</Label>
-                                    <Input type="date" value={doj} onChange={(e) => setDoj(e.target.value)} required />
-                                </div>
-                                
-{user?.role === "admin" && (
-                                <div>
-                                    <Label>Date of Ending (DOE)</Label>
+                                    <Label>Date of Joining *</Label>
                                     <Input 
                                         type="date" 
-                                        value={doe} 
-                                        onChange={(e) => setDoe(e.target.value)} 
+                                        value={doj} 
+                                        onChange={(e) => setDoj(e.target.value)} 
+                                        required 
                                     />
                                 </div>
-)}
+                                
+                                {user?.role === "admin" && (
+                                    <div>
+                                        <Label>Date of Ending (DOE)</Label>
+                                        <Input 
+                                            type="date" 
+                                            value={doe} 
+                                            onChange={(e) => setDoe(e.target.value)} 
+                                        />
+                                    </div>
+                                )}
 
                                 <div>
                                     <Label>Position Type</Label>
@@ -338,7 +487,7 @@ useEffect(() => {
                                 </div>
                             </div>
                             {user?.role === "admin" && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                     <div className="space-y-3">
                                         <Label>Key Responsibilities</Label>
                                         <div className="space-y-2">
@@ -398,7 +547,7 @@ useEffect(() => {
                                     </div>
                                 </div>
                             )}
-                            </section>
+                        </section>
 
                         {/* Address Information */}
                         <section className="space-y-4">
@@ -425,17 +574,26 @@ useEffect(() => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <Label>City</Label>
-                                        <Input value={residingCity} onChange={(e) => setResidingCity(e.target.value)} />
+                                        <Input 
+                                            value={residingCity} 
+                                            onChange={(e) => setResidingCity(e.target.value)} 
+                                        />
                                     </div>
 
                                     <div>
                                         <Label>State</Label>
-                                        <Input value={residingState} onChange={(e) => setResidingState(e.target.value)} />
+                                        <Input 
+                                            value={residingState} 
+                                            onChange={(e) => setResidingState(e.target.value)} 
+                                        />
                                     </div>
 
                                     <div>
                                         <Label>Pincode</Label>
-                                        <Input value={pincode} onChange={(e) => setPincode(e.target.value)} />
+                                        <Input 
+                                            value={pincode} 
+                                            onChange={(e) => setPincode(e.target.value)} 
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -448,7 +606,7 @@ useEffect(() => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Aadhar Front */}
                                 <div>
-                                    <Label>Aadhar Front</Label>
+                                    <Label>Aadhar Front (Max 5MB)</Label>
                                     <Input
                                         type="file"
                                         accept="image/*"
@@ -459,7 +617,7 @@ useEffect(() => {
                                             <FilePreview
                                                 file={aadharFront}
                                                 onRemove={() => removeSingleFile(setAadharFront)}
-                                                index={0} // Add index for single files
+                                                index={0}
                                             />
                                         </div>
                                     )}
@@ -467,7 +625,7 @@ useEffect(() => {
 
                                 {/* Aadhar Back */}
                                 <div>
-                                    <Label>Aadhar Back</Label>
+                                    <Label>Aadhar Back (Max 5MB)</Label>
                                     <Input
                                         type="file"
                                         accept="image/*"
@@ -478,7 +636,7 @@ useEffect(() => {
                                             <FilePreview
                                                 file={aadharBack}
                                                 onRemove={() => removeSingleFile(setAadharBack)}
-                                                index={0} // Add index for single files
+                                                index={0}
                                             />
                                         </div>
                                     )}
@@ -486,7 +644,7 @@ useEffect(() => {
 
                                 {/* Resume */}
                                 <div>
-                                    <Label>Resume</Label>
+                                    <Label>Resume (Max 5MB)</Label>
                                     <Input
                                         type="file"
                                         accept=".pdf,.doc,.docx"
@@ -497,7 +655,7 @@ useEffect(() => {
                                             <FilePreview
                                                 file={resume}
                                                 onRemove={() => removeSingleFile(setResume)}
-                                                index={0} // Add index for single files
+                                                index={0}
                                             />
                                         </div>
                                     )}
@@ -505,7 +663,7 @@ useEffect(() => {
 
                                 {/* Last 3 Month Salary Slips (Multiple) */}
                                 <div>
-                                    <Label>Last 3 Month Salary Slips</Label>
+                                    <Label>Last 3 Month Salary Slips (Max 5MB each)</Label>
                                     <Input
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png"
@@ -524,7 +682,6 @@ useEffect(() => {
                                             ))}
                                         </div>
                                     )}
-
                                 </div>
                             </div>
                         </section>
@@ -552,76 +709,60 @@ useEffect(() => {
                                     />
                                 </div>
 
-{user?.role === "admin" && (
-                                <div>
-                                    <Label>Offered Fixed CTC</Label>
-                                    <Input
-                                        type="number"
-                                        value={offeredFixedCtc}
-                                        onChange={(e) => setOfferedFixedCtc(e.target.value)}
-                                    />
-                                </div>
-)}
-
-{user?.role === "admin" && (
-                                <div>
-                                    <Label>Offered Variable CTC</Label>
-                                    <Input
-                                        type="number"
-                                        value={offeredVariableCtc}
-                                        onChange={(e) => setOfferedVariableCtc(e.target.value)}
-                                    />
-                                </div>
-)}
-
-{user?.role === "admin" && (
-                                <div>
-                                    <Label>Offered Total CTC (Auto Calculated)</Label>
-                                    <Input type="number" value={offeredTotalCtc} readOnly className="bg-gray-100 cursor-not-allowed" />
-                                </div>
-                            )}
-
-                          {user?.role === "admin" && (
-  <div>
-    <Label>Candidate Status</Label>
-    <Select value={candidateStatus} onValueChange={setCandidateStatus}>
-      <SelectTrigger>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="Pending">Pending</SelectItem>
-        <SelectItem value="Send Link To Candidate">Send Link To Candidate</SelectItem>
-        <SelectItem value="Documents Submitted">Documents Submitted</SelectItem>
-        <SelectItem value="In Progress">In Progress</SelectItem>
-        <SelectItem value="Approved">Approved</SelectItem>
-        <SelectItem value="Rejected">Rejected</SelectItem>
-      </SelectContent>
-    </Select>
-  </div>
-)}
-
-                                      {/* NEW: Preview Offer Letter Button */}
-                                      {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h4 className="font-semibold text-blue-800">Offer Letter Preview</h4>
-                                            <p className="text-sm text-blue-600 mt-1">
-                                                Generate and preview the offer letter before sending it to the candidate.
-                                            </p>
-                                        </div>
-                                        <Button 
-                                            type="button" 
-                                            onClick={handlePreviewOfferLetter}
-                                            disabled={isGeneratingPreview || loading}
-                                            className="bg-blue-600 hover:bg-blue-700"
-                                        >
-                                            {isGeneratingPreview ? "Generating..." : "Preview Offer Letter"}
-                                        </Button>
+                                {user?.role === "admin" && (
+                                    <div>
+                                        <Label>Offered Fixed CTC</Label>
+                                        <Input
+                                            type="number"
+                                            value={offeredFixedCtc}
+                                            onChange={(e) => setOfferedFixedCtc(e.target.value)}
+                                        />
                                     </div>
-                                </div> */}
+                                )}
+
+                                {user?.role === "admin" && (
+                                    <div>
+                                        <Label>Offered Variable CTC</Label>
+                                        <Input
+                                            type="number"
+                                            value={offeredVariableCtc}
+                                            onChange={(e) => setOfferedVariableCtc(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+
+                                {user?.role === "admin" && (
+                                    <div>
+                                        <Label>Offered Total CTC (Auto Calculated)</Label>
+                                        <Input 
+                                            type="number" 
+                                            value={offeredTotalCtc} 
+                                            readOnly 
+                                            className="bg-gray-100 cursor-not-allowed" 
+                                        />
+                                    </div>
+                                )}
+
+                                {user?.role === "admin" && (
+                                    <div>
+                                        <Label>Candidate Status</Label>
+                                        <Select value={candidateStatus} onValueChange={setCandidateStatus}>
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Pending">Pending</SelectItem>
+                                                <SelectItem value="Send Link To Candidate">Send Link To Candidate</SelectItem>
+                                                <SelectItem value="Documents Submitted">Documents Submitted</SelectItem>
+                                                <SelectItem value="In Progress">In Progress</SelectItem>
+                                                <SelectItem value="Approved">Approved</SelectItem>
+                                                <SelectItem value="Rejected">Rejected</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
                         </section>
-
 
                         {/* Form Actions */}
                         <div className="flex justify-end gap-3 pt-4">
@@ -631,25 +772,27 @@ useEffect(() => {
                         </div>
                     </form>
                 </CardContent>
+
+                {/* Popups */}
                 <ResponsibilitiesPopup
-                isOpen={showResponsibilitiesPopup}
-                onClose={() => setShowResponsibilitiesPopup(false)}
-                onSave={handleResponsibilitiesSave}
-                title="Key Responsibilities"
-                initialData={keyResponsibilities}
-                fieldName="keyResponsibilities"
-            />
+                    isOpen={showResponsibilitiesPopup}
+                    onClose={() => setShowResponsibilitiesPopup(false)}
+                    onSave={handleResponsibilitiesSave}
+                    title="Key Responsibilities"
+                    initialData={keyResponsibilities}
+                    fieldName="keyResponsibilities"
+                />
 
-            <ResponsibilitiesPopup
-                isOpen={showWhatYoullGainPopup}
-                onClose={() => setShowWhatYoullGainPopup(false)}
-                onSave={handleWhatYoullGainSave}
-                title="What You'll Gain"
-                initialData={whatYoullGain}
-                fieldName="whatYoullGain"
-            />
+                <ResponsibilitiesPopup
+                    isOpen={showWhatYoullGainPopup}
+                    onClose={() => setShowWhatYoullGainPopup(false)}
+                    onSave={handleWhatYoullGainSave}
+                    title="What You'll Gain"
+                    initialData={whatYoullGain}
+                    fieldName="whatYoullGain"
+                />
 
-<OfferLetterPreviewPopup
+                <OfferLetterPreviewPopup
                     isOpen={showOfferLetterPreview}
                     onClose={() => {
                         setShowOfferLetterPreview(false);
@@ -663,18 +806,19 @@ useEffect(() => {
                 />
 
                 <SuccessPopup
-  isOpen={showSuccessPopup}
-  message="Onboarding Created Successfully 🎉"
-  onClose={() => {
-    setShowSuccessPopup(false);
-  }}
-/>
+                    isOpen={showSuccessPopup}
+                    message="Onboarding Created Successfully 🎉"
+                    onClose={() => {
+                        setShowSuccessPopup(false);
+                        navigate("/crm/goonboardingdata");
+                    }}
+                />
 
-<SuccessPopup
-  isOpen={showDuplicatePopup}
-  message="Form already submitted 🚫 You cannot fill it again"
-  onClose={() => setShowDuplicatePopup(false)}
-/>
+                <SuccessPopup
+                    isOpen={showDuplicatePopup}
+                    message="Form already submitted 🚫 You cannot fill it again"
+                    onClose={() => setShowDuplicatePopup(false)}
+                />
             </div>
         </div>
     );

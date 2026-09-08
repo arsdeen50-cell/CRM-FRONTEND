@@ -31,20 +31,20 @@ axiosInstance.interceptors.response.use(
       const message = data?.message || 'Something went wrong';
 
       // 🔴 Handle ALL 401 errors
-      if (status === 401) {
-        toast.error('Session expired. Please login again.');
+      // if (status === 401) {
+      //   toast.error('Session expired. Please login again.');
 
-        store.dispatch(logout());
-        localStorage.removeItem('token');
-        delete axiosInstance.defaults.headers.common['Authorization'];
+      //   store.dispatch(logout());
+      //   localStorage.removeItem('token');
+      //   delete axiosInstance.defaults.headers.common['Authorization'];
 
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
-      } 
-      else {
-        toast.error(message);
-      }
+      //   if (window.location.pathname !== '/login') {
+      //     window.location.href = '/login';
+      //   }
+      // } 
+      // else {
+      //   toast.error(message);
+      // }
     } 
     else {
       toast.error('Network error. Please check your connection.');

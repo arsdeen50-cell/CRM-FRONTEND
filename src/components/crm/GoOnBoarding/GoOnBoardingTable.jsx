@@ -1,17 +1,22 @@
-import React, { useEffect } from "react";
+// GoOnBoardingTable.js - Add Designation Manager
+
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import useGoOnBoarding from "@/hooks/useGoOnBoarding";
+import { Settings } from "lucide-react";
+import DesignationManager from "@/components/DesignationManager";
 
 const GoOnBoardingTable = () => {
     const navigate = useNavigate();
     const { onboardings, loading, fetchOnboardings } = useGoOnBoarding();
+    const [showDesignationManager, setShowDesignationManager] = useState(false);
 
     useEffect(() => {
-        fetchOnboardings(); // Load data on mount
+        fetchOnboardings();
     }, []);
 
     const getStatusBadge = (status) => {
@@ -20,18 +25,31 @@ const GoOnBoardingTable = () => {
             Approved: "bg-green-100 text-green-800",
             Rejected: "bg-red-100 text-red-800",
             "In Progress": "bg-blue-100 text-blue-800",
+            "Send Link To Candidate": "bg-purple-100 text-purple-800",
+            "Documents Submitted": "bg-indigo-100 text-indigo-800",
         };
         return <Badge className={colors[status] || "bg-gray-100 text-gray-800"}>{status}</Badge>;
     };
 
     return (
-        <Card className="w-full"> {/* Added Card wrapper */}
-            <CardHeader className="flex flex-row justify-between">
+        <Card className="w-full">
+            <CardHeader className="flex flex-row justify-between items-center">
                 <div>
                     <CardTitle>Go Onboarding [Counts: {onboardings.length}]</CardTitle>
-                   
                 </div>
-                <Button onClick={() => navigate("/crm/create-goonboarding")}>Create New</Button>
+                <div className="flex gap-2">
+                    <Button 
+                        variant="outline" 
+                        onClick={() => setShowDesignationManager(true)}
+                        className="flex items-center gap-2"
+                    >
+                        <Settings className="h-4 w-4" />
+                        Manage Designations
+                    </Button>
+                    <Button onClick={() => navigate("/crm/create-goonboarding")}>
+                        Create New
+                    </Button>
+                </div>
             </CardHeader>
 
             <CardContent>
@@ -66,7 +84,7 @@ const GoOnBoardingTable = () => {
                                     <TableCell>{item.email}</TableCell>
                                     <TableCell>{item.mobileNo}</TableCell>
                                     <TableCell>{item.designation}</TableCell>
-                                    <TableCell>{item.doj}</TableCell>
+                                    <TableCell>{item.doj ? new Date(item.doj).toLocaleDateString() : '-'}</TableCell>
                                     <TableCell>{getStatusBadge(item.candidateStatus)}</TableCell>
                                 </TableRow>
                             ))}
@@ -74,7 +92,12 @@ const GoOnBoardingTable = () => {
                     </Table>
                 )}
             </CardContent>
-        </Card> // Closing Card
+
+            <DesignationManager
+                isOpen={showDesignationManager}
+                onClose={() => setShowDesignationManager(false)}
+            />
+        </Card>
     );
 };
 

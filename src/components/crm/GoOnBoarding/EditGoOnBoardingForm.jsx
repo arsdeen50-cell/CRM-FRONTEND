@@ -9,9 +9,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import useGoOnBoarding from "@/hooks/useGoOnBoarding";
 import FilePreview from "./FilePreview";
 import ExistingFilePreview from "./ExistingFilePreview";
-import CandidateInfoCard from "./CandidateInfoCard"; // Import the CandidateInfoCard
+import CandidateInfoCard from "./CandidateInfoCard";
 import ResponsibilitiesPopup from "./ResponsibilitiesPopup";
 import OfferLetterPreviewPopup from "./OfferLetterPreviewPopup";
+import useDesignation from "@/hooks/useDesignation";
+import axiosInstance from "@/utils/axiosConfig";
+import { USER_API_END_POINT, ONBOARDING_API_END_POINT } from "@/constants";
+import { toast } from "sonner";
 
 const EditGoOnBoardingForm = ({ onClose }) => {
     const navigate = useNavigate();
@@ -31,7 +35,7 @@ const EditGoOnBoardingForm = ({ onClose }) => {
     const [designation, setDesignation] = useState("");
     const [doj, setDoj] = useState("");
     const [doe, setDoe] = useState("");
-const [positionType, setPositionType] = useState("Full Time");
+    const [positionType, setPositionType] = useState("Full Time");
     const [currentAddress, setCurrentAddress] = useState("");
     const [permanentAddress, setPermanentAddress] = useState("");
     const [residingCity, setResidingCity] = useState("");
@@ -56,9 +60,15 @@ const [positionType, setPositionType] = useState("Full Time");
     const [offeredTotalCtc, setOfferedTotalCtc] = useState("");
     const [candidateStatus, setCandidateStatus] = useState("Pending");
 
+    // ADD THIS - Track previous status
+    const [prevStatus, setPrevStatus] = useState("Pending");
+
     // State for candidate data to pass to CandidateInfoCard
     const [candidateData, setCandidateData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [showDesignationManager, setShowDesignationManager] = useState(false);
+    const { designations, fetchDesignations } = useDesignation();
 
     const [keyResponsibilities, setKeyResponsibilities] = useState([]);
     const [whatYoullGain, setWhatYoullGain] = useState([]);
@@ -71,6 +81,10 @@ const [positionType, setPositionType] = useState("Full Time");
     const [offerLetterPdfUrl, setOfferLetterPdfUrl] = useState(null);
     const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
 
+    useEffect(() => {
+        fetchDesignations();
+    }, []);
+
     // Auto calculate total CTC
     useEffect(() => {
         const fixed = parseFloat(offeredFixedCtc) || 0;
@@ -80,24 +94,24 @@ const [positionType, setPositionType] = useState("Full Time");
 
     useEffect(() => {
         return () => {
-          if (offerLetterPdfUrl) {
-            URL.revokeObjectURL(offerLetterPdfUrl);
-          }
+            if (offerLetterPdfUrl) {
+                URL.revokeObjectURL(offerLetterPdfUrl);
+            }
         };
-      }, [offerLetterPdfUrl]);
+    }, [offerLetterPdfUrl]);
 
     const handlePreviewOfferLetter = async () => {
         try {
-          setIsGeneratingPreview(true);
-          const pdfUrl = await previewOfferLetter(id);
-          setOfferLetterPdfUrl(pdfUrl);
-          setShowOfferLetterPreview(true);
+            setIsGeneratingPreview(true);
+            const pdfUrl = await previewOfferLetter(id);
+            setOfferLetterPdfUrl(pdfUrl);
+            setShowOfferLetterPreview(true);
         } catch (error) {
-          console.error("Error generating offer letter preview:", error);
+            console.error("Error generating offer letter preview:", error);
         } finally {
-          setIsGeneratingPreview(false);
+            setIsGeneratingPreview(false);
         }
-      };
+    };
 
     // Fetch onboarding data when component mounts
     useEffect(() => {
@@ -116,9 +130,9 @@ const [positionType, setPositionType] = useState("Full Time");
                     setDesignation(onboardingData.designation || "");
                     setDoj(onboardingData.doj ? onboardingData.doj.split('T')[0] : "");
                     setDoe(onboardingData.doe ? onboardingData.doe.split('T')[0] : "");
-setPositionType(onboardingData.positionType || "Full Time");
-setKeyResponsibilities(onboardingData.keyResponsibilities || []);
-setWhatYoullGain(onboardingData.whatYoullGain || []);
+                    setPositionType(onboardingData.positionType || "Full Time");
+                    setKeyResponsibilities(onboardingData.keyResponsibilities || []);
+                    setWhatYoullGain(onboardingData.whatYoullGain || []);
                     setCurrentAddress(onboardingData.currentAddress || "");
                     setPermanentAddress(onboardingData.permanentAddress || "");
                     setResidingCity(onboardingData.residingCity || "");
@@ -129,7 +143,11 @@ setWhatYoullGain(onboardingData.whatYoullGain || []);
                     setOfferedFixedCtc(onboardingData.offeredFixedCtc || "");
                     setOfferedVariableCtc(onboardingData.offeredVariableCtc || "");
                     setOfferedTotalCtc(onboardingData.offeredTotalCtc || "");
-                    setCandidateStatus(onboardingData.candidateStatus || "Pending");
+                    
+                    // Set status and track previous status
+                    const currentStatus = onboardingData.candidateStatus || "Pending";
+                    setCandidateStatus(currentStatus);
+                    setPrevStatus(currentStatus);
 
                     // Set existing files
                     setExistingUploadProfile(onboardingData.uploadProfile);
@@ -186,8 +204,7 @@ setWhatYoullGain(onboardingData.whatYoullGain || []);
         setter(null);
     };
 
-     // NEW: Handle popup save functions
-     const handleResponsibilitiesSave = (responsibilities) => {
+    const handleResponsibilitiesSave = (responsibilities) => {
         setKeyResponsibilities(responsibilities);
     };
 
@@ -195,88 +212,170 @@ setWhatYoullGain(onboardingData.whatYoullGain || []);
         setWhatYoullGain(gains);
     };
 
-    // Submit handler for update
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    // Handle status change - track previous status
+    const handleStatusChange = (value) => {
+        setPrevStatus(candidateStatus);
+        setCandidateStatus(value);
+    };
 
-        const formData = new FormData();
+   // EditGoOnBoardingForm.js - Update the handleSubmit function
 
-        // Append text fields
-        formData.append("recruiterName", recruiterName);
-        formData.append("candidateName", candidateName);
-        formData.append("email", email);
-        formData.append("fatherName", fatherName);
-        formData.append("DOB", DOB);
-        formData.append("gender", gender);
-        formData.append("mobileNo", mobileNo);
-        formData.append("designation", designation);
-        formData.append("doj", doj);
-        formData.append("doe", doe);
-formData.append("positionType", positionType);
-keyResponsibilities.forEach((responsibility, index) => {
-    formData.append("keyResponsibilities", responsibility);
-});
-whatYoullGain.forEach((gain, index) => {
-    formData.append("whatYoullGain", gain);
-});
-        formData.append("currentAddress", currentAddress);
-        formData.append("permanentAddress", permanentAddress);
-        formData.append("residingCity", residingCity);
-        formData.append("residingState", residingState);
-        formData.append("pincode", pincode);
-        formData.append("workExperience", workExperience);
-        formData.append("previousTotalCtc", previousTotalCtc);
-        formData.append("offeredFixedCtc", offeredFixedCtc);
-        formData.append("offeredVariableCtc", offeredVariableCtc);
-        formData.append("offeredTotalCtc", offeredTotalCtc);
-        formData.append("candidateStatus", candidateStatus);
+const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        // Append new single files (only if they were updated)
-        if (uploadProfile) formData.append("uploadProfile", uploadProfile);
-        if (aadharFront) formData.append("aadharFront", aadharFront);
-        if (aadharBack) formData.append("aadharBack", aadharBack);
-        if (resume) formData.append("resume", resume);
+    const formData = new FormData();
 
-        // Append new multiple files
-        lastThreeMonthSalary.forEach((file, index) => {
-            formData.append("lastThreeMonthSalary", file);
-        });
+    // Append text fields
+    formData.append("recruiterName", recruiterName);
+    formData.append("candidateName", candidateName);
+    formData.append("email", email);
+    formData.append("fatherName", fatherName);
+    formData.append("DOB", DOB);
+    formData.append("gender", gender);
+    formData.append("mobileNo", mobileNo);
+    formData.append("designation", designation);
+    formData.append("doj", doj);
+    formData.append("doe", doe);
+    formData.append("positionType", positionType);
+    formData.append("currentAddress", currentAddress);
+    formData.append("permanentAddress", permanentAddress);
+    formData.append("residingCity", residingCity);
+    formData.append("residingState", residingState);
+    formData.append("pincode", pincode);
+    formData.append("workExperience", workExperience);
+    formData.append("previousTotalCtc", previousTotalCtc);
+    formData.append("offeredFixedCtc", offeredFixedCtc);
+    formData.append("offeredVariableCtc", offeredVariableCtc);
+    formData.append("offeredTotalCtc", offeredTotalCtc);
+    formData.append("candidateStatus", candidateStatus);
 
-        try {
-           if (candidateStatus === "Approved") {
-            // Show confirmation dialog
+    keyResponsibilities.forEach((responsibility) => {
+        formData.append("keyResponsibilities", responsibility);
+    });
+    whatYoullGain.forEach((gain) => {
+        formData.append("whatYoullGain", gain);
+    });
+
+    // Append new single files
+    if (uploadProfile) formData.append("uploadProfile", uploadProfile);
+    if (aadharFront) formData.append("aadharFront", aadharFront);
+    if (aadharBack) formData.append("aadharBack", aadharBack);
+    if (resume) formData.append("resume", resume);
+
+    // Append new multiple files
+    lastThreeMonthSalary.forEach((file) => {
+        formData.append("lastThreeMonthSalary", file);
+    });
+
+    try {
+        // Check if status is changing to Approved
+        if (candidateStatus === "Approved" && prevStatus !== "Approved") {
             const confirmApproval = window.confirm(
                 `Are you sure you want to approve ${candidateName}? This will create a user account and send login credentials to ${email}.`
             );
             
             if (!confirmApproval) {
-                return; // Cancel approval
+                return;
             }
         }
         
         const response = await updateOnboarding(id, formData);
 
-            // Check if response indicates duplicate email
+        // Check if response indicates duplicate email
         if (response?.error === "DUPLICATE_EMAIL") {
-            alert(`Cannot approve: User with email ${response.email} already exists in the system. Please use a different email address.`);
-            // Reset status back to previous value
+            alert(`Cannot approve: User with email ${response.email} already exists.`);
             setCandidateStatus(prevStatus);
             return;
         }
+
+        // If approved and user account not created yet, create user account
+        if (candidateStatus === "Approved" && prevStatus !== "Approved") {
+            try {
+                // Fetch the onboarding data to get signup credentials
+                const onboardingData = await fetchOnboardingById(id);
+                
+                // Check if we have signup credentials
+                if (onboardingData.signupCredentials) {
+                    // Use the signup credentials
+                    const userFormData = new FormData();
+                    userFormData.append("fullname", onboardingData.signupCredentials.fullname || candidateName);
+                    userFormData.append("email", onboardingData.signupCredentials.email || email);
+                    userFormData.append("phoneNumber", onboardingData.signupCredentials.phoneNumber || mobileNo);
+                    userFormData.append("password", onboardingData.signupCredentials.password || "Temp@123");
+                    
+                    // ADD DESIGNATION TO THE USER DATA
+                    userFormData.append("designation", designation || onboardingData.designation || "");
+                    
+                    // If there's a profile file URL from signup
+                    if (onboardingData.signupCredentials.file?.fileUrl) {
+                        userFormData.append("profilePhotoUrl", onboardingData.signupCredentials.file.fileUrl);
+                    }
+
+                    // Call the register API
+                    const userResponse = await axiosInstance.post(
+                        `${USER_API_END_POINT}/register`,
+                        userFormData,
+                        {
+                            headers: {
+                                "Content-Type": "multipart/form-data",
+                            },
+                            withCredentials: true,
+                        }
+                    );
+
+                    if (userResponse.data.success) {
+                        // Mark user account as created in onboarding
+                        await axiosInstance.put(`${ONBOARDING_API_END_POINT}/${id}`, {
+                            userAccountCreated: true,
+                            userAccountCreatedAt: new Date(),
+                        });
+                        
+                        toast.success(`User account created successfully! Credentials sent to ${email}`);
+                    }
+                } else {
+                    // If no signup credentials, create with default data
+                    const userFormData = new FormData();
+                    userFormData.append("fullname", candidateName);
+                    userFormData.append("email", email);
+                    userFormData.append("phoneNumber", mobileNo);
+                    userFormData.append("password", "Temp@123");
+                    
+                    // ADD DESIGNATION TO THE USER DATA
+                    userFormData.append("designation", designation);
+
+                    const userResponse = await axiosInstance.post(
+                        `${USER_API_END_POINT}/register`,
+                        userFormData,
+                        {
+                            headers: {
+                                "Content-Type": "multipart/form-data",
+                            },
+                            withCredentials: true,
+                        }
+                    );
+
+                    if (userResponse.data.success) {
+                        toast.success(`User account created successfully!`);
+                    }
+                }
+            } catch (userError) {
+                console.error("Error creating user account:", userError);
+                toast.error("User account creation failed: " + (userError.response?.data?.message || "Unknown error"));
+            }
+        }
         
-        // Success message
-        if (candidateStatus === "Approved") {
+        if (candidateStatus === "Approved" && prevStatus !== "Approved") {
             alert(`Candidate approved successfully! Login credentials have been sent to ${email}.`);
+        } else {
+            toast.success("Onboarding updated successfully!");
         }
         
         navigate("/crm/goonboardingdata");
-        } catch (error) {
+    } catch (error) {
         console.error("Error updating onboarding:", error);
         
-        // Handle duplicate email error from API response
         if (error.response?.data?.error === "DUPLICATE_EMAIL") {
             alert(error.response.data.message || "User with this email already exists!");
-            // Reset status back to previous value
             setCandidateStatus(prevStatus);
         } else {
             alert("Error updating onboarding. Please try again.");
@@ -327,7 +426,6 @@ whatYoullGain.forEach((gain, index) => {
                                             accept="image/*"
                                             onChange={(e) => handleSingleFileUpload(e.target.files[0], setUploadProfile)}
                                         />
-                                        {/* Show existing file preview */}
                                         {existingUploadProfile && !uploadProfile && (
                                             <div className="mt-2">
                                                 <div className="flex items-center gap-2">
@@ -340,7 +438,6 @@ whatYoullGain.forEach((gain, index) => {
                                                 </div>
                                             </div>
                                         )}
-                                        {/* Show new file preview */}
                                         {uploadProfile && (
                                             <div className="mt-2">
                                                 <FilePreview
@@ -418,12 +515,36 @@ whatYoullGain.forEach((gain, index) => {
                                 <h3 className="text-lg font-semibold">Professional Information</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label>Designation</Label>
-                                        <Input
-                                            value={designation}
-                                            onChange={(e) => setDesignation(e.target.value)}
-                                            required
-                                        />
+                                        <div className="flex items-center gap-2">
+                                            <Label>Designation</Label>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setShowDesignationManager(true)}
+                                                className="text-blue-600 hover:text-blue-800"
+                                            >
+                                                Manage
+                                            </Button>
+                                        </div>
+                                        <Select value={designation} onValueChange={setDesignation}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select designation" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {designations.length > 0 ? (
+                                                    designations.map((des) => (
+                                                        <SelectItem key={des._id} value={des.name}>
+                                                            {des.name}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-2 py-1.5 text-sm text-gray-500">
+                                                        No designations available
+                                                    </div>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
 
                                     <div>
@@ -436,30 +557,30 @@ whatYoullGain.forEach((gain, index) => {
                                         />
                                     </div>
                                     <div>
-                                    <Label>Date of Ending (DOE)</Label>
-                                    <Input 
-                                        type="date" 
-                                        value={doe} 
-                                        onChange={(e) => setDoe(e.target.value)} 
-                                    />
-                                </div>
+                                        <Label>Date of Ending (DOE)</Label>
+                                        <Input 
+                                            type="date" 
+                                            value={doe} 
+                                            onChange={(e) => setDoe(e.target.value)} 
+                                        />
+                                    </div>
 
-                                <div>
-                                    <Label>Position Type</Label>
-                                    <Select value={positionType} onValueChange={setPositionType}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select position type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Full Time">Full Time</SelectItem>
-                                            <SelectItem value="Internship">Internship</SelectItem>
-                                            <SelectItem value="Contract">Contract</SelectItem>
-                                            <SelectItem value="Part Time">Part Time</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <div>
+                                        <Label>Position Type</Label>
+                                        <Select value={positionType} onValueChange={setPositionType}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select position type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Full Time">Full Time</SelectItem>
+                                                <SelectItem value="Internship">Internship</SelectItem>
+                                                <SelectItem value="Contract">Contract</SelectItem>
+                                                <SelectItem value="Part Time">Part Time</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                     <div className="space-y-3">
                                         <Label>Key Responsibilities</Label>
                                         <div className="space-y-2">
@@ -677,7 +798,6 @@ whatYoullGain.forEach((gain, index) => {
                                             multiple
                                             onChange={(e) => handleMultipleFileUpload(e.target.files, setLastThreeMonthSalary)}
                                         />
-                                        {/* Show existing salary slips */}
                                         {existingLastThreeMonthSalary.length > 0 && (
                                             <div className="mt-2">
                                                 <p className="text-sm text-gray-600 mb-2">Existing files:</p>
@@ -694,7 +814,6 @@ whatYoullGain.forEach((gain, index) => {
                                                 </div>
                                             </div>
                                         )}
-                                        {/* Show new salary slips */}
                                         {lastThreeMonthSalary.length > 0 && (
                                             <div className="mt-2">
                                                 <p className="text-sm text-gray-600 mb-2">New files:</p>
@@ -755,7 +874,6 @@ whatYoullGain.forEach((gain, index) => {
                                         />
                                     </div>
 
-                                    {/* 🔹 Automatically calculated total */}
                                     <div>
                                         <Label>Offered Total CTC (Auto Calculated)</Label>
                                         <Input
@@ -768,39 +886,40 @@ whatYoullGain.forEach((gain, index) => {
 
                                     <div>
                                         <Label>Candidate Status</Label>
-                                        <Select value={candidateStatus} onValueChange={setCandidateStatus}>
+                                        <Select value={candidateStatus} onValueChange={handleStatusChange}>
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="Pending">Pending</SelectItem>
                                                 <SelectItem value="Send Link To Candidate">Send Link To Candidate</SelectItem>
-                                                <SelectItem value="Documents Submitted">Documents submitted</SelectItem>
+                                                <SelectItem value="Documents Submitted">Documents Submitted</SelectItem>
                                                 <SelectItem value="In Progress">In Progress</SelectItem>
                                                 <SelectItem value="Approved">Approved</SelectItem>
                                                 <SelectItem value="Rejected">Rejected</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                      {/* NEW: Preview Offer Letter Button */}
-                                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h4 className="font-semibold text-blue-800">Offer Letter Preview</h4>
-                                            <p className="text-sm text-blue-600 mt-1">
-                                                Generate and preview the offer letter before sending it to the candidate.
-                                            </p>
+                                    
+                                    {/* NEW: Preview Offer Letter Button */}
+                                    <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h4 className="font-semibold text-blue-800">Offer Letter Preview</h4>
+                                                <p className="text-sm text-blue-600 mt-1">
+                                                    Generate and preview the offer letter before sending it to the candidate.
+                                                </p>
+                                            </div>
+                                            <Button 
+                                                type="button" 
+                                                onClick={handlePreviewOfferLetter}
+                                                disabled={isGeneratingPreview || loading}
+                                                className="bg-blue-600 hover:bg-blue-700"
+                                            >
+                                                {isGeneratingPreview ? "Generating..." : "Preview Offer Letter"}
+                                            </Button>
                                         </div>
-                                        <Button 
-                                            type="button" 
-                                            onClick={handlePreviewOfferLetter}
-                                            disabled={isGeneratingPreview || loading}
-                                            className="bg-blue-600 hover:bg-blue-700"
-                                        >
-                                            {isGeneratingPreview ? "Generating..." : "Preview Offer Letter"}
-                                        </Button>
                                     </div>
-                                </div>
                                 </div>
                                 {candidateData && <CandidateInfoCard candidateData={candidateData} />}
                             </section>
@@ -821,25 +940,26 @@ whatYoullGain.forEach((gain, index) => {
                         </form>
                     </CardContent>
                 </Card>
+                
                 <ResponsibilitiesPopup
-                isOpen={showResponsibilitiesPopup}
-                onClose={() => setShowResponsibilitiesPopup(false)}
-                onSave={handleResponsibilitiesSave}
-                title="Key Responsibilities"
-                initialData={keyResponsibilities}
-                fieldName="keyResponsibilities"
-            />
+                    isOpen={showResponsibilitiesPopup}
+                    onClose={() => setShowResponsibilitiesPopup(false)}
+                    onSave={handleResponsibilitiesSave}
+                    title="Key Responsibilities"
+                    initialData={keyResponsibilities}
+                    fieldName="keyResponsibilities"
+                />
 
-            <ResponsibilitiesPopup
-                isOpen={showWhatYoullGainPopup}
-                onClose={() => setShowWhatYoullGainPopup(false)}
-                onSave={handleWhatYoullGainSave}
-                title="What You'll Gain"
-                initialData={whatYoullGain}
-                fieldName="whatYoullGain"
-            />
+                <ResponsibilitiesPopup
+                    isOpen={showWhatYoullGainPopup}
+                    onClose={() => setShowWhatYoullGainPopup(false)}
+                    onSave={handleWhatYoullGainSave}
+                    title="What You'll Gain"
+                    initialData={whatYoullGain}
+                    fieldName="whatYoullGain"
+                />
 
-<OfferLetterPreviewPopup
+                <OfferLetterPreviewPopup
                     isOpen={showOfferLetterPreview}
                     onClose={() => {
                         setShowOfferLetterPreview(false);
