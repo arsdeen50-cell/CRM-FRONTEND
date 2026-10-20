@@ -99,7 +99,7 @@ const LeadClientList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.brandName || !formData.contactPerson || !formData.email || !formData.phone) {
+    if (!formData.brandName || !formData.contactPerson) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -306,8 +306,8 @@ const LeadClientList = () => {
                         <TableCell className="font-mono text-xs">{client.leadId || "—"}</TableCell>
                         <TableCell className="font-medium">{client.brandName}</TableCell>
                         <TableCell>{client.contactPerson}</TableCell>
-                        <TableCell>{client.email}</TableCell>
-                        <TableCell>{client.phone}</TableCell>
+                        <TableCell>{client.email || "—"}</TableCell>
+                        <TableCell>{client.phone || "—"}</TableCell>
                         <TableCell>{client.location || "—"}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -407,28 +407,26 @@ const LeadClientList = () => {
                 />
               </div>
               <div>
-                <Label>Email *</Label>
+                <Label>Email</Label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  placeholder="Enter email"
+                  placeholder="Enter email (optional)"
                   className="mt-1"
-                  required
                 />
               </div>
               <div>
-                <Label>Phone *</Label>
+                <Label>Phone</Label>
                 <Input
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  placeholder="Enter phone number"
+                  placeholder="Enter phone number (optional)"
                   className="mt-1"
-                  required
                 />
               </div>
               <div>

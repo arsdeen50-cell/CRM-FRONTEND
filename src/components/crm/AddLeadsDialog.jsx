@@ -215,8 +215,8 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
     e.preventDefault();
 
     // Validate required fields
-    if (!formData.brandName || !formData.contactPerson || !formData.email || !formData.phone) {
-        toast.error("Please fill in all required client fields: Brand Name, Contact Person, Email, and Phone");
+    if (!formData.brandName || !formData.contactPerson) {
+        toast.error("Please fill in all required client fields: Brand Name and Contact Person");
         return;
     }
 
@@ -432,23 +432,21 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label>Email *</Label>
+                                    <Label>Email</Label>
                                     <Input
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => handleChange("email", e.target.value)}
-                                        placeholder="Enter email"
-                                        required
+                                        placeholder="Enter email (optional)"
                                     />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label>Phone *</Label>
+                                    <Label>Phone</Label>
                                     <Input
                                         value={formData.phone}
                                         onChange={(e) => handleChange("phone", e.target.value)}
-                                        placeholder="Enter phone number"
-                                        required
+                                        placeholder="Enter phone number (optional)"
                                     />
                                 </div>
 
