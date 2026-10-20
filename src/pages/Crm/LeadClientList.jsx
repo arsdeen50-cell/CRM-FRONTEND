@@ -29,8 +29,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
+import { useIsAdmin } from "@/components/crm/CrmMemberRoute";
+import { TIER_STYLES, isPlaceholderEmail, isPlaceholderPhone } from "@/lib/crmOutreach";
+
+const Muted = ({ children }) => <span className="text-gray-400 text-xs">{children}</span>;
 
 const LeadClientList = () => {
+  const isAdmin = useIsAdmin();
   const { user } = useSelector((state) => state.auth);
   const currentUser = user?.fullname || "Unknown";
 
@@ -285,6 +290,7 @@ const LeadClientList = () => {
                     <TableHead>Client ID</TableHead>
                     <TableHead>Lead ID</TableHead>
                     <TableHead>Brand Name</TableHead>
+                    <TableHead>Research</TableHead>
                     <TableHead>Contact Person</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
@@ -295,7 +301,7 @@ const LeadClientList = () => {
                 <TableBody>
                   {paginatedClients.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                         No clients found
                       </TableCell>
                     </TableRow>
@@ -305,9 +311,22 @@ const LeadClientList = () => {
                         <TableCell className="font-mono text-xs">{client._id?.slice(-6) || "—"}</TableCell>
                         <TableCell className="font-mono text-xs">{client.leadId || "—"}</TableCell>
                         <TableCell className="font-medium">{client.brandName}</TableCell>
+                        <TableCell>
+                          {client.research?.tier ? (
+                            <span
+                              className={`text-xs border rounded-full px-2 py-0.5 whitespace-nowrap ${TIER_STYLES[client.research.tier] || ""}`}
+                              title={[client.research.gap, client.research.signal].filter(Boolean).join("\n")}
+                            >
+                              {client.research.tier}
+                              {client.research.score ? ` · ${client.research.score}` : ""}
+                            </span>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
                         <TableCell>{client.contactPerson}</TableCell>
-                        <TableCell>{client.email || "—"}</TableCell>
-                        <TableCell>{client.phone || "—"}</TableCell>
+                        <TableCell>{isPlaceholderEmail(client.email) ? <Muted>Not public</Muted> : client.email}</TableCell>
+                        <TableCell>{isPlaceholderPhone(client.phone) ? <Muted>Not public</Muted> : client.phone}</TableCell>
                         <TableCell>{client.location || "—"}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -319,14 +338,16 @@ const LeadClientList = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-red-600 hover:text-red-800"
-                              onClick={() => handleDelete(client._id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {isAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-800"
+                                onClick={() => handleDelete(client._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

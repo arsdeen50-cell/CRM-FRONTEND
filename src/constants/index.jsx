@@ -144,7 +144,8 @@ export const navbarLinks = [
 
 // http://localhost:3000
 
-export const backend_url = "https://api.crm.arsdeen.cloud/api"
+// Set VITE_BACKEND_URL (e.g. in .env.local) to point the app at another server; defaults to production
+export const backend_url = import.meta.env.VITE_BACKEND_URL || "https://api.crm.arsdeen.cloud/api"
 
 export const USER_API_END_POINT = `${backend_url}/v1/user`;
 
