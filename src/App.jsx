@@ -24,6 +24,14 @@ import EditGoOnBoardingForm from "./components/crm/GoOnBoarding/EditGoOnBoarding
 import CandidateForm from "./components/crm/GoOnBoarding/CandidateForm";
 import ForgotPassword from "./auth/ForgotPassword";
 import LeadClientList from "./pages/Crm/LeadClientList";
+import CrmMemberRoute from "./components/crm/CrmMemberRoute";
+import FollowUps from "./pages/Crm/FollowUps";
+import Reports from "./pages/Crm/Reports";
+import ImportLeads from "./pages/Crm/ImportLeads";
+import Templates from "./pages/Crm/Templates";
+import Proposals from "./pages/Crm/Proposals";
+import Projects from "./pages/Crm/Projects";
+import AuditLog from "./pages/Crm/AuditLog";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -133,28 +141,36 @@ function App() {
         {
           path: "crm",
           element: (
-            <EmployeeRoute>
+            <CrmMemberRoute>
               <Crm />
-            </EmployeeRoute>
+            </CrmMemberRoute>
           ),
         },
         {
           path: "crm/lead-source",
           element: (
-            <EmployeeRoute>
+            <CrmMemberRoute>
               <LeadSource />
-            </EmployeeRoute>
+            </CrmMemberRoute>
           ),
         },
 
          {
           path: "crm/lead-list",
           element: (
-            <EmployeeRoute>
+            <CrmMemberRoute>
               <LeadClientList />
-            </EmployeeRoute>
+            </CrmMemberRoute>
           ),
         },
+        // Sales suite: member pages (employees see only their assigned leads) + admin pages (CrmRoute inside)
+        { path: "crm/follow-ups", element: <FollowUps /> },
+        { path: "crm/proposals", element: <Proposals /> },
+        { path: "crm/projects", element: <Projects /> },
+        { path: "crm/reports", element: <Reports /> },
+        { path: "crm/import", element: <ImportLeads /> },
+        { path: "crm/templates", element: <Templates /> },
+        { path: "crm/audit-log", element: <AuditLog /> },
         {
           path: "crm/goonboardingdata",
           element: (

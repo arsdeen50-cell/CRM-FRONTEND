@@ -6,9 +6,13 @@ import {
   Target,
   Briefcase,
   FileText,
+  CalendarClock,
+  FileUp,
+  MessageSquareText,
+  History,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import CrmRoute from "./CrmRoute";
+import CrmMemberRoute, { useIsAdmin } from "./CrmMemberRoute";
 import {
   Accordion,
   AccordionItem,
@@ -18,8 +22,9 @@ import {
 
 const Crm = () => {
   const navigate = useNavigate();
+  const isAdmin = useIsAdmin();
 
-  const cards = [
+  const allCards = [
     {
       title: "Sales Pipeline",
       icon: <BarChart3 className="text-blue-600" size={20} />,
@@ -35,10 +40,37 @@ const Crm = () => {
           icon: <Target size={18} className="text-blue-500" />,
           route: "/crm/lead-source",
         },
+        {
+          label: "Follow-ups",
+          icon: <CalendarClock size={18} className="text-blue-500" />,
+          route: "/crm/follow-ups",
+        },
+        {
+          label: "Proposals",
+          icon: <FileText size={18} className="text-blue-500" />,
+          route: "/crm/proposals",
+        },
+        {
+          label: "Projects",
+          icon: <Briefcase size={18} className="text-blue-500" />,
+          route: "/crm/projects",
+        },
+      ],
+    },
+    {
+      title: "Sales Tools",
+      adminOnly: true,
+      icon: <BarChart3 className="text-indigo-600" size={20} />,
+      options: [
+        { label: "Reports", icon: <BarChart3 size={18} className="text-indigo-500" />, route: "/crm/reports" },
+        { label: "Import CSV", icon: <FileUp size={18} className="text-indigo-500" />, route: "/crm/import" },
+        { label: "Templates", icon: <MessageSquareText size={18} className="text-indigo-500" />, route: "/crm/templates" },
+        { label: "Audit log", icon: <History size={18} className="text-indigo-500" />, route: "/crm/audit-log" },
       ],
     },
     {
       title: "HR Management",
+      adminOnly: true,
       icon: <Users className="text-green-600" size={20} />,
       options: [
         {
@@ -76,8 +108,10 @@ const Crm = () => {
     // },
   ];
 
+  const cards = allCards.filter((c) => isAdmin || !c.adminOnly);
+
   return (
-    <CrmRoute>
+    <CrmMemberRoute>
       <div className="py-8 px-4">
         <h1 className="lg:text-2xl text-md font-semibold mb-6">
           Reports & Masters
@@ -98,7 +132,7 @@ const Crm = () => {
                   {card.title}
                 </AccordionTrigger>
 
-                <AccordionContent className="p-4 flex flex-row gap-10 items-center">
+                <AccordionContent className="p-4 flex flex-row flex-wrap gap-x-10 gap-y-3 items-center">
                   {card.options.map((opt, i) => (
                     <div
                       key={i}
@@ -121,7 +155,7 @@ const Crm = () => {
           ))}
         </div>
       </div>
-    </CrmRoute>
+    </CrmMemberRoute>
   );
 };
 

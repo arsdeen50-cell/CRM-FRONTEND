@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CrmRoute from "@/components/crm/CrmRoute";
+import CrmMemberRoute, { useIsAdmin } from "@/components/crm/CrmMemberRoute";
+import QuickContactDialog from "@/components/crm/QuickContactDialog";
+import ProposalEditor from "@/components/crm/ProposalEditor";
+import { TIER_STYLES } from "@/lib/crmOutreach";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,6 +31,9 @@ import {
   Trash2,
   Users,
   UserPlus,
+  PhoneCall,
+  FileText,
+  Briefcase,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import useLeadSource from "@/hooks/useLeadSource";
@@ -85,6 +91,23 @@ const LeadSource = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const currentUser = user?.fullname || "Unknown";
+  const isAdmin = useIsAdmin();
+  const [contactLead, setContactLead] = useState(null);
+  const [proposalLead, setProposalLead] = useState(null);
+  const [creatingProject, setCreatingProject] = useState(null);
+
+  const createProject = async (lead) => {
+    setCreatingProject(lead._id);
+    try {
+      const res = await axiosInstance.post(`/v1/project/from-lead/${lead._id}`);
+      toast.success(`Project ${res.data.project.projectNo} ready`);
+      await fetchLeads();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not create project");
+    } finally {
+      setCreatingProject(null);
+    }
+  };
 
   const { leads, loading, fetchLeads, createLead, updateLead, updateLeadStage, logActivity, deleteLead } =
     useLeadSource();
@@ -475,7 +498,7 @@ const createLeadClient = async (lead) => {
   }, [filters]);
 
   return (
-    <CrmRoute>
+    <CrmMemberRoute>
       <div className="min-h-screen p-4">
         {/* Top Filter Bar */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -756,6 +779,26 @@ const createLeadClient = async (lead) => {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                className="text-emerald-600 hover:text-emerald-800 h-7 w-7"
+                                title="Contact (email / WhatsApp / call) and log it"
+                                onClick={() => setContactLead(lead)}
+                              >
+                                <PhoneCall className="h-4 w-4" />
+                              </Button>
+                              {!["Won", "Lost"].includes(stage) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-purple-600 hover:text-purple-800 h-7 w-7"
+                                  title="Create proposal"
+                                  onClick={() => setProposalLead(lead)}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="text-blue-600 hover:text-blue-800 h-7 w-7"
                                 title="Edit"
                                 onClick={() => handleEditClick(lead)}
@@ -771,15 +814,17 @@ const createLeadClient = async (lead) => {
                               >
                                 <Clock className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-600 hover:text-red-800 h-7 w-7"
-                                title="Delete"
-                                onClick={() => handleDeleteClick(lead._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {isAdmin && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-red-600 hover:text-red-800 h-7 w-7"
+                                  title="Delete"
+                                  onClick={() => handleDeleteClick(lead._id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                               {!["Won", "Lost"].includes(stage) && (
                                 <>
                                   <Button
@@ -825,10 +870,34 @@ const createLeadClient = async (lead) => {
                                   Client Linked
                                 </span>
                               )}
+                              {isWon && !lead.projectId && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-indigo-600 border-indigo-600 hover:bg-indigo-50 h-7 px-2 text-xs"
+                                  title="Create the delivery project and kickoff task"
+                                  onClick={() => createProject(lead)}
+                                  disabled={creatingProject === lead._id}
+                                >
+                                  <Briefcase className="h-3 w-3 mr-1" />
+                                  {creatingProject === lead._id ? "Creating..." : "Create project"}
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>{lead.series || "—"}</TableCell>
-                          <TableCell className="font-medium">{lead.clientName || "—"}</TableCell>
+                          <TableCell className="font-medium">
+                            {lead.clientName || "—"}
+                            {lead.clientId?.research?.tier && (
+                              <span
+                                className={`ml-2 text-[10px] border rounded-full whitespace-nowrap px-1.5 py-0.5 ${TIER_STYLES[lead.clientId.research.tier] || ""}`}
+                                title={lead.clientId.research.gap || "Research tier"}
+                              >
+                                {lead.clientId.research.tier}
+                                {lead.clientId.research.score ? ` · ${lead.clientId.research.score}` : ""}
+                              </span>
+                            )}
+                          </TableCell>
                           <TableCell>{getStageBadge(lead)}</TableCell>
                           <TableCell className="font-medium">
                             {formatCurrency(lead.dealValue, lead.currency)}
@@ -920,6 +989,20 @@ const createLeadClient = async (lead) => {
           editData={editData}
         />
 
+        <QuickContactDialog
+          open={!!contactLead}
+          onOpenChange={(o) => !o && setContactLead(null)}
+          lead={contactLead}
+          onLogged={() => fetchLeads()}
+        />
+
+        <ProposalEditor
+          open={!!proposalLead}
+          onOpenChange={(o) => !o && setProposalLead(null)}
+          lead={proposalLead}
+          onSaved={() => navigate("/crm/proposals")}
+        />
+
         <ActivityLogDialog
           open={openActivityModal}
           onOpenChange={setOpenActivityModal}
@@ -954,7 +1037,7 @@ const createLeadClient = async (lead) => {
           </div>
         )}
       </div>
-    </CrmRoute>
+    </CrmMemberRoute>
   );
 };
 
