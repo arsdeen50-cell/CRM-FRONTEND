@@ -56,7 +56,7 @@ const CandidateForm = () => {
   useEffect(() => {
     const fetchCandidateData = async () => {
       try {
-        const { data } = await axios.get(`${ONBOARDING_API_END_POINT}/${id}`);
+        const { data } = await axios.get(`${ONBOARDING_API_END_POINT}/candidate/${id}`);
         if (data.success) {
           setCandidateData(data.onboarding);
 
@@ -120,7 +120,7 @@ if (isSubmitted) {
   });
 
   try {
-    const { data } = await axios.put(`${ONBOARDING_API_END_POINT}/${id}`, formData, {
+    const { data } = await axios.put(`${ONBOARDING_API_END_POINT}/candidate/${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

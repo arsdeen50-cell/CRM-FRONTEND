@@ -16,6 +16,8 @@ import { useSelector } from "react-redux";
 import SuccessPopup from "./SuccessPopup";
 import { toast } from "sonner";
 import useDesignation from "@/hooks/useDesignation";
+import axiosInstance from "@/utils/axiosConfig";
+import { ONBOARDING_API_END_POINT } from "@/constants";
 
 const CreateGoOnBoardingForm = ({ onClose }) => {
     const navigate = useNavigate();
@@ -95,7 +97,8 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
 
     // Fetch onboardings and designations
     useEffect(() => {
-        fetchOnboardings();
+        // Only HR can list onboarding records; new joiners filling the signup form get a yes/no duplicate check instead
+        if (user?.role === "admin") fetchOnboardings();
         fetchDesignations().catch(() => {
             // Silently fail - designations are optional
             console.log("Designations not available");
@@ -208,6 +211,17 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
             if (duplicate) {
                 setShowDuplicatePopup(true);
                 return;
+            }
+        }
+        if (user?.role !== "admin") {
+            try {
+                const res = await axiosInstance.post(`${ONBOARDING_API_END_POINT}/check-duplicate`, { candidateName, email, mobileNo });
+                if (res.data?.duplicate) {
+                    setShowDuplicatePopup(true);
+                    return;
+                }
+            } catch {
+                // the server checks again when saving
             }
         }
 
