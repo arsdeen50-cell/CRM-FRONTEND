@@ -1,4 +1,4 @@
-import { TriangleAlert, Home, NotepadText, Package, PackagePlus, Settings, ShoppingBag, UserCheck, UserPlus, Users } from "lucide-react";
+import { TriangleAlert, Briefcase, Home, NotepadText, Package, PackagePlus, Settings, ShoppingBag, UserCheck, UserPlus, Users } from "lucide-react";
 
 export const navbarLinks = [
     {
@@ -33,6 +33,11 @@ export const navbarLinks = [
                 label: "Leave",
                 icon: Users,
                 path: "/leave",
+            },
+            {
+                label: "HR",
+                icon: Briefcase,
+                path: "/hr",
             },
 
         ],

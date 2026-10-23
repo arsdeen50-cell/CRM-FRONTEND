@@ -48,6 +48,12 @@ import PublicLeadForm from "./pages/Public/PublicLeadForm";
 import PublicProposal from "./pages/Public/PublicProposal";
 import PublicInvoice from "./pages/Public/PublicInvoice";
 import ClientPortal from "./pages/Public/ClientPortal";
+import HrHome from "./pages/HR/HrHome";
+import People from "./pages/HR/People";
+import EmployeeProfile from "./pages/HR/EmployeeProfile";
+import AttendanceReport from "./pages/HR/AttendanceReport";
+import Payroll from "./pages/HR/Payroll";
+import HrSettings from "./pages/HR/HrSettings";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -204,6 +210,13 @@ function App() {
         { path: "crm/time", element: <TimeTracking /> },
         { path: "crm/profitability", element: <Profitability /> },
         { path: "crm/integrations", element: <Integrations /> },
+        // HR (each page checks access; the API enforces it)
+        { path: "hr", element: <HrHome /> },
+        { path: "hr/people", element: <People /> },
+        { path: "hr/people/:userId", element: <EmployeeProfile /> },
+        { path: "hr/attendance", element: <AttendanceReport /> },
+        { path: "hr/payroll", element: <Payroll /> },
+        { path: "hr/settings", element: <HrSettings /> },
         {
           path: "crm/goonboardingdata",
           element: (

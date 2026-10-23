@@ -33,6 +33,10 @@ const EmployeeLeave = () => {
     deleteLeave 
   } = useLeave();
   const [leaves, setLeaves] = useState([]);
+  const [balance, setBalance] = useState(null);
+  useEffect(() => {
+    if (!isAdmin) axiosInstance.get("/v1/leave/balance").then((r) => setBalance(r.data.balance)).catch(() => {});
+  }, [isAdmin, leaves.length]);
   const [counts, setCounts] = useState({
     Pending: 0,
     Approved: 0,
@@ -135,6 +139,17 @@ const EmployeeLeave = () => {
             />
           </div>
         </div>
+        {balance && scope === "mine" && (
+          <div className="grid grid-cols-2 gap-3 px-4 pb-4 sm:grid-cols-4">
+            {Object.entries(balance.types).map(([t, b]) => (
+              <div key={t} className="rounded-lg border p-3">
+                <p className="text-xs text-gray-500">{t}{b.unpaid ? " (unpaid)" : ""}</p>
+                <p className="text-lg font-semibold">{b.available === null ? `${b.used} used` : `${b.available} left`}</p>
+                {b.quota !== null && <p className="text-xs text-gray-500">of {b.quota}{b.pending ? ` · ${b.pending} pending` : ""}</p>}
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex w-full justify-start bg-slate-100 p-4 transition-colors dark:bg-slate-950">
           <div className="w-full">
             <div className="flex flex-col gap-5">
@@ -221,7 +236,7 @@ const EmployeeLeave = () => {
                                 </Button>
                               </>
                             )}
-                            {scope !== "team" && (
+                            {scope !== "team" && (isAdmin || leave.status === "Pending") && (
                               <Button
                                 size="sm"
                                 variant="destructive"
@@ -262,6 +277,7 @@ const EmployeeLeave = () => {
                               End Date
                             </h3>
                             <p className="text-sm">{formatDateSafe(leave.endDate, "dd MMM yyyy")}</p>
+                            {leave.days ? <p className="text-xs text-gray-500">{leave.halfDay ? `Half day (${leave.halfDaySession || "first half"})` : `${leave.days} working day${leave.days === 1 ? "" : "s"}`}</p> : null}
                           </div>
                         </div>
 
