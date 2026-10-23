@@ -301,7 +301,8 @@ const handleSubmit = async (e) => {
                     userFormData.append("fullname", onboardingData.signupCredentials.fullname || candidateName);
                     userFormData.append("email", onboardingData.signupCredentials.email || email);
                     userFormData.append("phoneNumber", onboardingData.signupCredentials.phoneNumber || mobileNo);
-                    userFormData.append("password", onboardingData.signupCredentials.password || "Temp@123");
+                    // The password the joiner chose at signup is stored only as a hash; the server uses it from the onboarding record
+                    userFormData.append("onboardingId", id);
                     
                     // ADD DESIGNATION TO THE USER DATA
                     userFormData.append("designation", designation || onboardingData.designation || "");
@@ -330,7 +331,11 @@ const handleSubmit = async (e) => {
                             userAccountCreatedAt: new Date(),
                         });
                         
-                        toast.success(`User account created successfully! Credentials sent to ${email}`);
+                        if (userResponse.data.temporaryPassword) {
+                            window.alert(`Login created for ${email}.\n\nOne-time password: ${userResponse.data.temporaryPassword}\n\nShare it privately. They can change it with "Forgot password".`);
+                        } else {
+                            toast.success(`Login created for ${email} with the password they chose at signup`);
+                        }
                     }
                 } else {
                     // If no signup credentials, create with default data
@@ -338,7 +343,7 @@ const handleSubmit = async (e) => {
                     userFormData.append("fullname", candidateName);
                     userFormData.append("email", email);
                     userFormData.append("phoneNumber", mobileNo);
-                    userFormData.append("password", "Temp@123");
+                    // No password: the server generates a one-time password and returns it once
                     
                     // ADD DESIGNATION TO THE USER DATA
                     userFormData.append("designation", designation);
@@ -355,7 +360,11 @@ const handleSubmit = async (e) => {
                     );
 
                     if (userResponse.data.success) {
-                        toast.success(`User account created successfully!`);
+                        if (userResponse.data.temporaryPassword) {
+                            window.alert(`Login created for ${email}.\n\nOne-time password: ${userResponse.data.temporaryPassword}\n\nShare it privately. They can change it with "Forgot password".`);
+                        } else {
+                            toast.success(`User account created successfully!`);
+                        }
                     }
                 }
             } catch (userError) {
