@@ -66,7 +66,7 @@ const Signup = () => {
             // Store in localStorage (text only)
             localStorage.setItem('signupCredentials', JSON.stringify(signupData));
 
-            toast.success("Signup successful! Please complete your onboarding details.");
+            toast.success("Thanks! Complete your onboarding details next. HR will review them and activate your login.");
             navigate("/crm/create-goonboarding");
             
         } catch (error) {
