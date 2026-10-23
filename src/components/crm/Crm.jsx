@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CrmMemberRoute, { useIsAdmin } from "./CrmMemberRoute";
+import { useAccess } from "./AccessRoute";
 import {
   Accordion,
   AccordionItem,
@@ -34,37 +35,33 @@ import {
 const Crm = () => {
   const navigate = useNavigate();
   const isAdmin = useIsAdmin();
+  const { canSales, canOutreach } = useAccess();
 
   const allCards = [
     {
       title: "Sales Pipeline",
       icon: <BarChart3 className="text-blue-600" size={20} />,
       options: [
-        // { label: "Leads", icon: <Users size={18} className="text-blue-500" /> },
+        // { label: "Leads", need: "sales", icon: <Users size={18} className="text-blue-500" /> },
          {
-          label: "Current cliental",
+          label: "Current cliental", need: "sales",
           icon: <Users size={18} className="text-blue-500" />,
           route: "/crm/lead-list",
         },
         {
-          label: "Leads",
+          label: "Leads", need: "sales",
           icon: <Target size={18} className="text-blue-500" />,
           route: "/crm/lead-source",
         },
         {
-          label: "Follow-ups",
+          label: "Follow-ups", need: "sales",
           icon: <CalendarClock size={18} className="text-blue-500" />,
           route: "/crm/follow-ups",
         },
         {
-          label: "Proposals",
+          label: "Proposals", need: "sales",
           icon: <FileText size={18} className="text-blue-500" />,
           route: "/crm/proposals",
-        },
-        {
-          label: "Projects",
-          icon: <Briefcase size={18} className="text-blue-500" />,
-          route: "/crm/projects",
         },
       ],
     },
@@ -72,9 +69,9 @@ const Crm = () => {
       title: "Outreach & Automation",
       icon: <Repeat className="text-amber-600" size={20} />,
       options: [
-        { label: "Messages", icon: <Inbox size={18} className="text-amber-500" />, route: "/crm/messages" },
-        { label: "Sequences", icon: <Repeat size={18} className="text-amber-500" />, route: "/crm/sequences" },
-        { label: "Targets", icon: <Trophy size={18} className="text-amber-500" />, route: "/crm/targets" },
+        { label: "Messages", need: "outreach", icon: <Inbox size={18} className="text-amber-500" />, route: "/crm/messages" },
+        { label: "Sequences", need: "outreach", icon: <Repeat size={18} className="text-amber-500" />, route: "/crm/sequences" },
+        { label: "Targets", need: "sales", icon: <Trophy size={18} className="text-amber-500" />, route: "/crm/targets" },
         { label: "Lead capture", icon: <ClipboardList size={18} className="text-amber-500" />, route: "/crm/lead-forms", adminOnly: true },
       ],
     },
@@ -82,6 +79,7 @@ const Crm = () => {
       title: "Agency Operations",
       icon: <Briefcase className="text-emerald-600" size={20} />,
       options: [
+        { label: "Projects", icon: <Briefcase size={18} className="text-emerald-500" />, route: "/crm/projects" },
         { label: "Content calendar", icon: <CalendarRange size={18} className="text-emerald-500" />, route: "/crm/content" },
         { label: "Time tracking", icon: <Timer size={18} className="text-emerald-500" />, route: "/crm/time" },
         { label: "Invoices", icon: <Receipt size={18} className="text-emerald-500" />, route: "/crm/invoices", adminOnly: true },
@@ -144,7 +142,11 @@ const Crm = () => {
 
   const cards = allCards
     .filter((c) => isAdmin || !c.adminOnly)
-    .map((c) => ({ ...c, options: c.options.filter((o) => isAdmin || !o.adminOnly) }));
+    .map((c) => ({
+      ...c,
+      options: c.options.filter((o) => (isAdmin || !o.adminOnly) && (o.need !== "sales" || canSales) && (o.need !== "outreach" || canOutreach)),
+    }))
+    .filter((c) => c.options.length);
 
   return (
     <CrmMemberRoute>

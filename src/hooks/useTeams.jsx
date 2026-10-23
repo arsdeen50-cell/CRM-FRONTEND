@@ -22,11 +22,34 @@ export const useTeams = () => {
   return { teams, loading, reload };
 };
 
-// The current user's memberships; isTeamLead unlocks team views (leave approvals, team leads)
+// The current user's memberships and area access. Cached for the page load; refreshed on login.
+let meCache = null;
+let mePromise = null;
+let meToken = null;
+const loadMe = () => {
+  const token = localStorage.getItem("token");
+  if (meToken !== token) {
+    meCache = null;
+    mePromise = null;
+    meToken = token;
+  }
+  if (!mePromise) {
+    mePromise = axiosInstance
+      .get("/v1/team/me")
+      .then((r) => (meCache = r.data))
+      .catch(() => (meCache = { teams: [], isTeamLead: false, canSales: false, canOutreach: false }));
+  }
+  return mePromise;
+};
+
 export const useMyTeams = () => {
-  const [data, setData] = useState({ teams: [], isTeamLead: false });
+  const [data, setData] = useState(meCache || { teams: [], isTeamLead: false, canSales: false, canOutreach: false, loading: true });
   useEffect(() => {
-    axiosInstance.get("/v1/team/me").then((r) => setData(r.data)).catch(() => {});
+    let alive = true;
+    loadMe().then((d) => alive && setData({ ...d, loading: false }));
+    return () => {
+      alive = false;
+    };
   }, []);
-  return data;
+  return meCache ? { ...meCache, loading: false } : data;
 };

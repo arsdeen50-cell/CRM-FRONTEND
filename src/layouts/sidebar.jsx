@@ -46,9 +46,7 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
                     >
                         <p className={cn("sidebar-group-title", collapsed && "md:w-[45px]")}>{navbarLink.title}</p>
                         {navbarLink.links.map((link) => {
-                            if (link.path === "/crm" && user?.role !== "admin") {
-                                return null;
-                            }
+                            // CRM is open to everyone; the CRM page only shows each person the areas they can use
                             if (link.path === "/task") {
                                 return user?.role !== "admin" ? (
                                     <NavLink

@@ -10,10 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import axiosInstance from "@/utils/axiosConfig";
 
 const TeamEditor = ({ team, onOpenChange, onSaved }) => {
-  const [f, setF] = useState(() => ({ name: team?.name || "", description: team?.description || "", color: team?.color || "#2563eb", subRoles: (team?.subRoles || []).join("\n") }));
+  const [f, setF] = useState(() => ({ name: team?.name || "", description: team?.description || "", color: team?.color || "#2563eb", subRoles: (team?.subRoles || []).join("\n"), sales: !!team?.access?.sales, outreach: !!team?.access?.outreach }));
   const save = async () => {
     if (!f.name.trim()) return toast.error("Name the team");
-    const payload = { ...f, subRoles: f.subRoles.split("\n").map((s) => s.trim()).filter(Boolean) };
+    const payload = { name: f.name, description: f.description, color: f.color, subRoles: f.subRoles.split("\n").map((s) => s.trim()).filter(Boolean), access: { sales: f.sales, outreach: f.outreach } };
     try {
       if (team?._id) await axiosInstance.put(`/v1/team/${team._id}`, payload);
       else await axiosInstance.post("/v1/team", payload);
@@ -38,6 +38,12 @@ const TeamEditor = ({ team, onOpenChange, onSaved }) => {
           </div>
           <div className="grid gap-1"><Label>Description (optional)</Label><Input value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
           <div className="grid gap-1"><Label>Sub-roles (one per line)</Label><Textarea rows={5} value={f.subRoles} onChange={(e) => setF({ ...f, subRoles: e.target.value })} placeholder={"Social Strategist\nContent Creator\nAd Manager"} /></div>
+          <div className="grid gap-2 border rounded-md p-3">
+            <Label>Access for this team</Label>
+            <p className="text-xs text-gray-500">Everyone gets tasks, leave, projects, content calendar and time tracking. Admins always have everything.</p>
+            <label className="text-sm flex items-start gap-2"><input type="checkbox" className="mt-1" checked={f.sales} onChange={(e) => setF({ ...f, sales: e.target.checked })} /><span><b>Sales</b> - leads, clients, follow-ups, proposals, templates and targets</span></label>
+            <label className="text-sm flex items-start gap-2"><input type="checkbox" className="mt-1" checked={f.outreach} onChange={(e) => setF({ ...f, outreach: e.target.checked })} /><span><b>Outreach automation</b> - send email / WhatsApp from the CRM, messages, sequences</span></label>
+          </div>
           <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save} className="bg-blue-600 hover:bg-blue-700">Save team</Button></div>
         </div>
       </DialogContent>
@@ -86,6 +92,11 @@ const TeamsManager = ({ teams, reload }) => {
                 </div>
               </div>
               {t.description && <p className="text-sm text-gray-600 dark:text-gray-300">{t.description}</p>}
+              <div className="flex flex-wrap gap-1">
+                {t.access?.sales && <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">Sales access</span>}
+                {t.access?.outreach && <span className="text-xs rounded-full px-2 py-0.5 bg-amber-100 text-amber-800">Outreach access</span>}
+                {!t.access?.sales && !t.access?.outreach && <span className="text-xs text-gray-400">No sales or outreach access</span>}
+              </div>
               <div className="flex flex-wrap gap-1">
                 {(t.subRoles || []).map((s) => <span key={s} className="text-xs border rounded-full px-2 py-0.5">{s}</span>)}
                 {!t.subRoles?.length && <span className="text-xs text-gray-400">No sub-roles yet</span>}

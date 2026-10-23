@@ -1,7 +1,7 @@
+import { OutreachRoute } from "@/components/crm/AccessRoute";
 import React, { useCallback, useEffect, useState } from "react";
 import { Inbox, RefreshCw, Eye, MousePointerClick } from "lucide-react";
 import { toast } from "sonner";
-import CrmMemberRoute from "@/components/crm/CrmMemberRoute";
 import PageHeader, { Stat, Pill } from "@/components/crm/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,7 +34,7 @@ const Messages = () => {
   const rate = (n) => (s.emailsSent ? `${Math.round((n / s.emailsSent) * 100)}%` : "—");
 
   return (
-    <CrmMemberRoute>
+    <OutreachRoute>
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={Inbox} title="Messages" subtitle="Emails and WhatsApp messages sent from the CRM, with opens, clicks and replies.">
           <Button variant="outline" onClick={load} disabled={loading}>
@@ -133,7 +133,7 @@ const Messages = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </CrmMemberRoute>
+    </OutreachRoute>
   );
 };
 

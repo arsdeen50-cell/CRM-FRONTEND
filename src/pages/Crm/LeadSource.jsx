@@ -1,6 +1,7 @@
+import { SalesRoute, useAccess } from "@/components/crm/AccessRoute";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CrmMemberRoute, { useIsAdmin } from "@/components/crm/CrmMemberRoute";
+import { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import QuickContactDialog from "@/components/crm/QuickContactDialog";
 import ProposalEditor from "@/components/crm/ProposalEditor";
 import LeadMessagesDialog from "@/components/crm/LeadMessagesDialog";
@@ -96,6 +97,7 @@ const LeadSource = () => {
   const { user } = useSelector((state) => state.auth);
   const currentUser = user?.fullname || "Unknown";
   const isAdmin = useIsAdmin();
+  const { canOutreach } = useAccess();
   const [contactLead, setContactLead] = useState(null);
   const [proposalLead, setProposalLead] = useState(null);
   const [messagesLead, setMessagesLead] = useState(null);
@@ -504,7 +506,7 @@ const createLeadClient = async (lead) => {
   }, [filters]);
 
   return (
-    <CrmMemberRoute>
+    <SalesRoute>
       <div className="min-h-screen p-4">
         {/* Top Filter Bar */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -791,6 +793,7 @@ const createLeadClient = async (lead) => {
                               >
                                 <PhoneCall className="h-4 w-4" />
                               </Button>
+                              {canOutreach && (
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -800,7 +803,8 @@ const createLeadClient = async (lead) => {
                               >
                                 <MessagesSquare className="h-4 w-4" />
                               </Button>
-                              {!["Won", "Lost"].includes(stage) && (
+                              )}
+                              {canOutreach && !["Won", "Lost"].includes(stage) && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -1066,7 +1070,7 @@ const createLeadClient = async (lead) => {
           </div>
         )}
       </div>
-    </CrmMemberRoute>
+    </SalesRoute>
   );
 };
 

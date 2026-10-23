@@ -1,8 +1,9 @@
+import { SalesRoute } from "@/components/crm/AccessRoute";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, Download, Edit, Send, CheckCircle2, XCircle, Trash2, Link2, Eye, Receipt, Mail } from "lucide-react";
 import { toast } from "sonner";
-import CrmMemberRoute, { useIsAdmin } from "@/components/crm/CrmMemberRoute";
+import { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import ProposalEditor from "@/components/crm/ProposalEditor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -106,7 +107,7 @@ const Proposals = () => {
   const totalWon = proposals.filter((p) => p.status === "Accepted").reduce((s, p) => s + p.total, 0);
 
   return (
-    <CrmMemberRoute>
+    <SalesRoute>
       <div className="p-4 md:p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate("/crm")} title="Back to CRM">
@@ -196,7 +197,7 @@ const Proposals = () => {
 
         <ProposalEditor open={!!editing} onOpenChange={(o) => !o && setEditing(null)} proposal={editing} onSaved={load} />
       </div>
-    </CrmMemberRoute>
+    </SalesRoute>
   );
 };
 
