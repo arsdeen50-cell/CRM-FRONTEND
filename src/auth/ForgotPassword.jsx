@@ -72,11 +72,14 @@ const ForgotPassword = () => {
     if (newPassword !== confirmPassword)
       return toast.error("Passwords do not match");
 
+    if (newPassword.length < 8)
+      return toast.error("Password must be at least 8 characters");
+
     try {
       setLoading(true);
       const res = await axiosInstance.post(
         `${USER_API_END_POINT}/reset-password`,
-        { email, password: newPassword }
+        { email, otp, password: newPassword }
       );
 
       if (res.data.success) {
@@ -85,6 +88,11 @@ const ForgotPassword = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Reset failed");
+      // The code expired or was locked: start again from the email step
+      if (error.response?.status === 400 && /code/i.test(error.response?.data?.message || "")) {
+        setOtp("");
+        setStep(1);
+      }
     } finally {
       setLoading(false);
     }
@@ -135,7 +143,9 @@ const ForgotPassword = () => {
             <Label>OTP</Label>
             <Input
               type="text"
-              placeholder="Enter OTP"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="6-digit code from your email"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
             />
@@ -160,7 +170,7 @@ const ForgotPassword = () => {
             <Label>New Password</Label>
             <Input
               type="password"
-              placeholder="New password"
+              placeholder="New password (at least 8 characters)"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
