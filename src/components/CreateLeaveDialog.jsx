@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
 import DatePickerField from "@/components/DatePickerField";
+import { toast } from "sonner";
 
 const CreateLeaveDialog = ({ open, onOpenChange, onCreate }) => {
   const [formData, setFormData] = useState({
@@ -29,11 +30,15 @@ const CreateLeaveDialog = ({ open, onOpenChange, onCreate }) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      // Moving the start date past the end date clears the end date
+      ...(name === "startDate" && prev.endDate && value && new Date(prev.endDate) < new Date(value) && { endDate: "" }),
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.startDate || !formData.endDate) return toast.error("Pick a start and end date");
+    if (new Date(formData.endDate) < new Date(formData.startDate)) return toast.error("End date can't be before the start date");
     onCreate(formData);
   };
 
@@ -81,6 +86,7 @@ const CreateLeaveDialog = ({ open, onOpenChange, onCreate }) => {
                 label="End Date"
                 name="endDate"
                 value={formData.endDate}
+                minDate={formData.startDate}
                 onChange={handleChange}
                 required
               />

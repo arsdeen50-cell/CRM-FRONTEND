@@ -43,10 +43,17 @@ const EmployeeLeave = () => {
       : await getEmployeeLeaves();
       
     if (response) {
-      setLeaves(response.leaves);
-      if (response.counts) {
-        setCounts(response.counts);
-      }
+      const list = response.leaves || [];
+      setLeaves(list);
+      // The employee endpoint doesn't return counts, so work them out from the list
+      setCounts(
+        response.counts || {
+          Pending: list.filter((l) => l.status === "Pending").length,
+          Approved: list.filter((l) => l.status === "Approved").length,
+          Rejected: list.filter((l) => l.status === "Rejected").length,
+          total: list.length,
+        }
+      );
     }
   };
 
@@ -135,8 +142,10 @@ const EmployeeLeave = () => {
 
               <div className="mb-4 flex items-center justify-end gap-2">
                 <DatePickerField
-                  selected={selectedDate ? new Date(selectedDate) : null}
-                  onChange={(date) => setSelectedDate(date ? date.toISOString() : "")}
+                  name="filterDate"
+                  placeholder="Filter by start date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value || "")}
                 />
                 <Button
                   variant="destructive"
