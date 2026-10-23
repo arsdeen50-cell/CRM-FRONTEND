@@ -32,6 +32,21 @@ import Templates from "./pages/Crm/Templates";
 import Proposals from "./pages/Crm/Proposals";
 import Projects from "./pages/Crm/Projects";
 import AuditLog from "./pages/Crm/AuditLog";
+import Messages from "./pages/Crm/Messages";
+import Sequences from "./pages/Crm/Sequences";
+import LeadForms from "./pages/Crm/LeadForms";
+import Targets from "./pages/Crm/Targets";
+import Invoices from "./pages/Crm/Invoices";
+import Retainers from "./pages/Crm/Retainers";
+import ContentCalendar from "./pages/Crm/ContentCalendar";
+import PortalAccess from "./pages/Crm/PortalAccess";
+import TimeTracking from "./pages/Crm/TimeTracking";
+import Profitability from "./pages/Crm/Profitability";
+import Integrations from "./pages/Crm/Integrations";
+import PublicLeadForm from "./pages/Public/PublicLeadForm";
+import PublicProposal from "./pages/Public/PublicProposal";
+import PublicInvoice from "./pages/Public/PublicInvoice";
+import ClientPortal from "./pages/Public/ClientPortal";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -75,6 +90,11 @@ function App() {
       path: "/candidate-form/:id",
       element: <CandidateForm />,
     },
+    // Client-facing pages (no CRM login): lead form, proposal signing, invoice, client portal
+    { path: "/f/:key", element: <PublicLeadForm /> },
+    { path: "/p/:token", element: <PublicProposal /> },
+    { path: "/i/:token", element: <PublicInvoice /> },
+    { path: "/portal/:token", element: <ClientPortal /> },
     {
       path: "/login",
       element: <Login />,
@@ -171,6 +191,18 @@ function App() {
         { path: "crm/import", element: <ImportLeads /> },
         { path: "crm/templates", element: <Templates /> },
         { path: "crm/audit-log", element: <AuditLog /> },
+        // Agency suite (each page checks member/admin access itself)
+        { path: "crm/messages", element: <Messages /> },
+        { path: "crm/sequences", element: <Sequences /> },
+        { path: "crm/lead-forms", element: <LeadForms /> },
+        { path: "crm/targets", element: <Targets /> },
+        { path: "crm/invoices", element: <Invoices /> },
+        { path: "crm/retainers", element: <Retainers /> },
+        { path: "crm/content", element: <ContentCalendar /> },
+        { path: "crm/portal", element: <PortalAccess /> },
+        { path: "crm/time", element: <TimeTracking /> },
+        { path: "crm/profitability", element: <Profitability /> },
+        { path: "crm/integrations", element: <Integrations /> },
         {
           path: "crm/goonboardingdata",
           element: (

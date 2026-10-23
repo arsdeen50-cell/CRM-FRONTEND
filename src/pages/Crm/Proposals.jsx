@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, Download, Edit, Send, CheckCircle2, XCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Download, Edit, Send, CheckCircle2, XCircle, Trash2, Link2, Eye, Receipt, Mail } from "lucide-react";
 import { toast } from "sonner";
 import CrmMemberRoute, { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import ProposalEditor from "@/components/crm/ProposalEditor";
@@ -66,6 +66,31 @@ const Proposals = () => {
     }
   };
 
+  // Client link: view tracking + online acceptance. Copies the link; optionally emails it from the CRM.
+  const share = async (p, email) => {
+    try {
+      const res = await axiosInstance.post(`/v1/proposal/${p._id}/share`, { email });
+      await navigator.clipboard.writeText(res.data.url).catch(() => {});
+      toast.success(email ? "Proposal link emailed to the client" : "Client link copied", { description: res.data.url });
+      load();
+    } catch (err) {
+      if (err.response?.data?.url) navigator.clipboard.writeText(err.response.data.url).catch(() => {});
+      toast.error(err.response?.data?.message || "Could not create link");
+    }
+  };
+  const toInvoice = async (p) => {
+    try {
+      const res = await axiosInstance.post(`/v1/invoice/from-proposal/${p._id}`);
+      toast.success(`Draft invoice ${res.data.invoice.invoiceNo} created`);
+      navigate("/crm/invoices");
+    } catch (err) {
+      if (err.response?.status === 409) {
+        toast.info(err.response.data.message);
+        navigate("/crm/invoices");
+      } else toast.error(err.response?.data?.message || "Could not create invoice");
+    }
+  };
+
   const remove = async (p) => {
     if (!window.confirm(`Delete ${p.proposalNo}? This can't be undone.`)) return;
     try {
@@ -91,7 +116,7 @@ const Proposals = () => {
             <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
               <FileText className="h-6 w-6 text-blue-600" /> Proposals
             </h1>
-            <p className="text-sm text-gray-500">{'Create a proposal from a lead on the Leads page ("Proposal" button). Track it here.'}</p>
+            <p className="text-sm text-gray-500">{'Create a proposal from a lead on the Leads page ("Proposal" button). Share the client link to see when they open it and let them accept and sign online.'}</p>
           </div>
         </div>
 
@@ -112,26 +137,45 @@ const Proposals = () => {
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Valid until</TableHead>
+                  <TableHead>Client activity</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {proposals.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-10 text-gray-500">{loading ? "Loading..." : "No proposals yet."}</TableCell>
+                    <TableCell colSpan={8} className="text-center py-10 text-gray-500">{loading ? "Loading..." : "No proposals yet."}</TableCell>
                   </TableRow>
                 )}
                 {proposals.map((p) => (
                   <TableRow key={p._id}>
                     <TableCell className="font-medium whitespace-nowrap">{p.proposalNo}</TableCell>
-                    <TableCell>{p.clientName}<div className="text-xs text-gray-500">{p.leadId?.series}</div></TableCell>
+                    <TableCell className="min-w-[140px]">{p.clientName}<div className="text-xs text-gray-500 whitespace-nowrap">{p.leadId?.series}</div></TableCell>
                     <TableCell className="max-w-xs truncate" title={p.title}>{p.title}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">{formatCurrency(p.total)}</TableCell>
                     <TableCell><span className={`text-xs rounded-full px-2 py-0.5 ${STATUS_STYLE[p.status] || ""}`}>{p.status}</span></TableCell>
                     <TableCell className={new Date(p.validUntil) < new Date() && ["Draft", "Sent"].includes(p.status) ? "text-red-600" : ""}>{formatDay(p.validUntil)}</TableCell>
+                    <TableCell className="text-xs">
+                      {p.signature?.signedAt ? (
+                        <span className="text-green-700">Signed by {p.signature.name}</span>
+                      ) : p.viewCount ? (
+                        <span className="flex items-center gap-1 text-blue-700" title={`First opened ${formatDay(p.firstViewedAt)}`}><Eye className="h-3 w-3" /> Viewed {p.viewCount}× · {formatDay(p.lastViewedAt)}</span>
+                      ) : p.publicToken ? (
+                        <span className="text-gray-500">Link sent, not opened</span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" title="Download PDF" onClick={() => downloadProposalPdf(p)}><Download className="h-4 w-4" /></Button>
+                        {["Draft", "Sent"].includes(p.status) && (
+                          <>
+                            <Button size="icon" variant="ghost" title="Copy client link (view + accept online)" className="text-blue-600" onClick={() => share(p, false)}><Link2 className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" title="Email the client link" className="text-blue-600" onClick={() => window.confirm("Email the proposal link to the client now?") && share(p, true)}><Mail className="h-4 w-4" /></Button>
+                          </>
+                        )}
+                        {p.status === "Accepted" && isAdmin && <Button size="icon" variant="ghost" title="Create invoice" className="text-emerald-600" onClick={() => toInvoice(p)}><Receipt className="h-4 w-4" /></Button>}
                         {p.status !== "Accepted" && <Button size="icon" variant="ghost" title="Edit" onClick={() => setEditing(p)}><Edit className="h-4 w-4" /></Button>}
                         {p.status === "Draft" && <Button size="icon" variant="ghost" title="Mark as sent" className="text-purple-600" onClick={() => setStatus(p, "Sent")}><Send className="h-4 w-4" /></Button>}
                         {["Draft", "Sent"].includes(p.status) && (

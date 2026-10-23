@@ -10,6 +10,17 @@ import {
   FileUp,
   MessageSquareText,
   History,
+  Inbox,
+  Repeat,
+  ClipboardList,
+  Trophy,
+  Receipt,
+  Repeat2,
+  CalendarRange,
+  KeyRound,
+  Timer,
+  TrendingUp,
+  Plug,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CrmMemberRoute, { useIsAdmin } from "./CrmMemberRoute";
@@ -58,6 +69,28 @@ const Crm = () => {
       ],
     },
     {
+      title: "Outreach & Automation",
+      icon: <Repeat className="text-amber-600" size={20} />,
+      options: [
+        { label: "Messages", icon: <Inbox size={18} className="text-amber-500" />, route: "/crm/messages" },
+        { label: "Sequences", icon: <Repeat size={18} className="text-amber-500" />, route: "/crm/sequences" },
+        { label: "Targets", icon: <Trophy size={18} className="text-amber-500" />, route: "/crm/targets" },
+        { label: "Lead capture", icon: <ClipboardList size={18} className="text-amber-500" />, route: "/crm/lead-forms", adminOnly: true },
+      ],
+    },
+    {
+      title: "Agency Operations",
+      icon: <Briefcase className="text-emerald-600" size={20} />,
+      options: [
+        { label: "Content calendar", icon: <CalendarRange size={18} className="text-emerald-500" />, route: "/crm/content" },
+        { label: "Time tracking", icon: <Timer size={18} className="text-emerald-500" />, route: "/crm/time" },
+        { label: "Invoices", icon: <Receipt size={18} className="text-emerald-500" />, route: "/crm/invoices", adminOnly: true },
+        { label: "Retainers", icon: <Repeat2 size={18} className="text-emerald-500" />, route: "/crm/retainers", adminOnly: true },
+        { label: "Client portal", icon: <KeyRound size={18} className="text-emerald-500" />, route: "/crm/portal", adminOnly: true },
+        { label: "Profit per client", icon: <TrendingUp size={18} className="text-emerald-500" />, route: "/crm/profitability", adminOnly: true },
+      ],
+    },
+    {
       title: "Sales Tools",
       adminOnly: true,
       icon: <BarChart3 className="text-indigo-600" size={20} />,
@@ -66,6 +99,7 @@ const Crm = () => {
         { label: "Import CSV", icon: <FileUp size={18} className="text-indigo-500" />, route: "/crm/import" },
         { label: "Templates", icon: <MessageSquareText size={18} className="text-indigo-500" />, route: "/crm/templates" },
         { label: "Audit log", icon: <History size={18} className="text-indigo-500" />, route: "/crm/audit-log" },
+        { label: "Integrations", icon: <Plug size={18} className="text-indigo-500" />, route: "/crm/integrations" },
       ],
     },
     {
@@ -108,7 +142,9 @@ const Crm = () => {
     // },
   ];
 
-  const cards = allCards.filter((c) => isAdmin || !c.adminOnly);
+  const cards = allCards
+    .filter((c) => isAdmin || !c.adminOnly)
+    .map((c) => ({ ...c, options: c.options.filter((o) => isAdmin || !o.adminOnly) }));
 
   return (
     <CrmMemberRoute>

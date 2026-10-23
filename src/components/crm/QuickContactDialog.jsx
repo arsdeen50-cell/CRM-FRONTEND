@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { Mail, MessageCircle, Phone, MapPin, Instagram, Copy, ExternalLink, CalendarPlus, AlertTriangle } from "lucide-react";
+import { Mail, MessageCircle, Phone, MapPin, Instagram, Copy, ExternalLink, CalendarPlus, AlertTriangle, Send } from "lucide-react";
+import { useIntegrations } from "@/hooks/useIntegrations";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,10 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
   const [note, setNote] = useState("");
   const [nextDate, setNextDate] = useState(toDateInput(followUpAt(3)));
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
+  const integrations = useIntegrations();
+  const canSendEmail = channel === "Email" && integrations.email?.configured && !!email;
+  const canSendWhatsApp = channel === "WhatsApp" && integrations.whatsapp?.configured && !!phone;
 
   const vars = useMemo(() => templateVars(lead, user), [lead, user]);
   const available = { Email: !!email, WhatsApp: !!phone, Call: !!phone, Visit: true, "Instagram DM": !!instagram };
@@ -102,6 +107,28 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
     if (channel === "Visit") copy();
   };
 
+  // Send directly from the CRM (server email / WhatsApp Business API). The server logs the activity itself.
+  const sendNow = async () => {
+    if (!lead?._id) return;
+    if (/\[(\w+)\]/.test(`${subject} ${body}`) && !window.confirm("The message still has [bracketed] gaps. Send anyway?")) return;
+    setSending(true);
+    try {
+      const nextFollowUpDate = nextDate ? fromDateInput(nextDate).toISOString() : "";
+      const res =
+        channel === "Email"
+          ? await axiosInstance.post("/v1/messages/email", { leadId: lead._id, subject, body, nextFollowUpDate })
+          : await axiosInstance.post("/v1/messages/whatsapp", { leadId: lead._id, text: body, nextFollowUpDate });
+      toast.success(channel === "Email" ? `Email sent to ${email}` : "WhatsApp message sent");
+      onLogged?.(res.data?.lead);
+      onOpenChange(false);
+    } catch (err) {
+      const data = err.response?.data || {};
+      toast.error(data.message || "Could not send", data.outsideWindow ? { description: "Use 'Open WhatsApp' to send from your phone, or an approved template via a sequence." } : undefined);
+    } finally {
+      setSending(false);
+    }
+  };
+
   const logIt = async () => {
     if (!lead?._id) return;
     setSaving(true);
@@ -132,7 +159,9 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
         <DialogHeader>
           <DialogTitle>Contact {client.brandName || lead.clientName}</DialogTitle>
           <DialogDescription>
-            Opens your own email, WhatsApp or phone with the message filled in. Nothing is sent automatically.
+            {canSendEmail || canSendWhatsApp
+              ? "Send it from the CRM (logged and tracked automatically), or open your own app with the message filled in."
+              : "Opens your own email, WhatsApp or phone with the message filled in. Nothing is sent automatically."}
           </DialogDescription>
         </DialogHeader>
 
@@ -188,7 +217,12 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" onClick={openChannel} disabled={!available[channel]}>
+            {(canSendEmail || canSendWhatsApp) && (
+              <Button type="button" onClick={sendNow} disabled={sending || !body.trim() || (channel === "Email" && !subject.trim())} className="bg-emerald-600 hover:bg-emerald-700">
+                <Send className="h-4 w-4 mr-1" /> {sending ? "Sending..." : channel === "Email" ? "Send from CRM" : "Send via WhatsApp API"}
+              </Button>
+            )}
+            <Button type="button" variant={canSendEmail || canSendWhatsApp ? "outline" : "default"} onClick={openChannel} disabled={!available[channel]}>
               <ExternalLink className="h-4 w-4 mr-1" /> {actionLabel}
             </Button>
             <Button type="button" variant="outline" onClick={copy}>

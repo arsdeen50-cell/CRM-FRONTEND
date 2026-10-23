@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import axiosInstance from "@/utils/axiosConfig";
 
-const ENTITIES = ["LeadClient", "LeadSource", "Proposal", "Project", "OutreachTemplate"];
-const ENTITY_LABEL = { LeadClient: "Client", LeadSource: "Lead", Proposal: "Proposal", Project: "Project", OutreachTemplate: "Template" };
+const ENTITIES = ["LeadClient", "LeadSource", "Proposal", "Project", "OutreachTemplate", "Sequence", "LeadForm", "Target", "Invoice", "Retainer", "ContentItem", "PortalAccess", "StaffRate"];
+const ENTITY_LABEL = { LeadClient: "Client", LeadSource: "Lead", Proposal: "Proposal", Project: "Project", OutreachTemplate: "Template", Sequence: "Sequence", LeadForm: "Lead form", Target: "Target", Invoice: "Invoice", Retainer: "Retainer", ContentItem: "Content", PortalAccess: "Portal link", StaffRate: "Staff rate" };
 const ACTIONS = ["create", "update", "delete", "stage", "activity", "followup", "import", "status"];
 const ALL = "__all__";
 
