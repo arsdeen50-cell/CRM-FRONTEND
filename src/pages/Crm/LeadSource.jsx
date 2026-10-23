@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import CrmMemberRoute, { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import QuickContactDialog from "@/components/crm/QuickContactDialog";
 import ProposalEditor from "@/components/crm/ProposalEditor";
+import LeadMessagesDialog from "@/components/crm/LeadMessagesDialog";
+import EnrollSequenceDialog from "@/components/crm/EnrollSequenceDialog";
 import { TIER_STYLES } from "@/lib/crmOutreach";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,8 @@ import {
   PhoneCall,
   FileText,
   Briefcase,
+  MessagesSquare,
+  Repeat,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import useLeadSource from "@/hooks/useLeadSource";
@@ -94,6 +98,8 @@ const LeadSource = () => {
   const isAdmin = useIsAdmin();
   const [contactLead, setContactLead] = useState(null);
   const [proposalLead, setProposalLead] = useState(null);
+  const [messagesLead, setMessagesLead] = useState(null);
+  const [sequenceLead, setSequenceLead] = useState(null);
   const [creatingProject, setCreatingProject] = useState(null);
 
   const createProject = async (lead) => {
@@ -785,6 +791,26 @@ const createLeadClient = async (lead) => {
                               >
                                 <PhoneCall className="h-4 w-4" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-sky-600 hover:text-sky-800 h-7 w-7"
+                                title="Messages (emails + WhatsApp)"
+                                onClick={() => setMessagesLead(lead)}
+                              >
+                                <MessagesSquare className="h-4 w-4" />
+                              </Button>
+                              {!["Won", "Lost"].includes(stage) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-amber-600 hover:text-amber-800 h-7 w-7"
+                                  title="Add to follow-up sequence"
+                                  onClick={() => setSequenceLead(lead)}
+                                >
+                                  <Repeat className="h-4 w-4" />
+                                </Button>
+                              )}
                               {!["Won", "Lost"].includes(stage) && (
                                 <Button
                                   variant="ghost"
@@ -995,6 +1021,9 @@ const createLeadClient = async (lead) => {
           lead={contactLead}
           onLogged={() => fetchLeads()}
         />
+
+        <LeadMessagesDialog open={!!messagesLead} onOpenChange={(o) => !o && setMessagesLead(null)} lead={messagesLead} />
+        <EnrollSequenceDialog open={!!sequenceLead} onOpenChange={(o) => !o && setSequenceLead(null)} leads={sequenceLead ? [sequenceLead] : []} onDone={() => fetchLeads()} />
 
         <ProposalEditor
           open={!!proposalLead}
