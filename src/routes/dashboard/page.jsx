@@ -1,10 +1,9 @@
 import { useTheme } from "@/hooks/use-theme";
 import { Footer } from "@/layouts/footer";
-import AttendanceTable from "./AttendanceTable ";
 import useGetAllAttendance from "@/hooks/useGetAllAttendance";
 import useGetAttendance from "@/hooks/useGetAttendance";
 import { useSelector } from "react-redux";
-import EmployeeAttendanceTable from "./EmployeeAttendanceTable";
+import DashboardSections from "./DashboardSections";
 import {
     Clock,
     CheckCircle,
@@ -259,17 +258,22 @@ const DashboardPage = () => {
         const records = user?.role === "admin" ? attendanceRecords : userAttendanceRecords;
         const today = new Date().toISOString().split("T")[0];
 
-        const todayRecords = records.filter((record) => record.date === today || new Date(record.createdAt).toISOString().split("T")[0] === today);
+        // Records always have punchIn; older ones may lack createdAt
+        const dayOf = (record) => {
+            const d = new Date(record.createdAt || record.punchIn || record.date);
+            return isNaN(d) ? "" : d.toISOString().split("T")[0];
+        };
+        const todayRecords = records.filter((record) => record.date === today || dayOf(record) === today);
 
         const thisWeekRecords = records.filter((record) => {
-            const recordDate = new Date(record.createdAt || record.date);
+            const recordDate = new Date(record.createdAt || record.punchIn || record.date);
             const weekAgo = new Date();
             weekAgo.setDate(weekAgo.getDate() - 7);
             return recordDate >= weekAgo;
         });
 
         const thisMonthRecords = records.filter((record) => {
-            const recordDate = new Date(record.createdAt || record.date);
+            const recordDate = new Date(record.createdAt || record.punchIn || record.date);
             const monthAgo = new Date();
             monthAgo.setMonth(monthAgo.getMonth() - 1);
             return recordDate >= monthAgo;
@@ -321,8 +325,8 @@ const DashboardPage = () => {
             const dateStr = date.toISOString().split("T")[0];
 
             const dayRecords = userAttendanceRecords.filter((record) => {
-                const recordDate = new Date(record.createdAt || record.date);
-                return recordDate.toISOString().split("T")[0] === dateStr;
+                const recordDate = new Date(record.createdAt || record.punchIn || record.date);
+                return !isNaN(recordDate) && recordDate.toISOString().split("T")[0] === dateStr;
             });
 
             const hours =
@@ -425,7 +429,7 @@ const DashboardPage = () => {
                             Dashboard
                         </h1>
                         <p className="text-lg text-muted-foreground">
-                            {user?.role === "admin" ? "Employee Attendance Overview" : `Employee Code: ${user?.empId}`}
+                            {user?.role === "admin" ? "Your team and business at a glance" : user?.empId ? `Employee code: ${user.empId}` : `Good to see you, ${user?.fullname?.split(" ")[0] || ""}`}
                         </p>
                     </div>
                 </div>
@@ -505,8 +509,8 @@ const DashboardPage = () => {
                 </div>
             </div>
 
-            {/* Summary Stats Bar */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Summary Stats Bar (your own attendance; admins see "Team today" instead) */}
+            {user?.role !== "admin" && <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-blue-100">Today's Status</CardTitle>
@@ -528,10 +532,7 @@ const DashboardPage = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.weekPresent} days</div>
-                        <p className="flex items-center gap-1 text-xs text-green-200">
-                            <ArrowUpRight className="h-3 w-3" />
-                            +2.1% from last week
-                        </p>
+                        <p className="text-xs text-green-200">in the last 7 days</p>
                     </CardContent>
                     <div className="absolute right-0 top-0 h-20 w-20 -translate-y-10 translate-x-10 rounded-full bg-white/10"></div>
                 </Card>
@@ -559,36 +560,11 @@ const DashboardPage = () => {
                     </CardContent>
                     <div className="absolute right-0 top-0 h-20 w-20 -translate-y-10 translate-x-10 rounded-full bg-white/10"></div>
                 </Card>
-            </div>
+            </div>}
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 gap-6">
-                {/* Left Column - Attendance Table */}
-                <div className="space-y-6 lg:col-span-2">
-                    <Card className="border-0 bg-white/80 shadow-lg backdrop-blur-sm dark:bg-slate-800/80">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <Users className="h-5 w-5 text-blue-500" />
-                                {user?.role === "admin" ? "All Employees Attendance" : "Your Attendance History"}
-                                
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="relative h-[400px] w-full overflow-auto rounded-lg">
-                                {user?.role === "admin" ? (
-                                    <AttendanceTable attendanceRecords={attendanceRecords || []} />
-                                ) : (
-                                    <EmployeeAttendanceTable
-                                        attendanceRecords={userAttendanceRecords}
-                                        refetch={refetch}
-                                    />
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Right Column - Quick Actions */}
+            {/* My day: punch in/out + what needs attention */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
+                {user?.role !== "admin" && (
                 <div className="space-y-6">
                     {user?.role !== "admin" && (
                         <Card className="border-0 bg-white/80 shadow-lg backdrop-blur-sm dark:bg-slate-800/80">
@@ -678,6 +654,11 @@ const DashboardPage = () => {
                             </CardContent>
                         </Card>
                     )}
+                    <Link to="/hr/attendance" className="block text-center text-sm text-primary hover:underline">See your full attendance →</Link>
+                </div>
+                )}
+                <div className={user?.role === "admin" ? "lg:col-span-2" : ""}>
+                    <DashboardSections />
                 </div>
             </div>
 
