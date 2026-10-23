@@ -1,7 +1,8 @@
+import { OutreachRoute } from "@/components/crm/AccessRoute";
 import React, { useCallback, useEffect, useState } from "react";
 import { Repeat, Plus, Trash2, Edit, CheckCircle2, SkipForward, StopCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import CrmMemberRoute, { useIsAdmin } from "@/components/crm/CrmMemberRoute";
+import { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import PageHeader, { Pill } from "@/components/crm/PageHeader";
 import { stepLabel } from "@/components/crm/EnrollSequenceDialog";
 import { Button } from "@/components/ui/button";
@@ -263,7 +264,7 @@ const Sequences = () => {
   );
 
   return (
-    <CrmMemberRoute>
+    <OutreachRoute>
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={Repeat} title="Follow-up sequences" subtitle='Multi-step cadences. Add leads from the Leads page ("Add to sequence"). They stop when the lead replies or is Won/Lost.'>
           <Button variant="outline" onClick={load} disabled={loading}><RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>
@@ -311,7 +312,7 @@ const Sequences = () => {
         <SequenceEditor open={editing !== undefined} onOpenChange={(o) => !o && setEditing(undefined)} sequence={editing} onSaved={load} />
         <CompleteDialog enrollment={completing} onOpenChange={(o) => !o && setCompleting(null)} onDone={load} />
       </div>
-    </CrmMemberRoute>
+    </OutreachRoute>
   );
 };
 

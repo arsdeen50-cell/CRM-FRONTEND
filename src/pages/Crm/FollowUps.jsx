@@ -1,8 +1,8 @@
+import { SalesRoute } from "@/components/crm/AccessRoute";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarClock, CalendarPlus, Download, PhoneCall, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import CrmMemberRoute from "@/components/crm/CrmMemberRoute";
 import QuickContactDialog from "@/components/crm/QuickContactDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -79,7 +79,7 @@ const FollowUps = () => {
   };
 
   return (
-    <CrmMemberRoute>
+    <SalesRoute>
       <div className="p-4 md:p-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ const FollowUps = () => {
           onLogged={() => load()}
         />
       </div>
-    </CrmMemberRoute>
+    </SalesRoute>
   );
 };
 

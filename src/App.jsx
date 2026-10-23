@@ -25,6 +25,7 @@ import CandidateForm from "./components/crm/GoOnBoarding/CandidateForm";
 import ForgotPassword from "./auth/ForgotPassword";
 import LeadClientList from "./pages/Crm/LeadClientList";
 import CrmMemberRoute from "./components/crm/CrmMemberRoute";
+import { SalesRoute } from "./components/crm/AccessRoute";
 import FollowUps from "./pages/Crm/FollowUps";
 import Reports from "./pages/Crm/Reports";
 import ImportLeads from "./pages/Crm/ImportLeads";
@@ -169,18 +170,18 @@ function App() {
         {
           path: "crm/lead-source",
           element: (
-            <CrmMemberRoute>
+            <SalesRoute>
               <LeadSource />
-            </CrmMemberRoute>
+            </SalesRoute>
           ),
         },
 
          {
           path: "crm/lead-list",
           element: (
-            <CrmMemberRoute>
+            <SalesRoute>
               <LeadClientList />
-            </CrmMemberRoute>
+            </SalesRoute>
           ),
         },
         // Sales suite: member pages (employees see only their assigned leads) + admin pages (CrmRoute inside)
