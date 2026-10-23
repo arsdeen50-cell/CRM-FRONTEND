@@ -1,7 +1,7 @@
 // components/UserTable.jsx
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PencilLine, Trash } from "lucide-react";
+import { PencilLine, Trash, Users, Crown } from "lucide-react";
 import { formatDateSafe } from "@/utils/data";
 import { Badge } from "@/components/ui/badge";
 import useUser from "@/hooks/useUser";
@@ -11,17 +11,20 @@ import EditUserSheet from "./EditUserSheet";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import UserTeamsDialog from "./UserTeamsDialog";
 
-const UserTable = () => {
+const UserTable = ({ teams = [], onTeamsChanged }) => {
     const { users } = useSelector((state) => state.user);
     const { fetchUsers, updateUser, deleteUser } = useUser();
     const [selectedUser, setSelectedUser] = useState(null);
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [teamsUser, setTeamsUser] = useState(null);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [filters, setFilters] = useState({
         empId: "",
         fullname: "",
         role: "all",
+        team: "all",
     });
 
     useEffect(() => {
@@ -33,7 +36,8 @@ const UserTable = () => {
             return (
                 (filters.empId === "" || user.empId?.toString().includes(filters.empId)) &&
                 (filters.fullname === "" || user.fullname.toLowerCase().includes(filters.fullname.toLowerCase())) &&
-                (filters.role === "all" || user.role === filters.role)
+                (filters.role === "all" || user.role === filters.role) &&
+                (filters.team === "all" || (filters.team === "none" ? !(user.teams || []).length : (user.teams || []).some((t) => String(t.team) === filters.team)))
             );
         });
         setFilteredUsers(filtered);
@@ -63,6 +67,7 @@ const UserTable = () => {
             empId: "",
             fullname: "",
             role: "all",
+            team: "all",
         });
     };
 
@@ -95,6 +100,16 @@ const UserTable = () => {
                             <SelectItem value="employee">Employee</SelectItem>
                         </SelectContent>
                     </Select>
+                    <Select value={filters.team} onValueChange={(value) => handleFilterChange("team", value)}>
+                        <SelectTrigger className="max-w-xs">
+                            <SelectValue placeholder="Filter by Team" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Teams</SelectItem>
+                            <SelectItem value="none">No team</SelectItem>
+                            {teams.map((t) => <SelectItem key={t._id} value={String(t._id)}>{t.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                     <Button
                         variant="destructive"
                         onClick={resetFilters}
@@ -114,6 +129,7 @@ const UserTable = () => {
                             <TableHead>Email</TableHead>
                             <TableHead>Phone Number</TableHead>
                             <TableHead>Role</TableHead>
+                            <TableHead>Teams & sub-roles</TableHead>
                             <TableHead>Created At</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -131,6 +147,13 @@ const UserTable = () => {
                                                 <PencilLine size={20} />
                                             </button>
                                             <button
+                                                className="text-emerald-600 hover:text-emerald-700"
+                                                onClick={() => setTeamsUser(user)}
+                                                title="Teams and sub-roles"
+                                            >
+                                                <Users size={20} />
+                                            </button>
+                                            <button
                                                 className="text-red-600 hover:text-red-700"
                                                 onClick={() => handleDelete(user._id)}
                                                 title="Delete record"
@@ -146,13 +169,24 @@ const UserTable = () => {
                                     <TableCell>
                                         <Badge variant={user.role === "admin" ? "destructive" : "default"}>{user.role}</Badge>
                                     </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-1 max-w-xs">
+                                            {(user.teams || []).map((t) => (
+                                                <span key={String(t.team)} className={`text-xs border rounded-full px-2 py-0.5 flex items-center gap-1 ${t.isLead ? "bg-amber-50 border-amber-300 text-amber-800" : ""}`}>
+                                                    {t.isLead && <Crown className="h-3 w-3" />}
+                                                    {t.teamName}{t.subRole ? ` · ${t.subRole}` : ""}
+                                                </span>
+                                            ))}
+                                            {!(user.teams || []).length && <button className="text-xs text-blue-600" onClick={() => setTeamsUser(user)}>+ Add to team</button>}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>{formatDateSafe(user.createdAt, "dd MMM yyyy")}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
                                 <TableCell
-                                    colSpan="7"
+                                    colSpan="9"
                                     className="py-4 text-center text-gray-500"
                                 >
                                     No users found.
@@ -162,6 +196,18 @@ const UserTable = () => {
                     </TableBody>
                 </Table>
             </CardContent>
+
+            {teamsUser && (
+                <UserTeamsDialog
+                    user={teamsUser}
+                    teams={teams}
+                    onOpenChange={(o) => !o && setTeamsUser(null)}
+                    onSaved={() => {
+                        fetchUsers();
+                        onTeamsChanged?.();
+                    }}
+                />
+            )}
 
             <EditUserSheet
                 open={sheetOpen}

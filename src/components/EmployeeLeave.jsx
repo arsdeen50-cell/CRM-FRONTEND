@@ -9,6 +9,8 @@ import { formatDateSafe } from "@/utils/data";
 import CreateLeaveDialog from "./CreateLeaveDialog";
 import LeaveTabs from "./LeaveTabs";
 import DatePickerField from "@/components/DatePickerField";
+import { useMyTeams } from "@/hooks/useTeams";
+import axiosInstance from "@/utils/axiosConfig";
 
 const EmployeeLeave = () => {
   const [statusFilter, setStatusFilter] = useState("all");
@@ -16,6 +18,11 @@ const EmployeeLeave = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [expandedLeaveId, setExpandedLeaveId] = useState(null);
   const { user } = useSelector((state) => state.auth);
+  const { isTeamLead } = useMyTeams();
+  // Team Leads switch between their own requests and their team's requests (which they approve)
+  const [scope, setScope] = useState("mine");
+  const isAdmin = user.role === "admin";
+  const reviewing = isAdmin || scope === "team";
   const { 
     loading, 
     error,
@@ -35,12 +42,15 @@ const EmployeeLeave = () => {
 
   useEffect(() => {
     fetchLeaves();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope]);
 
   const fetchLeaves = async () => {
-    const response = user.role === "admin" 
-      ? await getLeaves() 
-      : await getEmployeeLeaves();
+    const response = isAdmin
+      ? await getLeaves()
+      : scope === "team"
+        ? await axiosInstance.get("/v1/leave/team").then((r) => r.data).catch(() => null)
+        : await getEmployeeLeaves();
       
     if (response) {
       const list = response.leaves || [];
@@ -115,7 +125,7 @@ const EmployeeLeave = () => {
       <div className="card">
         <div className="card-body flex lg:flex-row lg:justify-between">
           <h1 className="text-2xl font-semibold">
-            {user.role === "admin" ? "All Leave Requests" : "My Leave Requests"}
+            {isAdmin ? "All Leave Requests" : scope === "team" ? "Team Leave Requests" : "My Leave Requests"}
           </h1>
           <div className="">
             <LeaveTabs 
@@ -128,7 +138,13 @@ const EmployeeLeave = () => {
         <div className="flex w-full justify-start bg-slate-100 p-4 transition-colors dark:bg-slate-950">
           <div className="w-full">
             <div className="flex flex-col gap-5">
-              {user.role !== "admin" && (
+              {!isAdmin && isTeamLead && (
+                <div className="flex gap-2">
+                  <Button variant={scope === "mine" ? "default" : "outline"} size="sm" onClick={() => setScope("mine")}>My requests</Button>
+                  <Button variant={scope === "team" ? "default" : "outline"} size="sm" onClick={() => setScope("team")}>Team requests (to approve)</Button>
+                </div>
+              )}
+              {!isAdmin && scope === "mine" && (
                 <div className="flex justify-end">
                   <Button
                     variant="destructive"
@@ -175,14 +191,14 @@ const EmployeeLeave = () => {
                             <Badge className={`${getStatusBadge(leave.status)} capitalize`}>
                               {leave.status}
                             </Badge>
-                            {user.role === "admin" && (
+                            {reviewing && (
                               <div className="mt-1 text-sm font-medium">
                                 Employee: {leave.employee?.fullname || leave.employee?.email}
                               </div>
                             )}
                           </div>
                           <div className="flex gap-2">
-                            {user.role === "admin" && leave.status === "Pending" && (
+                            {reviewing && leave.status === "Pending" && (
                               <>
                                 <Button
                                   size="sm"
@@ -205,13 +221,15 @@ const EmployeeLeave = () => {
                                 </Button>
                               </>
                             )}
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteLeave(leave._id)}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
+                            {scope !== "team" && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteLeave(leave._id)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="ghost"

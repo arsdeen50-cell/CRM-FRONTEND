@@ -13,6 +13,7 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import axiosInstance from "@/utils/axiosConfig";
 import { toast } from "sonner";
+import { useTeams } from "@/hooks/useTeams";
 
 const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
     const isEditMode = !!editData;
@@ -57,15 +58,19 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
     const [showWonPopup, setShowWonPopup] = useState(false);
     const [pendingSubmitData, setPendingSubmitData] = useState(null);
 
-    const teamOptions = {
-        "Website Team": ["UI Developer", "Backend Developer", "SEO Specialist"],
-        "Mobile App Team": ["React Native Dev", "Flutter Dev", "QA Tester"],
-        "SMM Team": ["Social Strategist", "Content Creator", "Ad Manager"],
-        "Branding & Design Team": ["Graphic Designer", "Art Director", "Copywriter"],
-        "Influencer Management Team": ["Influencer Lead", "Outreach Specialist", "Campaign Manager"],
-        "Production Team": ["Photographer", "Videographer", "Production Manager"],
-        "Cross-functional Team": ["Project Coordinator", "Designer", "Dev Lead"],
-    };
+    // Teams come from Role Based Access. Members are the people in that team (with their sub-role);
+    // a team with nobody in it yet falls back to its sub-roles, like before.
+    const { teams } = useTeams();
+    const teamOptions = Object.fromEntries(
+        teams
+            .filter((t) => t.isActive)
+            .map((t) => [
+                t.name,
+                t.members?.length
+                    ? t.members.map((m) => ({ value: m.fullname, label: `${m.fullname}${m.subRole ? ` · ${m.subRole}` : ""}${m.isLead ? " (Lead)" : ""}` }))
+                    : (t.subRoles || []).map((r) => ({ value: r, label: r })),
+            ])
+    );
 
     const serviceOptions = [
         "Website Development",
@@ -648,6 +653,9 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                                                     {team}
                                                 </SelectItem>
                                             ))}
+                                            {formData.teamAssigned && !teamOptions[formData.teamAssigned] && (
+                                                <SelectItem value={formData.teamAssigned}>{formData.teamAssigned}</SelectItem>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -664,10 +672,13 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {teamOptions[formData.teamAssigned]?.map((member) => (
-                                                    <SelectItem key={member} value={member}>
-                                                        {member}
+                                                    <SelectItem key={member.value} value={member.value}>
+                                                        {member.label}
                                                     </SelectItem>
                                                 ))}
+                                                {formData.teamMember && !teamOptions[formData.teamAssigned]?.some((m) => m.value === formData.teamMember) && (
+                                                    <SelectItem value={formData.teamMember}>{formData.teamMember}</SelectItem>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
