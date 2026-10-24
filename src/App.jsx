@@ -54,6 +54,8 @@ import EmployeeProfile from "./pages/HR/EmployeeProfile";
 import AttendanceReport from "./pages/HR/AttendanceReport";
 import Payroll from "./pages/HR/Payroll";
 import HrSettings from "./pages/HR/HrSettings";
+import Exits from "./pages/HR/Exits";
+import ExitDetail from "./pages/HR/ExitDetail";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -217,6 +219,8 @@ function App() {
         { path: "hr/attendance", element: <AttendanceReport /> },
         { path: "hr/payroll", element: <Payroll /> },
         { path: "hr/settings", element: <HrSettings /> },
+        { path: "hr/exits", element: <Exits /> },
+        { path: "hr/exits/:userId", element: <ExitDetail /> },
         {
           path: "crm/goonboardingdata",
           element: (

@@ -84,7 +84,7 @@ const People = () => {
             <CardContent className="p-4 flex gap-3">
               {p.photo ? <img src={p.photo} alt="" className="h-12 w-12 rounded-full object-cover" /> : <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold">{(p.fullname || "?")[0]}</div>}
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2"><p className="font-medium truncate">{p.fullname}</p>{p.status !== "Active" && <span className={`text-xs rounded-full px-2 ${STATUS_STYLE[p.status] || ""}`}>{p.status}</span>}</div>
+                <div className="flex items-center gap-2"><p className="font-medium truncate">{p.fullname}</p>{p.status !== "Active" && <span className={`text-xs rounded-full px-2 ${STATUS_STYLE[p.status] || ""}`}>{p.status}</span>}{admin && p.loginActive === false && <span className="text-xs rounded-full px-2 bg-gray-100 text-gray-500">Login off</span>}</div>
                 <p className="text-sm text-gray-500 truncate">{p.designation || (p.role === "admin" ? "Admin" : "—")}</p>
                 <p className="text-xs text-gray-500 truncate">{p.email}</p>
                 <div className="flex flex-wrap gap-1 mt-1">{p.teams.map((t) => <span key={t.teamName} className="text-xs border rounded-full px-2 flex items-center gap-1">{t.isLead && <Crown className="h-3 w-3 text-amber-600" />}{t.teamName}{t.subRole ? ` · ${t.subRole}` : ""}</span>)}</div>

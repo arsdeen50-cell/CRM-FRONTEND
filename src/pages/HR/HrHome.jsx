@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Users, CalendarCheck, CalendarDays, Wallet, Settings, UserPlus, UserCircle } from "lucide-react";
+import { Users, CalendarCheck, CalendarDays, Wallet, Settings, UserPlus, UserCircle, DoorOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyTeams } from "@/hooks/useTeams";
 
@@ -19,6 +19,7 @@ const HrHome = () => {
       ? [
           { title: "Payroll", desc: "Salary structures, monthly payroll, payslips", icon: Wallet, to: "/hr/payroll" },
           { title: "Onboarding", desc: "Candidates, offer letters, joining documents", icon: UserPlus, to: "/crm/goonboardingdata" },
+          { title: "Exits", desc: "Notice, handover, login cut-off, full & final, letters", icon: DoorOpen, to: "/hr/exits" },
           { title: "HR settings", desc: "Leave quotas, holidays, weekly offs, office timing", icon: Settings, to: "/hr/settings" },
         ]
       : []),

@@ -116,6 +116,7 @@ const EmployeeProfile = () => {
   return (
     <div className="p-4 md:p-6 space-y-4">
       <HrHeader icon={UserCircle} title={user.fullname} subtitle={[profile.designation || user.designation, user.email].filter(Boolean).join(" · ")} back="/hr/people">
+        {admin && !self && <Button variant="outline" onClick={() => (window.location.href = `/hr/exits/${userId}`)}>{profile.status === "Exited" || profile.status === "Notice Period" ? "Exit details" : "Start exit"}</Button>}
         {editPersonal && <Button onClick={save} className="bg-emerald-600 hover:bg-emerald-700"><Save className="h-4 w-4 mr-1" /> Save</Button>}
       </HrHeader>
       <div className="flex flex-wrap gap-1">{(user.teams || []).map((t) => <span key={t.teamName} className="text-xs border rounded-full px-2 py-0.5 flex items-center gap-1">{t.isLead && <Crown className="h-3 w-3 text-amber-600" />}{t.teamName}{t.subRole ? ` · ${t.subRole}` : ""}</span>)}</div>
