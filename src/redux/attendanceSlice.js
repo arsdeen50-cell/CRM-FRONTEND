@@ -21,7 +21,8 @@ const attendanceSlice = createSlice({
     },
     punchInFailure: (state, action) => {
       state.loading = false;
-      state.error = action.payload;
+      // Shown as a toast; kept apart from state.error so a refused punch doesn't replace the dashboard
+      state.actionError = action.payload;
     },
     punchOutStart: (state) => {
       state.loading = true;
@@ -33,7 +34,8 @@ const attendanceSlice = createSlice({
     },
     punchOutFailure: (state, action) => {
       state.loading = false;
-      state.error = action.payload;
+      // Shown as a toast; kept apart from state.error so a refused punch doesn't replace the dashboard
+      state.actionError = action.payload;
     },
     getMyAttendanceStart: (state) => {
       state.loading = true;

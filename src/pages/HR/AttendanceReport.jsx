@@ -15,14 +15,16 @@ import { HrHeader, MonthPicker, thisMonth, DAY_CODES, fmtDate, WEEKDAYS } from "
 import { promptDialog } from "@/components/ui/app-dialogs";
 
 const time = (d) => (d ? new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—");
-const SUMMARY = [["P", "Present"], ["HD", "Half"], ["L", "Leave"], ["A", "Absent"], ["late", "Late"], ["workedHours", "Hours"]];
+const SUMMARY = [["P", "Present"], ["HD", "Half"], ["L", "Leave"], ["A", "Absent"], ["late", "Late"], ["outside", "Outside office"], ["workedHours", "Hours"]];
+const outsideText = (o) => (o.status === "unknown" ? "punched in without sharing location" : `punched in ${o.distance >= 1000 ? `${(o.distance / 1000).toFixed(1)} km` : `${o.distance} m`} from the office`);
 
 const Cell = ({ c }) => {
   const d = DAY_CODES[c.code];
   return (
     <td className="p-0.5">
-      <div title={`${c.date}: ${d?.label || "—"}${c.late ? " (late)" : ""}${c.holiday ? ` - ${c.holiday}` : ""}${c.leaveType ? ` - ${c.leaveType}` : ""}${c.punchIn ? `\nIn ${time(c.punchIn)}  Out ${time(c.punchOut)}  ${c.worked}h` : ""}`} className={`h-7 w-8 rounded text-[10px] font-medium flex items-center justify-center ${d?.cls || "bg-white dark:bg-slate-900 text-gray-300"} ${c.late ? "ring-1 ring-red-400" : ""}`}>
+      <div title={`${c.date}: ${d?.label || "—"}${c.late ? " (late)" : ""}${c.holiday ? ` - ${c.holiday}` : ""}${c.leaveType ? ` - ${c.leaveType}` : ""}${c.punchIn ? `\nIn ${time(c.punchIn)}  Out ${time(c.punchOut)}  ${c.worked}h` : ""}${c.outside ? `\nOutside office: ${outsideText(c.outside)}` : ""}`} className={`relative h-7 w-8 rounded text-[10px] font-medium flex items-center justify-center ${d?.cls || "bg-card text-muted-foreground/50"} ${c.late ? "ring-1 ring-red-400" : ""}`}>
         {c.code || "·"}
+        {c.outside && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-orange-500 ring-2 ring-card" />}
       </div>
     </td>
   );
@@ -52,8 +54,8 @@ const AttendanceReport = () => {
 
   const exportCsv = () => {
     if (!report) return;
-    const head = ["Name", "Email", ...report.days.map((d) => d.slice(8)), "Present", "Half day", "Short", "Missed punch-out", "Absent", "Leave", "Half-day leave", "Holidays", "Weekly offs", "Late", "Hours"];
-    const lines = report.rows.map((r) => [r.user.fullname, r.user.email, ...r.cells.map((c) => c.code + (c.late ? "*" : "")), r.summary.P, r.summary.HD, r.summary.SH, r.summary.MP, r.summary.A, r.summary.L, r.summary.HL, r.summary.H, r.summary.WO, r.summary.late, r.summary.workedHours]);
+    const head = ["Name", "Email", ...report.days.map((d) => d.slice(8)), "Present", "Half day", "Short", "Missed punch-out", "Absent", "Leave", "Half-day leave", "Holidays", "Weekly offs", "Late", "Outside office", "Hours"];
+    const lines = report.rows.map((r) => [r.user.fullname, r.user.email, ...r.cells.map((c) => c.code + (c.late ? "*" : "") + (c.outside ? "!" : "")), r.summary.P, r.summary.HD, r.summary.SH, r.summary.MP, r.summary.A, r.summary.L, r.summary.HL, r.summary.H, r.summary.WO, r.summary.late, r.summary.outside ?? 0, r.summary.workedHours]);
     const csv = [head, ...lines].map((row) => row.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
     downloadFile(`attendance-${month}.csv`, csv, "text/csv");
   };
@@ -101,7 +103,7 @@ const AttendanceReport = () => {
               <table className="text-xs border-separate border-spacing-0">
                 <thead>
                   <tr>
-                    <th className="text-left p-1 sticky left-0 bg-white dark:bg-slate-950 min-w-[140px]">Person</th>
+                    <th className="text-left p-1 sticky left-0 bg-card min-w-[140px]">Person</th>
                     {report.days.map((d) => <th key={d} className="p-0.5 font-normal text-muted-foreground w-8"><div>{Number(d.slice(8))}</div><div className="text-[9px]">{WEEKDAYS[new Date(`${d}T00:00:00Z`).getUTCDay()][0]}</div></th>)}
                     {SUMMARY.map(([k, l]) => <th key={k} className="p-1 text-muted-foreground font-medium">{l}</th>)}
                   </tr>
@@ -109,7 +111,7 @@ const AttendanceReport = () => {
                 <tbody>
                   {report.rows.map((r) => (
                     <tr key={r.user._id}>
-                      <td className="p-1 sticky left-0 bg-white dark:bg-slate-950 font-medium whitespace-nowrap">{r.user.fullname}</td>
+                      <td className="p-1 sticky left-0 bg-card font-medium whitespace-nowrap">{r.user.fullname}</td>
                       {r.cells.map((c) => <Cell key={c.date} c={c} />)}
                       {SUMMARY.map(([k]) => <td key={k} className="p-1 text-center">{r.summary[k]}</td>)}
                     </tr>
@@ -118,7 +120,7 @@ const AttendanceReport = () => {
               </table>
             )}
           </CardContent></Card>
-          <p className="text-xs text-muted-foreground mt-2">Hover a day for punch times. Missed a punch or punched late by mistake? Ask for a correction under "My corrections".</p>
+          <p className="text-xs text-muted-foreground mt-2">Hover a day for punch times. <span className="inline-block h-2 w-2 rounded-full bg-orange-500 align-middle" /> = punched in outside the office geofence (in the CSV: !). Missed a punch or punched late by mistake? Ask for a correction under "My corrections".</p>
         </TabsContent>
         {reviewer && (
           <TabsContent value="approve">

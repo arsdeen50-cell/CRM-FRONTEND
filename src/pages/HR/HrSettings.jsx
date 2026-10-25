@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Settings, Trash2, Plus } from "lucide-react";
+import { Settings, Trash2, Plus, MapPin, LocateFixed } from "lucide-react";
 import { toast } from "sonner";
 import CrmRoute from "@/components/crm/CrmRoute";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,62 @@ import axiosInstance from "@/utils/axiosConfig";
 import { HrHeader, LEAVE_TYPES, WEEKDAYS, fmtDate } from "./hrShared";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// Office location + radius for punch-in. Staff marked WFH / field staff on their profile are not checked.
+const GeofenceSettings = ({ value, onChange, onSave }) => {
+  const g = { enabled: false, mode: "flag", name: "Office", lat: null, lng: null, radiusMeters: 200, ...(value || {}) };
+  const set = (k, v) => onChange({ ...g, [k]: v });
+  const [locating, setLocating] = useState(false);
+  const hasPoint = g.lat !== null && g.lat !== "" && g.lng !== null && g.lng !== "";
+  const useHere = () => {
+    if (!navigator.geolocation) return toast.error("This browser can't share location");
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setLocating(false);
+        onChange({ ...g, lat: Number(p.coords.latitude.toFixed(6)), lng: Number(p.coords.longitude.toFixed(6)) });
+        toast.success(`Location set (accurate to about ${Math.round(p.coords.accuracy)} m). Save to apply.`);
+      },
+      (e) => {
+        setLocating(false);
+        toast.error(e.code === 1 ? "Location access was blocked - allow it in the browser and try again" : "Could not get your location");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
+  return (
+    <Card><CardContent className="p-4 grid gap-5">
+      <label className="text-sm flex items-center gap-2 font-medium"><input type="checkbox" checked={g.enabled} onChange={(e) => set("enabled", e.target.checked)} /> Check location on punch-in</label>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid gap-1"><Label>Office name</Label><Input value={g.name} onChange={(e) => set("name", e.target.value)} placeholder="Office" /></div>
+        <div className="grid gap-1">
+          <Label>When someone punches in outside</Label>
+          <Select value={g.mode} onValueChange={(v) => set("mode", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="flag">Allow, but flag it for HR</SelectItem>
+              <SelectItem value="block">Don't allow the punch-in</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+        <div className="grid gap-1"><Label>Latitude</Label><Input type="number" step="0.000001" value={g.lat ?? ""} onChange={(e) => set("lat", e.target.value === "" ? null : Number(e.target.value))} placeholder="19.0760" /></div>
+        <div className="grid gap-1"><Label>Longitude</Label><Input type="number" step="0.000001" value={g.lng ?? ""} onChange={(e) => set("lng", e.target.value === "" ? null : Number(e.target.value))} placeholder="72.8777" /></div>
+        <div className="grid gap-1"><Label>Radius (metres)</Label><Input type="number" min="25" max="5000" value={g.radiusMeters} onChange={(e) => set("radiusMeters", e.target.value)} /></div>
+        <Button type="button" variant="outline" onClick={useHere} disabled={locating}><LocateFixed className="h-4 w-4 mr-1" /> {locating ? "Locating..." : "Use my location"}</Button>
+      </div>
+      {hasPoint && (
+        <a className="text-sm text-brand inline-flex items-center gap-1 w-fit" href={`https://www.google.com/maps?q=${g.lat},${g.lng}`} target="_blank" rel="noreferrer"><MapPin className="h-4 w-4" /> Check this point on Google Maps</a>
+      )}
+      <div className="text-xs text-muted-foreground space-y-1">
+        <p>Tip: press "Use my location" while standing in the office, or copy the coordinates from Google Maps (right-click the building). 150-300 m works for most offices; phone GPS indoors can be off by 50-100 m.</p>
+        <p>People set to "Work from home" or "Field staff" on their profile can punch in from anywhere. Punch-out is never blocked, only flagged. Browsers can be tricked with fake-location apps, so treat this as a strong check, not proof.</p>
+      </div>
+      <div className="flex justify-end"><Button onClick={onSave}>Save geofence</Button></div>
+    </CardContent></Card>
+  );
+};
 
 const HrSettings = () => {
   const [s, setS] = useState(null);
@@ -66,9 +122,9 @@ const HrSettings = () => {
   return (
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
-        <HrHeader icon={Settings} title="HR settings" subtitle="Leave quotas, holidays, weekly offs and office timing." />
+        <HrHeader icon={Settings} title="HR settings" subtitle="Leave quotas, holidays, weekly offs, office timing and punch-in location." />
         <Tabs defaultValue="leave">
-          <TabsList><TabsTrigger value="leave">Leave & attendance rules</TabsTrigger><TabsTrigger value="holidays">Holidays</TabsTrigger><TabsTrigger value="balances">Leave balances</TabsTrigger></TabsList>
+          <TabsList><TabsTrigger value="leave">Leave & attendance rules</TabsTrigger><TabsTrigger value="geofence">Office geofence</TabsTrigger><TabsTrigger value="holidays">Holidays</TabsTrigger><TabsTrigger value="balances">Leave balances</TabsTrigger></TabsList>
           <TabsContent value="leave">
             <Card><CardContent className="p-4 grid gap-5">
               <div>
@@ -97,6 +153,9 @@ const HrSettings = () => {
               <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={s.deductAbsentDays} onChange={(e) => set("deductAbsentDays", e.target.checked)} /> Payroll: count absent days (no punch-in, no leave) as loss of pay</label>
               <div className="flex justify-end"><Button onClick={save} className="">Save settings</Button></div>
             </CardContent></Card>
+          </TabsContent>
+          <TabsContent value="geofence">
+            <GeofenceSettings value={s.geofence} onChange={(g) => set("geofence", g)} onSave={save} />
           </TabsContent>
           <TabsContent value="holidays">
             <Card><CardContent className="p-4 space-y-3">
