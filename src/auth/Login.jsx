@@ -10,8 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {  setUser } from "@/redux/authSlice";
 import { Loader } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
-import darkText from "@/assets/blacktext.png";
-import whiteText from "@/assets/whitetext.png";
+import AuthShell from "./AuthShell";
 import axiosInstance from "@/utils/axiosConfig";
 
 const Login = () => {
@@ -74,100 +73,32 @@ const submitHandler = async (e) => {
 
 
     return (
-        <div>
-            <div className="mx-auto flex max-w-7xl flex-col items-center justify-center py-10">
-                   <div className="flex p-3 text-center justify-center items-center w-[60%]">
-                                 <img
-                                     src={darkText}
-                                     alt="Logoipsum"
-                                     className="dark:hidden w-[60%]"
-                                 />
-                                 <img
-                                     src={whiteText}
-                                     alt="Logoipsum"
-                                     className="hidden dark:block w-[60%]"
-                                 />
-                               
-                             </div>
-                <form
-                    onSubmit={submitHandler}
-                    className="w-3/3 my-10 rounded-md border border-gray-200 p-4 lg:w-2/3"
-                >
-                    <h1 className="mb-5 text-xl font-bold">Login</h1>
-
-                    <div className="my-2">
-                        <Label>Email</Label>
-                        <Input
-                            type="email"
-                            value={input.email}
-                            name="email"
-                            onChange={changeEventhandler}
-                            placeholder="Enter Email"
-                        />
+        <AuthShell title="Welcome back" subtitle="Log in to your workspace">
+            <form onSubmit={submitHandler} className="space-y-4">
+                <div className="space-y-1.5">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" autoComplete="email" value={input.email} name="email" onChange={changeEventhandler} placeholder="you@company.com" required />
+                </div>
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="password">Password</Label>
+                        <Link to="/forgot-password" className="text-xs font-medium text-brand hover:underline">Forgot password?</Link>
                     </div>
-
-                    <div className="relative my-2">
-                        <Label>Password</Label>
-                        <Input
-                            type={showPassword ? "text" : "password"}
-                            value={input.password}
-                            name="password"
-                            onChange={changeEventhandler}
-                            placeholder="Enter Password"
-                            className="pr-10"
-                        />
-                        <div
-                            className="absolute right-3 top-[38px] cursor-pointer"
-                            onClick={() => setShowPassword(!showPassword)}
-                        >
-                            {showPassword ? (
-                                <EyeOff
-                                    size={20}
-                                    className="bg-white transition-colors dark:bg-slate-900"
-                                />
-                            ) : (
-                                <Eye
-                                    size={20}
-                                    className="bg-white transition-colors dark:bg-slate-900"
-                                />
-                            )}
-                        </div>
-                        <Link
-  to="/forgot-password"
-  className="text-sm text-blue-600 block mt-2"
->
-  Forgot Password?
-</Link>
-
+                    <div className="relative">
+                        <Input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={input.password} name="password" onChange={changeEventhandler} placeholder="Your password" className="pr-10" required />
+                        <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
-
-                    {loading ? (
-                        <Button className="my-4 w-full">
-                            <Loader className="mr-2 h-4 w-4 animate-spin" /> Please Wait
-                        </Button>
-                    ) : (
-                        <Button
-                            type="submit"
-                            className="my-4 w-full"
-                        >
-                            Login
-                        </Button>
-                    )}
-{/* {user?.role === "admin" && ( */}
-  <span className="text-sm">
-    Dont have an account?{" "}
-    <Link
-      to="/signup"
-      className="text-blue-600"
-    >
-      New employee signup
-    </Link>
-  </span>
-{/* )} */}
-                </form>
-            
-            </div>
-        </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <><Loader className="mr-2 h-4 w-4 animate-spin" /> Logging in...</> : "Log in"}
+                </Button>
+                <p className="text-center text-sm text-muted-foreground">
+                    New joiner? <Link to="/signup" className="font-medium text-brand hover:underline">Sign up for onboarding</Link>
+                </p>
+            </form>
+        </AuthShell>
     );
 };
 

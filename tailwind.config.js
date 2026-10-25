@@ -4,6 +4,9 @@ export default {
   darkMode: "class",
     theme: {
     	extend: {
+    		fontFamily: {
+    			sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+    		},
     		borderRadius: {
     			lg: 'var(--radius)',
     			md: 'calc(var(--radius) - 2px)',
@@ -39,6 +42,11 @@ export default {
     			destructive: {
     				DEFAULT: 'hsl(var(--destructive))',
     				foreground: 'hsl(var(--destructive-foreground))'
+    			},
+    			brand: {
+    				DEFAULT: 'hsl(var(--brand))',
+    				foreground: 'hsl(var(--brand-foreground))',
+    				soft: 'hsl(var(--brand-soft))'
     			},
     			border: 'hsl(var(--border))',
     			input: 'hsl(var(--input))',

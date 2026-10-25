@@ -31,8 +31,9 @@ import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
 import { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import { TIER_STYLES, isPlaceholderEmail, isPlaceholderPhone } from "@/lib/crmOutreach";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
-const Muted = ({ children }) => <span className="text-gray-400 text-xs">{children}</span>;
+const Muted = ({ children }) => <span className="text-muted-foreground/70 text-xs">{children}</span>;
 
 const LeadClientList = () => {
   const isAdmin = useIsAdmin();
@@ -132,7 +133,7 @@ const LeadClientList = () => {
 
   // Handle delete
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this client?")) return;
+    if (!await confirmDialog("Are you sure you want to delete this client?")) return;
     try {
       await axiosInstance.delete(`/v1/leadclient/${id}`);
       toast.success("Client deleted successfully");
@@ -231,7 +232,7 @@ const LeadClientList = () => {
           <h2 className="text-xl font-semibold">Client List</h2>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
@@ -243,7 +244,7 @@ const LeadClientList = () => {
                   onClick={() => setSearchTerm("")}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 >
-                  <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  <X className="h-4 w-4 text-muted-foreground/70 hover:text-muted-foreground" />
                 </button>
               )}
             </div>
@@ -267,13 +268,13 @@ const LeadClientList = () => {
                 });
                 setOpenModal(true);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-white"
             >
               <Plus className="h-4 w-4 mr-2" /> Add Client
             </Button>
           </div>
         </div>
-        <div className="text-sm text-gray-500 mt-2">
+        <div className="text-sm text-muted-foreground mt-2">
           Showing {filteredClients.length} clients
         </div>
       </div>
@@ -301,7 +302,7 @@ const LeadClientList = () => {
                 <TableBody>
                   {paginatedClients.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         No clients found
                       </TableCell>
                     </TableRow>
@@ -333,7 +334,7 @@ const LeadClientList = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-blue-600 hover:text-blue-800"
+                              className="h-8 w-8 text-brand hover:text-blue-800"
                               onClick={() => handleEdit(client)}
                             >
                               <Edit className="h-4 w-4" />
@@ -365,7 +366,7 @@ const LeadClientList = () => {
                   >
                     Previous
                   </Button>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
@@ -510,7 +511,7 @@ const LeadClientList = () => {
               <Button type="button" variant="outline" onClick={handleCloseModal}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button type="submit" className=" text-white">
                 {editingClient ? "Update" : "Create"} Client
               </Button>
             </DialogFooter>

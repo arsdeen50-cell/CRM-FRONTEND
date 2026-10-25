@@ -79,19 +79,19 @@ const Targets = () => {
           <span className="self-center font-medium w-36 text-center">{label}</span>
           <Button variant="outline" onClick={() => setMonth(shiftMonth(month, 1))}>›</Button>
           {isAdmin && <Button variant="outline" onClick={copyLast}><Copy className="h-4 w-4 mr-1" /> Copy last month's targets</Button>}
-          {isAdmin && <Button onClick={() => setEditing({ userName: data?.users?.[0] || "", goals: {} })} className="bg-blue-600 hover:bg-blue-700">Set targets</Button>}
+          {isAdmin && <Button onClick={() => setEditing({ userName: data?.users?.[0] || "", goals: {} })} className="bg-primary hover:bg-primary/90">Set targets</Button>}
         </PageHeader>
-        {data?.rows?.length === 0 && <p className="text-sm text-gray-500">No targets or activity for {label} yet.</p>}
+        {data?.rows?.length === 0 && <p className="text-sm text-muted-foreground">No targets or activity for {label} yet.</p>}
         <div className="grid gap-3">
           {data?.rows?.map((r, i) => (
             <Card key={r.userName}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-3">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${i === 0 && r.overall !== null ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-200"}`}>{i + 1}</span>
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${i === 0 && r.overall !== null ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-muted-foreground dark:bg-slate-700 dark:text-gray-200"}`}>{i + 1}</span>
                     <div>
                       <p className="font-medium">{r.userName}</p>
-                      <p className="text-xs text-gray-500">{r.overall === null ? "No targets set" : `${r.overall}% of targets on average`}</p>
+                      <p className="text-xs text-muted-foreground">{r.overall === null ? "No targets set" : `${r.overall}% of targets on average`}</p>
                     </div>
                   </div>
                   {isAdmin && <Button size="sm" variant="ghost" onClick={() => setEditing({ userName: r.userName, goals: { ...(r.goals || {}) } })}><Edit className="h-4 w-4 mr-1" /> Targets</Button>}
@@ -102,8 +102,8 @@ const Targets = () => {
                     const actual = r.actuals[m.key] || 0;
                     return (
                       <div key={m.key} className="space-y-1">
-                        <p className="text-xs text-gray-500">{m.label}</p>
-                        <p className="text-sm font-semibold">{fmt(m, actual)}{goal ? <span className="text-gray-400 font-normal"> / {fmt(m, goal)}</span> : null}</p>
+                        <p className="text-xs text-muted-foreground">{m.label}</p>
+                        <p className="text-sm font-semibold">{fmt(m, actual)}{goal ? <span className="text-muted-foreground/70 font-normal"> / {fmt(m, goal)}</span> : null}</p>
                         {goal > 0 && <Bar value={actual} goal={goal} />}
                       </div>
                     );
@@ -113,7 +113,7 @@ const Targets = () => {
             </Card>
           ))}
         </div>
-        <p className="text-xs text-gray-400">Calls, emails, WhatsApps and meetings count activities logged by that person. New leads = leads they created or own. Won and revenue = deals they own that moved to Won this month.</p>
+        <p className="text-xs text-muted-foreground/70">Calls, emails, WhatsApps and meetings count activities logged by that person. New leads = leads they created or own. Won and revenue = deals they own that moved to Won this month.</p>
         <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
@@ -139,7 +139,7 @@ const Targets = () => {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-                  <Button onClick={save} disabled={!editing.userName} className="bg-blue-600 hover:bg-blue-700">Save</Button>
+                  <Button onClick={save} disabled={!editing.userName} className="">Save</Button>
                 </div>
               </div>
             )}

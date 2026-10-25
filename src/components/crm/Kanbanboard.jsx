@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Edit, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { formatCurrency, isOverdue, PIPELINE_STAGES, STAGE_COLORS } from "@/hooks/Pipelineconstants";
+import { promptDialog } from "@/components/ui/app-dialogs";
 // import { PIPELINE_STAGES, STAGE_COLORS, formatCurrency, isOverdue } from "./pipelineConstants";
 
 const priorityDot = {
@@ -15,10 +16,10 @@ const KanbanBoard = ({ leads, currentUser, onStageChange, onEdit, onLogActivity 
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
 
-  const handleDrop = (stage) => {
+  const handleDrop = async (stage) => {
     if (draggedId) {
       if (stage === "Lost") {
-        const reason = window.prompt("Reason for marking this lead as Lost (optional):") || "";
+        const reason = await promptDialog("Reason for marking this lead as Lost (optional):") || "";
         onStageChange(draggedId, stage, currentUser, reason);
       } else {
         onStageChange(draggedId, stage, currentUser);
@@ -81,7 +82,7 @@ const KanbanBoard = ({ leads, currentUser, onStageChange, onEdit, onLogActivity 
                         />
                       </div>
 
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {lead.projectAccountHandledBy || "Unassigned"}
                       </p>
 
@@ -92,7 +93,7 @@ const KanbanBoard = ({ leads, currentUser, onStageChange, onEdit, onLogActivity 
                       {lead.nextFollowUpDate && (
                         <p
                           className={`text-xs mt-1 ${
-                            overdue ? "text-red-600 font-semibold" : "text-gray-500"
+                            overdue ? "text-red-600 font-semibold" : "text-muted-foreground"
                           }`}
                         >
                           {overdue ? "Overdue · " : "Follow-up: "}
@@ -102,14 +103,14 @@ const KanbanBoard = ({ leads, currentUser, onStageChange, onEdit, onLogActivity 
 
                       <div className="flex items-center gap-1 mt-2 pt-2 border-t">
                         <button
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          className="p-1 text-brand hover:bg-blue-50 rounded"
                           title="Edit"
                           onClick={() => onEdit(lead)}
                         >
                           <Edit className="h-3.5 w-3.5" />
                         </button>
                         <button
-                          className="p-1 text-gray-600 hover:bg-gray-100 rounded"
+                          className="p-1 text-muted-foreground hover:bg-gray-100 rounded"
                           title="Log Activity"
                           onClick={() => onLogActivity(lead)}
                         >
@@ -127,9 +128,9 @@ const KanbanBoard = ({ leads, currentUser, onStageChange, onEdit, onLogActivity 
                             <button
                               className="p-1 text-red-600 hover:bg-red-50 rounded"
                               title="Mark Lost"
-                              onClick={() => {
+                              onClick={async () => {
                                 const reason =
-                                  window.prompt("Reason for marking this lead as Lost (optional):") ||
+                                  await promptDialog("Reason for marking this lead as Lost (optional):") ||
                                   "";
                                 onStageChange(lead._id, "Lost", currentUser, reason);
                               }}
@@ -145,7 +146,7 @@ const KanbanBoard = ({ leads, currentUser, onStageChange, onEdit, onLogActivity 
               })}
 
               {stageLeads.length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-6">No leads</p>
+                <p className="text-xs text-muted-foreground/70 text-center py-6">No leads</p>
               )}
             </div>
           </div>

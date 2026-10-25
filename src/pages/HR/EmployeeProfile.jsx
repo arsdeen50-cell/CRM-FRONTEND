@@ -13,9 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import axiosInstance from "@/utils/axiosConfig";
 import { downloadFile } from "@/lib/crmOutreach";
 import { HrHeader, fmtDate, toInput, inr, monthLabel, LEAVE_TYPES } from "./hrShared";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const DOC_TYPES = ["ID proof", "PAN", "Offer letter", "Contract", "Certificate", "Previous employment", "Bank", "Relieving letter", "Other"];
-const Field = ({ label, children }) => <div className="grid gap-1"><Label className="text-xs text-gray-500">{label}</Label>{children}</div>;
+const Field = ({ label, children }) => <div className="grid gap-1"><Label className="text-xs text-muted-foreground">{label}</Label>{children}</div>;
 
 const EmployeeProfile = () => {
   const { userId } = useParams();
@@ -57,7 +58,7 @@ const EmployeeProfile = () => {
     if (admin) axiosInstance.get("/v1/hr/employees").then((r) => setPeople(r.data.people || [])).catch(() => {});
   }, [load, admin]);
 
-  if (!data || !form) return <div className="p-6 text-gray-500">Loading...</div>;
+  if (!data || !form) return <div className="p-6 text-muted-foreground">Loading...</div>;
   const { user, profile, canEdit } = data;
   const editAll = canEdit === "all", editPersonal = canEdit !== "none";
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -99,7 +100,7 @@ const EmployeeProfile = () => {
     }
   };
   const removeDoc = async (d) => {
-    if (!window.confirm(`Delete ${d.name}?`)) return;
+    if (!await confirmDialog(`Delete ${d.name}?`)) return;
     await axiosInstance.delete(`/v1/hr/employees/${userId}/documents/${d._id}`).catch(() => toast.error("Could not delete"));
     load();
   };
@@ -117,7 +118,7 @@ const EmployeeProfile = () => {
     <div className="p-4 md:p-6 space-y-4">
       <HrHeader icon={UserCircle} title={user.fullname} subtitle={[profile.designation || user.designation, user.email].filter(Boolean).join(" · ")} back="/hr/people">
         {admin && !self && <Button variant="outline" onClick={() => (window.location.href = `/hr/exits/${userId}`)}>{profile.status === "Exited" || profile.status === "Notice Period" ? "Exit details" : "Start exit"}</Button>}
-        {editPersonal && <Button onClick={save} className="bg-emerald-600 hover:bg-emerald-700"><Save className="h-4 w-4 mr-1" /> Save</Button>}
+        {editPersonal && <Button onClick={save} className=""><Save className="h-4 w-4 mr-1" /> Save</Button>}
       </HrHeader>
       <div className="flex flex-wrap gap-1">{(user.teams || []).map((t) => <span key={t.teamName} className="text-xs border rounded-full px-2 py-0.5 flex items-center gap-1">{t.isLead && <Crown className="h-3 w-3 text-amber-600" />}{t.teamName}{t.subRole ? ` · ${t.subRole}` : ""}</span>)}</div>
       <Tabs defaultValue="work">
@@ -167,17 +168,17 @@ const EmployeeProfile = () => {
           <Card><CardContent className="p-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {["name", "accountNo", "ifsc", "branch"].map((k) => <Field key={k} label={{ name: "Bank", accountNo: "Account number", ifsc: "IFSC", branch: "Branch" }[k]}>{editAll ? <Input value={form.bank?.[k] || ""} onChange={(e) => setNested("bank", k, e.target.value)} /> : ro(profile.bank?.[k])}</Field>)}
             {["pan", "uan", "esic"].map((k) => <Field key={k} label={k.toUpperCase()}>{editAll ? <Input value={form[k] || ""} onChange={(e) => set(k, e.target.value.toUpperCase())} /> : ro(profile[k])}</Field>)}
-            {!editAll && <p className="text-xs text-gray-500 sm:col-span-2 lg:col-span-4">Only HR can change bank and statutory details - ask an admin if anything is wrong.</p>}
+            {!editAll && <p className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-4">Only HR can change bank and statutory details - ask an admin if anything is wrong.</p>}
           </CardContent></Card>
         </TabsContent>
 
         <TabsContent value="docs">
           <Card><CardContent className="p-4 space-y-3">
-            <p className="text-xs text-gray-500">Documents are stored privately on the CRM server and only you and HR can open them.</p>
-            {(profile.documents || []).length === 0 && <p className="text-sm text-gray-500">No documents yet.</p>}
+            <p className="text-xs text-muted-foreground">Documents are stored privately on the CRM server and only you and HR can open them.</p>
+            {(profile.documents || []).length === 0 && <p className="text-sm text-muted-foreground">No documents yet.</p>}
             {(profile.documents || []).map((d) => (
               <div key={d._id} className="flex items-center justify-between border rounded-md p-2">
-                <div className="min-w-0"><p className="text-sm font-medium truncate">{d.name}</p><p className="text-xs text-gray-500">{d.type} · {fmtDate(d.uploadedAt)} · {d.uploadedBy}{d.externalUrl ? " · from onboarding" : ""}</p></div>
+                <div className="min-w-0"><p className="text-sm font-medium truncate">{d.name}</p><p className="text-xs text-muted-foreground">{d.type} · {fmtDate(d.uploadedAt)} · {d.uploadedBy}{d.externalUrl ? " · from onboarding" : ""}</p></div>
                 <div className="flex gap-1">
                   <Button size="icon" variant="ghost" onClick={() => download(d)} title="Download"><Download className="h-4 w-4" /></Button>
                   {admin && <Button size="icon" variant="ghost" className="text-red-600" onClick={() => removeDoc(d)} title="Delete"><Trash2 className="h-4 w-4" /></Button>}
@@ -199,24 +200,24 @@ const EmployeeProfile = () => {
                 const b = balance.types[t];
                 return (
                   <Card key={t}><CardContent className="p-4">
-                    <p className="text-sm text-gray-500">{t}{b.unpaid ? " (unpaid)" : ""}</p>
+                    <p className="text-sm text-muted-foreground">{t}{b.unpaid ? " (unpaid)" : ""}</p>
                     <p className="text-2xl font-semibold">{b.available === null ? "No limit" : `${b.available} left`}</p>
-                    <p className="text-xs text-gray-500">{b.quota === null ? "" : `${b.quota} a year${b.adjustments ? ` (incl. ${b.adjustments > 0 ? "+" : ""}${b.adjustments} adjusted)` : ""} · `}{b.used} used{b.pending ? ` · ${b.pending} pending` : ""}</p>
+                    <p className="text-xs text-muted-foreground">{b.quota === null ? "" : `${b.quota} a year${b.adjustments ? ` (incl. ${b.adjustments > 0 ? "+" : ""}${b.adjustments} adjusted)` : ""} · `}{b.used} used{b.pending ? ` · ${b.pending} pending` : ""}</p>
                   </CardContent></Card>
                 );
               })}
             </div>
-            <p className="text-xs text-gray-500 mt-2">Leave year {fmtDate(balance.from)} – {fmtDate(balance.to)}</p>
+            <p className="text-xs text-muted-foreground mt-2">Leave year {fmtDate(balance.from)} – {fmtDate(balance.to)}</p>
           </TabsContent>
         )}
 
         {self && (
           <TabsContent value="pay">
             <Card><CardContent className="p-4 space-y-2">
-              {payslips.length === 0 && <p className="text-sm text-gray-500">No payslips yet.</p>}
+              {payslips.length === 0 && <p className="text-sm text-muted-foreground">No payslips yet.</p>}
               {payslips.map((p) => (
                 <div key={p._id} className="flex items-center justify-between border rounded-md p-2">
-                  <div><p className="font-medium text-sm">{monthLabel(p.month)}</p><p className="text-xs text-gray-500">Net {inr(p.netPay)} · paid days {p.paidDays}/{p.daysInMonth}</p></div>
+                  <div><p className="font-medium text-sm">{monthLabel(p.month)}</p><p className="text-xs text-muted-foreground">Net {inr(p.netPay)} · paid days {p.paidDays}/{p.daysInMonth}</p></div>
                   <Button size="sm" variant="outline" onClick={() => payslipPdf(p)}><Download className="h-4 w-4 mr-1" /> PDF</Button>
                 </div>
               ))}

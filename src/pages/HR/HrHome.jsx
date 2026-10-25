@@ -31,10 +31,10 @@ const HrHome = () => {
         {cards.map((c) => (
           <Card key={c.title} className="cursor-pointer hover:shadow-md transition" onClick={() => navigate(c.to)}>
             <CardContent className="p-5 flex gap-4 items-start">
-              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950"><c.icon className="h-6 w-6 text-emerald-600" /></div>
+              <div className="p-2 rounded-lg bg-brand-soft"><c.icon className="h-6 w-6 text-brand" /></div>
               <div>
                 <p className="font-medium">{c.title}</p>
-                <p className="text-sm text-gray-500">{c.desc}</p>
+                <p className="text-sm text-muted-foreground">{c.desc}</p>
               </div>
             </CardContent>
           </Card>

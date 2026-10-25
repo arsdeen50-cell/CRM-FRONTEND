@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import axiosInstance from "@/utils/axiosConfig";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const PLACEHOLDERS = ["brandName", "firstName", "contactPerson", "industry", "location", "website", "gap", "angle", "signal", "myName", "company"];
 const CHANNELS = ["Email", "WhatsApp", "Call", "Visit", "Instagram DM"];
@@ -57,7 +58,7 @@ const Templates = () => {
   };
 
   const remove = async (t) => {
-    if (!window.confirm(`Delete template "${t.name}"?`)) return;
+    if (!await confirmDialog(`Delete template "${t.name}"?`)) return;
     await axiosInstance.delete(`/v1/template/${t._id}`);
     load();
   };
@@ -69,18 +70,18 @@ const Templates = () => {
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => navigate("/crm")} title="Back to CRM"><ArrowLeft className="h-4 w-4" /></Button>
             <div>
-              <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2"><MessageSquareText className="h-6 w-6 text-blue-600" /> Outreach templates</h1>
-              <p className="text-sm text-gray-500">{'Used by the "Contact" button on every lead. Placeholders fill in from the lead automatically.'}</p>
+              <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2"><MessageSquareText className="h-6 w-6 text-brand" /> Outreach templates</h1>
+              <p className="text-sm text-muted-foreground">{'Used by the "Contact" button on every lead. Placeholders fill in from the lead automatically.'}</p>
             </div>
           </div>
           <div className="flex gap-2">
             {templates.length === 0 && <Button variant="outline" onClick={addStarters}><Sparkles className="h-4 w-4 mr-1" /> Add starter templates</Button>}
-            <Button onClick={() => setForm({ ...EMPTY })} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New template</Button>
+            <Button onClick={() => setForm({ ...EMPTY })} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> New template</Button>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-3">
-          {templates.length === 0 && <p className="text-sm text-gray-500">No templates yet. Add the starter set or create your own.</p>}
+          {templates.length === 0 && <p className="text-sm text-muted-foreground">No templates yet. Add the starter set or create your own.</p>}
           {templates.map((t) => (
             <Card key={t._id}>
               <CardContent className="p-4 space-y-2">
@@ -94,8 +95,8 @@ const Templates = () => {
                     <Button size="icon" variant="ghost" className="text-red-600" onClick={() => remove(t)} title="Delete"><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 </div>
-                {t.subject && <p className="text-sm"><span className="text-gray-500">Subject:</span> {t.subject}</p>}
-                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line line-clamp-5">{t.body}</p>
+                {t.subject && <p className="text-sm"><span className="text-muted-foreground">Subject:</span> {t.subject}</p>}
+                <p className="text-sm text-muted-foreground dark:text-gray-300 whitespace-pre-line line-clamp-5">{t.body}</p>
               </CardContent>
             </Card>
           ))}
@@ -120,14 +121,14 @@ const Templates = () => {
                 <div className="grid gap-1"><Label>Message</Label><Textarea rows={9} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
                 <div className="flex flex-wrap gap-1">
                   {PLACEHOLDERS.map((p) => (
-                    <button key={p} type="button" className="text-xs border rounded px-2 py-0.5 hover:bg-gray-50 dark:hover:bg-slate-800" onClick={() => setForm({ ...form, body: `${form.body}{{${p}}}` })}>
+                    <button key={p} type="button" className="text-xs border rounded px-2 py-0.5 hover:bg-accent" onClick={() => setForm({ ...form, body: `${form.body}{{${p}}}` })}>
                       {`{{${p}}}`}
                     </button>
                   ))}
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setForm(null)}>Cancel</Button>
-                  <Button onClick={save} disabled={saving} className="bg-blue-600 hover:bg-blue-700">{saving ? "Saving..." : "Save"}</Button>
+                  <Button onClick={save} disabled={saving} className="">{saving ? "Saving..." : "Save"}</Button>
                 </div>
               </div>
             )}

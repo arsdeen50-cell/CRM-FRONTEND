@@ -12,6 +12,7 @@ import axiosInstance from "@/utils/axiosConfig";
 import { downloadFile } from "@/lib/crmOutreach";
 import { useMyTeams } from "@/hooks/useTeams";
 import { HrHeader, MonthPicker, thisMonth, DAY_CODES, fmtDate, WEEKDAYS } from "./hrShared";
+import { promptDialog } from "@/components/ui/app-dialogs";
 
 const time = (d) => (d ? new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—");
 const SUMMARY = [["P", "Present"], ["HD", "Half"], ["L", "Leave"], ["A", "Absent"], ["late", "Late"], ["workedHours", "Hours"]];
@@ -67,7 +68,7 @@ const AttendanceReport = () => {
     }
   };
   const decide = async (c, status) => {
-    const comment = status === "Rejected" ? window.prompt("Reason (optional)") ?? "" : "";
+    const comment = status === "Rejected" ? await promptDialog("Reason (optional)") ?? "" : "";
     try {
       await axiosInstance.post(`/v1/hr/corrections/${c._id}/decide`, { status, comment });
       toast.success(`Correction ${status.toLowerCase()}`);
@@ -95,14 +96,14 @@ const AttendanceReport = () => {
         </TabsList>
         <TabsContent value="sheet">
           <Card><CardContent className="p-2 overflow-x-auto">
-            {!report && <p className="p-6 text-gray-500">Loading...</p>}
+            {!report && <p className="p-6 text-muted-foreground">Loading...</p>}
             {report && (
               <table className="text-xs border-separate border-spacing-0">
                 <thead>
                   <tr>
                     <th className="text-left p-1 sticky left-0 bg-white dark:bg-slate-950 min-w-[140px]">Person</th>
-                    {report.days.map((d) => <th key={d} className="p-0.5 font-normal text-gray-500 w-8"><div>{Number(d.slice(8))}</div><div className="text-[9px]">{WEEKDAYS[new Date(`${d}T00:00:00Z`).getUTCDay()][0]}</div></th>)}
-                    {SUMMARY.map(([k, l]) => <th key={k} className="p-1 text-gray-500 font-medium">{l}</th>)}
+                    {report.days.map((d) => <th key={d} className="p-0.5 font-normal text-muted-foreground w-8"><div>{Number(d.slice(8))}</div><div className="text-[9px]">{WEEKDAYS[new Date(`${d}T00:00:00Z`).getUTCDay()][0]}</div></th>)}
+                    {SUMMARY.map(([k, l]) => <th key={k} className="p-1 text-muted-foreground font-medium">{l}</th>)}
                   </tr>
                 </thead>
                 <tbody>
@@ -117,7 +118,7 @@ const AttendanceReport = () => {
               </table>
             )}
           </CardContent></Card>
-          <p className="text-xs text-gray-500 mt-2">Hover a day for punch times. Missed a punch or punched late by mistake? Ask for a correction under "My corrections".</p>
+          <p className="text-xs text-muted-foreground mt-2">Hover a day for punch times. Missed a punch or punched late by mistake? Ask for a correction under "My corrections".</p>
         </TabsContent>
         {reviewer && (
           <TabsContent value="approve">
@@ -125,7 +126,7 @@ const AttendanceReport = () => {
               <Table>
                 <TableHeader><TableRow><TableHead>Person</TableHead><TableHead>Day</TableHead><TableHead>Requested</TableHead><TableHead>Reason</TableHead><TableHead /></TableRow></TableHeader>
                 <TableBody>
-                  {pending.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-gray-500">Nothing to approve.</TableCell></TableRow>}
+                  {pending.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nothing to approve.</TableCell></TableRow>}
                   {pending.map((c) => (
                     <TableRow key={c._id}>
                       <TableCell className="font-medium">{c.userId?.fullname}</TableCell>
@@ -148,10 +149,10 @@ const AttendanceReport = () => {
               <div className="grid gap-1"><Label className="text-xs">Punch in</Label><Input type="time" value={req.punchIn} onChange={(e) => setReq({ ...req, punchIn: e.target.value })} /></div>
               <div className="grid gap-1"><Label className="text-xs">Punch out</Label><Input type="time" value={req.punchOut} onChange={(e) => setReq({ ...req, punchOut: e.target.value })} /></div>
               <div className="grid gap-1 flex-1 min-w-[200px]"><Label className="text-xs">Reason</Label><Input value={req.reason} onChange={(e) => setReq({ ...req, reason: e.target.value })} placeholder="e.g. Forgot to punch out after the shoot" /></div>
-              <Button onClick={submitCorrection} className="bg-emerald-600 hover:bg-emerald-700">Send</Button>
+              <Button onClick={submitCorrection} className="">Send</Button>
             </div>
             <div className="space-y-1 pt-2">
-              {mine.length === 0 && <p className="text-sm text-gray-500">No corrections yet.</p>}
+              {mine.length === 0 && <p className="text-sm text-muted-foreground">No corrections yet.</p>}
               {mine.map((c) => <p key={c._id} className="text-sm">{fmtDate(`${c.date}T12:00:00`)} · In {time(c.punchIn)} · Out {time(c.punchOut)} · <b>{c.status}</b>{c.decidedBy ? ` by ${c.decidedBy}` : ""}{c.comment ? ` - ${c.comment}` : ""}</p>)}
             </div>
           </CardContent></Card>

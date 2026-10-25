@@ -42,7 +42,7 @@ const EmployeeAttendanceCards = () => {
             {/* Today's Status Card */}
             <div className="card">
                 <div className="card-header">
-                    <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
+                    <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-brand">
                         <Clock size={26} />
                     </div>
                     <p className="card-title">Today's Status</p>
@@ -53,7 +53,7 @@ const EmployeeAttendanceCards = () => {
                             (safeTodayAttendance.punchOut ? "Completed" : "Active") : 
                             "Not Started"}
                     </p>
-                    <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600 mt-2">
+                    <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-brand mt-2">
                         <TrendingUp size={18} />
                         {todayHours}
                     </span>
@@ -84,7 +84,7 @@ const EmployeeAttendanceCards = () => {
                             <Button 
                                 onClick={handlePunchIn} 
                                 disabled={attendanceActionLoading}
-                                className="w-full bg-green-600 hover:bg-green-700"
+                                className="w-full"
                             >
                                 Punch In
                             </Button>

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import axiosInstance from "@/utils/axiosConfig";
 import { errMsg, day } from "@/lib/publicApi";
 import { useIntegrations } from "@/hooks/useIntegrations";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const SOURCES = ["Website Enquiry", "Instagram DM", "Facebook Ad", "Google Ad", "Referral", "WhatsApp", "Event / Exhibition", "Others"];
 const FIELD_LABELS = { company: "Company / brand", email: "Email", phone: "Phone", instagram: "Instagram", website: "Website", service: "Service", budget: "Budget", message: "Message" };
@@ -84,7 +85,7 @@ const FormEditor = ({ open, onOpenChange, form, onSaved }) => {
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={save} className="bg-blue-600 hover:bg-blue-700">Save form</Button>
+            <Button onClick={save} className="">Save form</Button>
           </div>
         </div>
       </DialogContent>
@@ -107,7 +108,7 @@ const LeadForms = () => {
     load();
   }, [load]);
   const remove = async (f) => {
-    if (!window.confirm(`Delete "${f.name}"? The link stops working.`)) return;
+    if (!await confirmDialog(`Delete "${f.name}"? The link stops working.`)) return;
     await axiosInstance.delete(`/v1/leadform/${f._id}`).catch(() => {});
     load();
   };
@@ -115,7 +116,7 @@ const LeadForms = () => {
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={ClipboardList} title="Lead capture" subtitle="Forms for your website and bio links. Meta lead ads, Instagram DMs and WhatsApp messages also create leads once connected.">
-          <Button onClick={() => setEditing(null)} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New form</Button>
+          <Button onClick={() => setEditing(null)} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> New form</Button>
         </PageHeader>
         <div className="grid md:grid-cols-3 gap-3">
           {[
@@ -123,18 +124,18 @@ const LeadForms = () => {
             ["Instagram DMs", integrations.meta?.configured],
             ["WhatsApp messages", integrations.whatsapp?.configured && integrations.whatsapp?.webhookReady],
           ].map(([label, on]) => (
-            <Card key={label}><CardContent className="p-4 flex items-center justify-between"><span className="text-sm">{label}</span><Pill className={on ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}>{on ? "Connected" : "Not connected"}</Pill></CardContent></Card>
+            <Card key={label}><CardContent className="p-4 flex items-center justify-between"><span className="text-sm">{label}</span><Pill className={on ? "bg-green-100 text-green-700" : "bg-gray-100 text-muted-foreground"}>{on ? "Connected" : "Not connected"}</Pill></CardContent></Card>
           ))}
         </div>
         <div className="grid md:grid-cols-2 gap-3">
-          {forms.length === 0 && <p className="text-sm text-gray-500">No forms yet. Create one, then put the link in your Instagram bio or paste the embed code on your website.</p>}
+          {forms.length === 0 && <p className="text-sm text-muted-foreground">No forms yet. Create one, then put the link in your Instagram bio or paste the embed code on your website.</p>}
           {forms.map((f) => (
             <Card key={f._id} className={f.isActive ? "" : "opacity-60"}>
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-medium">{f.name} {!f.isActive && <Pill className="bg-gray-100 text-gray-600">Off</Pill>}</p>
-                    <p className="text-sm text-gray-500">{f.submissions} submission{f.submissions === 1 ? "" : "s"}{f.lastSubmissionAt ? ` · last ${day(f.lastSubmissionAt)}` : ""} · {f.leadSourceType}{f.assignTo ? ` · to ${f.assignTo}` : ""}</p>
+                    <p className="font-medium">{f.name} {!f.isActive && <Pill className="bg-gray-100 text-muted-foreground">Off</Pill>}</p>
+                    <p className="text-sm text-muted-foreground">{f.submissions} submission{f.submissions === 1 ? "" : "s"}{f.lastSubmissionAt ? ` · last ${day(f.lastSubmissionAt)}` : ""} · {f.leadSourceType}{f.assignTo ? ` · to ${f.assignTo}` : ""}</p>
                   </div>
                   <div className="flex gap-1">
                     <Button size="sm" variant="ghost" onClick={() => axiosInstance.put(`/v1/leadform/${f._id}`, { isActive: !f.isActive }).then(load)}>{f.isActive ? "Turn off" : "Turn on"}</Button>

@@ -36,13 +36,13 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
       case 'Call': return <Phone className="h-4 w-4 text-green-500" />;
       case 'Email': return <Mail className="h-4 w-4 text-blue-500" />;
       case 'Meeting': return <Calendar className="h-4 w-4 text-purple-500" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   const getStageColor = (stage) => {
     const colors = {
-      'Lead': 'bg-blue-100 text-blue-700',
+      'Lead': 'bg-blue-100 text-brand',
       'Qualified': 'bg-green-100 text-green-700',
       'Proposal Sent': 'bg-yellow-100 text-yellow-700',
       'Negotiation': 'bg-orange-100 text-orange-700',
@@ -73,21 +73,21 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
         <div className="bg-gray-50 rounded-lg p-4 mb-4 border">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-gray-500">Series</p>
+              <p className="text-xs text-muted-foreground">Series</p>
               <p className="font-medium text-sm">{lead.series || "N/A"}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Client</p>
+              <p className="text-xs text-muted-foreground">Client</p>
               <p className="font-medium text-sm">{lead.clientName || "N/A"}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Current Stage</p>
+              <p className="text-xs text-muted-foreground">Current Stage</p>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStageColor(lead.pipelineStage || 'Lead')}`}>
                 {lead.pipelineStage || "Lead"}
               </span>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Created By</p>
+              <p className="text-xs text-muted-foreground">Created By</p>
               <p className="font-medium text-sm">{lead.createdBy || "N/A"}</p>
             </div>
           </div>
@@ -97,7 +97,7 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
             <div className="mt-3 pt-3 border-t flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Lost Reason</p>
+                <p className="text-xs text-muted-foreground">Lost Reason</p>
                 <p className="text-sm text-red-600 font-medium">{lead.lostReason}</p>
               </div>
             </div>
@@ -109,15 +109,15 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
           {/* Stage History Section */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <History className="h-5 w-5 text-blue-600" />
+              <History className="h-5 w-5 text-brand" />
               <h3 className="text-lg font-semibold">Stage History</h3>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="text-sm text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
                 {lead.stageHistory?.length || 0}
               </span>
             </div>
             
             {!lead.stageHistory || lead.stageHistory.length === 0 ? (
-              <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-lg border border-dashed">
+              <div className="text-center py-6 text-muted-foreground/70 bg-gray-50 rounded-lg border border-dashed">
                 <History className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                 <p>No stage history available</p>
               </div>
@@ -136,15 +136,15 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-muted-foreground">
                             By: {item.changedBy || "Unknown"}
                           </span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-muted-foreground/70">
                             {formatDate(item.changedAt)}
                           </span>
                         </div>
                         {item.reason && (
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             Reason: {item.reason}
                           </p>
                         )}
@@ -161,13 +161,13 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
             <div className="flex items-center gap-2 mb-3">
               <Clock className="h-5 w-5 text-purple-600" />
               <h3 className="text-lg font-semibold">Activity Logs</h3>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="text-sm text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
                 {lead.activityLog?.length || 0}
               </span>
             </div>
             
             {!lead.activityLog || lead.activityLog.length === 0 ? (
-              <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-lg border border-dashed">
+              <div className="text-center py-6 text-muted-foreground/70 bg-gray-50 rounded-lg border border-dashed">
                 <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                 <p>No activity logs available</p>
               </div>
@@ -187,7 +187,7 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
                           <span className="font-medium text-sm">
                             {log.type || "Note"}
                           </span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-muted-foreground/70">
                             {formatDate(log.loggedAt)}
                           </span>
                         </div>
@@ -195,7 +195,7 @@ const LeadLogsDialog = ({ open, onOpenChange, lead }) => {
                           {log.note || "No details provided"}
                         </p>
                         {log.loggedBy && (
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-muted-foreground/70 mt-1">
                             By: {log.loggedBy}
                           </p>
                         )}

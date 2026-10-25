@@ -7,10 +7,10 @@ import { useMyTeams } from "@/hooks/useTeams";
 const NoAccess = ({ area }) => (
   <div className="flex min-h-[60vh] items-center justify-center p-6">
     <div className="max-w-md text-center space-y-2">
-      <Lock className="h-8 w-8 mx-auto text-gray-400" />
+      <Lock className="h-8 w-8 mx-auto text-muted-foreground/70" />
       <h2 className="text-lg font-semibold">{area} is limited to admins and the sales team</h2>
-      <p className="text-sm text-gray-500">Ask an admin to add you to a team with {area.toLowerCase()} access in Role Based Access.</p>
-      <Link to="/crm" className="text-sm text-blue-600 underline">Back to CRM</Link>
+      <p className="text-sm text-muted-foreground">Ask an admin to add you to a team with {area.toLowerCase()} access in Role Based Access.</p>
+      <Link to="/crm" className="text-sm text-brand underline">Back to CRM</Link>
     </div>
   </div>
 );

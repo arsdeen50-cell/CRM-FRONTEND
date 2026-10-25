@@ -11,6 +11,7 @@ import LeaveTabs from "./LeaveTabs";
 import DatePickerField from "@/components/DatePickerField";
 import { useMyTeams } from "@/hooks/useTeams";
 import axiosInstance from "@/utils/axiosConfig";
+import { promptDialog } from "@/components/ui/app-dialogs";
 
 const EmployeeLeave = () => {
   const [statusFilter, setStatusFilter] = useState("all");
@@ -143,9 +144,9 @@ const EmployeeLeave = () => {
           <div className="grid grid-cols-2 gap-3 px-4 pb-4 sm:grid-cols-4">
             {Object.entries(balance.types).map(([t, b]) => (
               <div key={t} className="rounded-lg border p-3">
-                <p className="text-xs text-gray-500">{t}{b.unpaid ? " (unpaid)" : ""}</p>
+                <p className="text-xs text-muted-foreground">{t}{b.unpaid ? " (unpaid)" : ""}</p>
                 <p className="text-lg font-semibold">{b.available === null ? `${b.used} used` : `${b.available} left`}</p>
-                {b.quota !== null && <p className="text-xs text-gray-500">of {b.quota}{b.pending ? ` · ${b.pending} pending` : ""}</p>}
+                {b.quota !== null && <p className="text-xs text-muted-foreground">of {b.quota}{b.pending ? ` · ${b.pending} pending` : ""}</p>}
               </div>
             ))}
           </div>
@@ -225,8 +226,8 @@ const EmployeeLeave = () => {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => {
-                                    const comment = prompt("Enter rejection reason:");
+                                  onClick={async () => {
+                                    const comment = await promptDialog("Enter rejection reason:");
                                     if (comment !== null) {
                                       handleStatusUpdate(leave._id, "Rejected", comment);
                                     }
@@ -261,28 +262,28 @@ const EmployeeLeave = () => {
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                           <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground/70">
                               Leave Type
                             </h3>
                             <p className="text-sm">{leave.leaveType}</p>
                           </div>
                           <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground/70">
                               Start Date
                             </h3>
                             <p className="text-sm">{formatDateSafe(leave.startDate, "dd MMM yyyy")}</p>
                           </div>
                           <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground/70">
                               End Date
                             </h3>
                             <p className="text-sm">{formatDateSafe(leave.endDate, "dd MMM yyyy")}</p>
-                            {leave.days ? <p className="text-xs text-gray-500">{leave.halfDay ? `Half day (${leave.halfDaySession || "first half"})` : `${leave.days} working day${leave.days === 1 ? "" : "s"}`}</p> : null}
+                            {leave.days ? <p className="text-xs text-muted-foreground">{leave.halfDay ? `Half day (${leave.halfDaySession || "first half"})` : `${leave.days} working day${leave.days === 1 ? "" : "s"}`}</p> : null}
                           </div>
                         </div>
 
                         <div>
-                          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground/70">
                             Reason
                           </h3>
                           <p className="text-sm">{leave.reason}</p>
@@ -290,7 +291,7 @@ const EmployeeLeave = () => {
 
                         {expandedLeaveId === leave._id && (
                           <div className="mt-4 border-t pt-4">
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground/70 mb-2">
                               Activity Log
                             </h3>
                             <div className="space-y-3">
@@ -301,7 +302,7 @@ const EmployeeLeave = () => {
                                   </div>
                                   <div>
                                     <p className="text-sm font-medium">{log.action}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="text-xs text-muted-foreground dark:text-muted-foreground/70">
                                       By: {log.by} • {formatDateSafe(leave.createdAt, "dd MMM yyyy HH:mm")}
                                     </p>
                                   </div>
@@ -313,7 +314,7 @@ const EmployeeLeave = () => {
 
                         {leave.adminComment && (
                           <div className="rounded bg-gray-100 p-3 dark:bg-gray-800">
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground/70">
                               Admin Comment
                             </h3>
                             <p className="text-sm">{leave.adminComment}</p>

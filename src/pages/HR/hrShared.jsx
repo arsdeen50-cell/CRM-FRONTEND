@@ -29,7 +29,7 @@ export const DAY_CODES = {
   L: { label: "Leave", cls: "bg-blue-100 text-blue-800" },
   HL: { label: "Half-day leave", cls: "bg-sky-100 text-sky-800" },
   H: { label: "Holiday", cls: "bg-purple-100 text-purple-800" },
-  WO: { label: "Weekly off", cls: "bg-gray-100 text-gray-500" },
+  WO: { label: "Weekly off", cls: "bg-gray-100 text-muted-foreground" },
 };
 
 export const HrHeader = ({ icon: Icon, title, subtitle, children, back = "/hr" }) => {
@@ -39,8 +39,8 @@ export const HrHeader = ({ icon: Icon, title, subtitle, children, back = "/hr" }
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate(back)} title="Back"><ArrowLeft className="h-4 w-4" /></Button>
         <div>
-          <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">{Icon && <Icon className="h-6 w-6 text-emerald-600" />} {title}</h1>
-          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+          <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">{Icon && <Icon className="h-6 w-6 text-brand" />} {title}</h1>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
       {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}

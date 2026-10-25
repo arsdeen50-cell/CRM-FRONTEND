@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import axiosInstance from "@/utils/axiosConfig";
 import { day, errMsg } from "@/lib/publicApi";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const PortalAccess = () => {
   const [access, setAccess] = useState([]);
@@ -44,23 +45,23 @@ const PortalAccess = () => {
     }
   };
   const revoke = async (a) => {
-    if (!window.confirm(`Revoke ${a.clientName}'s link (…${a.tokenHint})? It stops working immediately.`)) return;
+    if (!await confirmDialog(`Revoke ${a.clientName}'s link (…${a.tokenHint})? It stops working immediately.`)) return;
     await axiosInstance.post(`/v1/portal-access/${a._id}/revoke`).catch((e) => toast.error(errMsg(e)));
     load();
   };
-  const status = (a) => (a.revoked ? ["Revoked", "bg-gray-100 text-gray-500"] : a.expiresAt && new Date(a.expiresAt) < new Date() ? ["Expired", "bg-amber-100 text-amber-800"] : ["Active", "bg-green-100 text-green-700"]);
+  const status = (a) => (a.revoked ? ["Revoked", "bg-gray-100 text-muted-foreground"] : a.expiresAt && new Date(a.expiresAt) < new Date() ? ["Expired", "bg-amber-100 text-amber-800"] : ["Active", "bg-green-100 text-green-700"]);
   return (
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={KeyRound} title="Client portal" subtitle="Private links where clients see project progress, approve content, download files and pay invoices. No passwords to manage.">
-          <Button onClick={() => setForm({ clientId: "", name: "", email: "", days: 180, sendEmail: true })} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> Invite a client</Button>
+          <Button onClick={() => setForm({ clientId: "", name: "", email: "", days: 180, sendEmail: true })} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> Invite a client</Button>
         </PageHeader>
         {link && (
           <Card className="border-green-300">
             <CardContent className="p-4 space-y-2">
               <p className="text-sm font-medium">Portal link (shown once - copy it now)</p>
               <div className="flex gap-2"><Input readOnly value={link} onFocus={(e) => e.target.select()} /><Button variant="outline" onClick={() => navigator.clipboard.writeText(link).then(() => toast.success("Copied"))}><Copy className="h-4 w-4" /></Button></div>
-              <p className="text-xs text-gray-500">Anyone with this link can see the client's portal. Revoke it here if it's shared by mistake.</p>
+              <p className="text-xs text-muted-foreground">Anyone with this link can see the client's portal. Revoke it here if it's shared by mistake.</p>
             </CardContent>
           </Card>
         )}
@@ -69,14 +70,14 @@ const PortalAccess = () => {
             <Table>
               <TableHeader><TableRow><TableHead>Client</TableHead><TableHead>Person</TableHead><TableHead>Created</TableHead><TableHead>Last opened</TableHead><TableHead>Expires</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
               <TableBody>
-                {access.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-gray-500">No portal links yet.</TableCell></TableRow>}
+                {access.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">No portal links yet.</TableCell></TableRow>}
                 {access.map((a) => {
                   const [label, cls] = status(a);
                   return (
                     <TableRow key={a._id}>
-                      <TableCell className="font-medium">{a.clientName}<div className="text-xs text-gray-400">…{a.tokenHint}</div></TableCell>
-                      <TableCell className="text-sm">{a.name}<div className="text-xs text-gray-500">{a.email}</div></TableCell>
-                      <TableCell className="text-sm">{day(a.createdAt)}<div className="text-xs text-gray-500">{a.createdBy}</div></TableCell>
+                      <TableCell className="font-medium">{a.clientName}<div className="text-xs text-muted-foreground/70">…{a.tokenHint}</div></TableCell>
+                      <TableCell className="text-sm">{a.name}<div className="text-xs text-muted-foreground">{a.email}</div></TableCell>
+                      <TableCell className="text-sm">{day(a.createdAt)}<div className="text-xs text-muted-foreground">{a.createdBy}</div></TableCell>
                       <TableCell className="text-sm">{a.lastAccessAt ? `${day(a.lastAccessAt)} (${a.accessCount}×)` : "Never"}</TableCell>
                       <TableCell className="text-sm">{day(a.expiresAt)}</TableCell>
                       <TableCell><Pill className={cls}>{label}</Pill></TableCell>
@@ -100,7 +101,7 @@ const PortalAccess = () => {
                 </div>
                 <div className="grid gap-1"><Label>Link works for (days)</Label><Input type="number" min="1" max="730" value={form.days} onChange={(e) => setForm({ ...form, days: e.target.value })} /></div>
                 <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={form.sendEmail} onChange={(e) => setForm({ ...form, sendEmail: e.target.checked })} /> Email the invite now</label>
-                <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setForm(null)}>Cancel</Button><Button onClick={create} className="bg-blue-600 hover:bg-blue-700">Create link</Button></div>
+                <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setForm(null)}>Cancel</Button><Button onClick={create} className="">Create link</Button></div>
               </div>
             )}
           </DialogContent>

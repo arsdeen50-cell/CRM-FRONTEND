@@ -13,6 +13,7 @@ import axiosInstance from "@/utils/axiosConfig";
 import { downloadFile } from "@/lib/crmOutreach";
 import { HrHeader, fmtDate, toInput, inr } from "./hrShared";
 import { EXIT_TYPES, StartExitDialog } from "./Exits";
+import { confirmDialog, promptDialog } from "@/components/ui/app-dialogs";
 
 const Box = ({ title, children, action }) => (
   <Card><CardContent className="p-4 space-y-3">
@@ -49,7 +50,7 @@ const ExitDetail = () => {
   useEffect(() => {
     load();
   }, [load]);
-  if (!data) return <div className="p-6 text-gray-500">Loading...</div>;
+  if (!data) return <div className="p-6 text-muted-foreground">Loading...</div>;
   const { user, profile } = data;
   const exit = profile?.exit;
   const s = exit?.settlement;
@@ -65,8 +66,8 @@ const ExitDetail = () => {
   };
   const saveDetails = () => call(() => axiosInstance.put(`/v1/hr/exits/${userId}`, { ...form, noticeDate: form.noticeDate && `${form.noticeDate}T12:00:00`, lastWorkingDay: form.lastWorkingDay && `${form.lastWorkingDay}T12:00:00` }), "Saved");
   const toggle = (c) => call(() => axiosInstance.put(`/v1/hr/exits/${userId}`, { checklist: [{ key: c.key, done: !c.done }] }));
-  const addItem = () => {
-    const label = window.prompt("Checklist item");
+  const addItem = async () => {
+    const label = await promptDialog("Checklist item");
     if (label) call(() => axiosInstance.put(`/v1/hr/exits/${userId}`, { checklist: [{ key: `custom-${Date.now()}`, label }] }));
   };
   const previewHandover = async () => {
@@ -83,8 +84,8 @@ const ExitDetail = () => {
     if (r) downloadFile(name, r.data);
     else toast.error("Could not create the PDF");
   };
-  const emailLetter = (type) => {
-    const to = window.prompt(`Email the ${type} letter to:`, profile.personalEmail || user.email);
+  const emailLetter = async (type) => {
+    const to = await promptDialog(`Email the ${type} letter to:`, profile.personalEmail || user.email);
     if (to) call(() => axiosInstance.post(`/v1/hr/exits/${userId}/letters/${type}`, { to, note: letterNote }), (r) => `Sent to ${r.data.emailedTo}`);
   };
   const saveSettlement = (patch) => call(() => axiosInstance.put(`/v1/hr/exits/${userId}/settlement`, patch), "Settlement saved");
@@ -95,16 +96,16 @@ const ExitDetail = () => {
       <div className="p-4 md:p-6 space-y-4">
         <HrHeader icon={DoorOpen} title={user.fullname} subtitle={`${profile?.designation || user.email} · joined ${fmtDate(profile?.dateOfJoining)}`} back="/hr/exits">
           {user.isActive === false ? (
-            <Button variant="outline" onClick={() => window.confirm(`Switch ${user.fullname}'s login back on?`) && call(() => axiosInstance.post(`/v1/hr/exits/${userId}/reactivate`), "Login switched back on")}><RotateCcw className="h-4 w-4 mr-1" /> Reactivate login</Button>
+            <Button variant="outline" onClick={async () => await confirmDialog(`Switch ${user.fullname}'s login back on?`) && call(() => axiosInstance.post(`/v1/hr/exits/${userId}/reactivate`), "Login switched back on")}><RotateCcw className="h-4 w-4 mr-1" /> Reactivate login</Button>
           ) : (
-            <Button variant="outline" className="text-red-600" onClick={() => window.confirm(`Switch off ${user.fullname}'s CRM login now? They're signed out everywhere, removed from teams, and pending requests are closed.`) && call(() => axiosInstance.post(`/v1/hr/exits/${userId}/deactivate`), "Login switched off")}><Power className="h-4 w-4 mr-1" /> Switch off login now</Button>
+            <Button variant="outline" className="text-red-600" onClick={async () => await confirmDialog(`Switch off ${user.fullname}'s CRM login now? They're signed out everywhere, removed from teams, and pending requests are closed.`) && call(() => axiosInstance.post(`/v1/hr/exits/${userId}/deactivate`), "Login switched off")}><Power className="h-4 w-4 mr-1" /> Switch off login now</Button>
           )}
-          {exit && exit.status !== "Completed" && <Button onClick={() => call(() => axiosInstance.put(`/v1/hr/exits/${userId}`, { status: "Completed" }), "Exit completed")} className="bg-emerald-600 hover:bg-emerald-700"><Check className="h-4 w-4 mr-1" /> Mark exit complete</Button>}
+          {exit && exit.status !== "Completed" && <Button onClick={() => call(() => axiosInstance.put(`/v1/hr/exits/${userId}`, { status: "Completed" }), "Exit completed")} className="bg-primary hover:bg-primary/90"><Check className="h-4 w-4 mr-1" /> Mark exit complete</Button>}
         </HrHeader>
-        <p className="text-sm">CRM login: {user.isActive === false ? <b className="text-gray-600">off since {fmtDate(user.deactivatedAt)}</b> : <b className="text-green-700">active</b>}{exit?.lastWorkingDay && user.isActive !== false ? ` · switches off automatically after ${fmtDate(exit.lastWorkingDay)}` : ""}</p>
+        <p className="text-sm">CRM login: {user.isActive === false ? <b className="text-muted-foreground">off since {fmtDate(user.deactivatedAt)}</b> : <b className="text-green-700">active</b>}{exit?.lastWorkingDay && user.isActive !== false ? ` · switches off automatically after ${fmtDate(exit.lastWorkingDay)}` : ""}</p>
 
         {!exit ? (
-          <Card><CardContent className="p-6 text-center space-y-2"><p className="text-gray-500">No exit started for {user.fullname}.</p><Button onClick={() => setStarting(true)}>Start exit</Button></CardContent></Card>
+          <Card><CardContent className="p-6 text-center space-y-2"><p className="text-muted-foreground">No exit started for {user.fullname}.</p><Button onClick={() => setStarting(true)}>Start exit</Button></CardContent></Card>
         ) : (
           <div className="grid lg:grid-cols-2 gap-4">
             <Box title="Exit details" action={<Button size="sm" variant="outline" onClick={saveDetails}>Save</Button>}>
@@ -122,7 +123,7 @@ const ExitDetail = () => {
                 {exit.checklist.map((c) => (
                   <label key={c.key} className="flex items-start gap-2 text-sm cursor-pointer">
                     <input type="checkbox" className="mt-1" checked={!!c.done} onChange={() => toggle(c)} />
-                    <span className={c.done ? "text-gray-500 line-through" : ""}>{c.label}{c.done && <span className="no-underline text-xs text-gray-400"> · {c.doneBy}{c.note ? ` (${c.note})` : ""}</span>}</span>
+                    <span className={c.done ? "text-muted-foreground line-through" : ""}>{c.label}{c.done && <span className="no-underline text-xs text-muted-foreground/70"> · {c.doneBy}{c.note ? ` (${c.note})` : ""}</span>}</span>
                   </label>
                 ))}
               </div>
@@ -135,9 +136,9 @@ const ExitDetail = () => {
                 <Button variant="outline" onClick={previewHandover}><ArrowRightLeft className="h-4 w-4 mr-1" /> Preview</Button>
               </div>
               {preview && (
-                <div className="text-sm bg-gray-50 dark:bg-slate-800 rounded-md p-3 space-y-2">
+                <div className="text-sm bg-muted/60 rounded-md p-3 space-y-2">
                   <p>Moves to <b>{preview.toName}</b>: {countsText(preview.counts)} (open leads, unfinished tasks and content, active projects, retainers, lead forms, running sequences).</p>
-                  <Button size="sm" onClick={runHandover} className="bg-emerald-600 hover:bg-emerald-700">Hand over now</Button>
+                  <Button size="sm" onClick={runHandover} className="">Hand over now</Button>
                 </div>
               )}
             </Box>
@@ -153,14 +154,14 @@ const ExitDetail = () => {
             <div className="lg:col-span-2">
               <Box title="Full & final settlement" action={
                 <div className="flex gap-1">
-                  {(!s || s.status === "Draft") && <Button size="sm" variant="outline" onClick={() => (!s || window.confirm("Recalculate from salary, attendance and leave? Manual changes are replaced.")) && call(() => axiosInstance.post(`/v1/hr/exits/${userId}/settlement`), "Settlement calculated")}>{s ? "Recalculate" : "Calculate"}</Button>}
+                  {(!s || s.status === "Draft") && <Button size="sm" variant="outline" onClick={async () => (!s || await confirmDialog("Recalculate from salary, attendance and leave? Manual changes are replaced.")) && call(() => axiosInstance.post(`/v1/hr/exits/${userId}/settlement`), "Settlement calculated")}>{s ? "Recalculate" : "Calculate"}</Button>}
                   {s && <Button size="sm" variant="outline" onClick={() => pdf(`/v1/hr/exits/${userId}/settlement/pdf`, `Full-and-final-${user.fullname}.pdf`)}><Download className="h-4 w-4 mr-1" /> PDF</Button>}
                 </div>
               }>
-                {!s && <p className="text-sm text-gray-500">Calculates salary for the days worked in the last month, unused vacation leave encashment and pro-rated deductions from their salary structure. You can edit every line. Payroll then leaves them out of that month.</p>}
+                {!s && <p className="text-sm text-muted-foreground">Calculates salary for the days worked in the last month, unused vacation leave encashment and pro-rated deductions from their salary structure. You can edit every line. Payroll then leaves them out of that month.</p>}
                 {s && (
                   <>
-                    <p className="text-xs text-gray-500">{s.month} · {s.daysWorked} of {s.daysInMonth} days worked · daily rate {inr(s.dailyRate)} · {s.encashDays || 0} leave days encashable · status <b>{s.status}</b>{s.paidAt ? ` · paid ${fmtDate(s.paidAt)} ${s.paymentRef || ""}` : ""}</p>
+                    <p className="text-xs text-muted-foreground">{s.month} · {s.daysWorked} of {s.daysInMonth} days worked · daily rate {inr(s.dailyRate)} · {s.encashDays || 0} leave days encashable · status <b>{s.status}</b>{s.paidAt ? ` · paid ${fmtDate(s.paidAt)} ${s.paymentRef || ""}` : ""}</p>
                     <div className="space-y-2">
                       {lines.map((l, i) => (
                         <div key={i} className="flex gap-2">
@@ -175,9 +176,9 @@ const ExitDetail = () => {
                     <p className="text-sm">Earnings {inr(s.totalEarnings)} − deductions {inr(s.totalDeductions)} = <b>{s.netPayable >= 0 ? `${inr(s.netPayable)} payable` : `${inr(-s.netPayable)} to recover`}</b></p>
                     <div className="flex flex-wrap gap-2">
                       {s.status === "Draft" && <Button size="sm" variant="outline" onClick={() => saveSettlement({ lines })}>Save lines</Button>}
-                      {s.status === "Draft" && <Button size="sm" onClick={() => saveSettlement({ lines, status: "Final" })} className="bg-emerald-600 hover:bg-emerald-700">Finalise</Button>}
+                      {s.status === "Draft" && <Button size="sm" onClick={() => saveSettlement({ lines, status: "Final" })} className="bg-primary hover:bg-primary/90">Finalise</Button>}
                       {s.status === "Final" && <Button size="sm" variant="outline" onClick={() => saveSettlement({ status: "Draft" })}>Back to draft</Button>}
-                      {s.status === "Final" && <Button size="sm" onClick={() => { const ref = window.prompt("Payment reference (UTR / cheque no.)"); if (ref !== null) saveSettlement({ status: "Paid", paymentRef: ref }); }} className="bg-emerald-600 hover:bg-emerald-700">Mark as paid</Button>}
+                      {s.status === "Final" && <Button size="sm" onClick={async () => { const ref = await promptDialog("Payment reference (UTR / cheque no.)"); if (ref !== null) saveSettlement({ status: "Paid", paymentRef: ref }); }} className="bg-primary hover:bg-primary/90">Mark as paid</Button>}
                     </div>
                   </>
                 )}
@@ -195,7 +196,7 @@ const ExitDetail = () => {
                     </div>
                   ))}
                 </div>
-                {(exit.letters || []).length > 0 && <p className="text-xs text-gray-500">{exit.letters.map((l) => `${l.type} sent to ${l.emailedTo} on ${fmtDate(l.issuedAt)}`).join(" · ")}</p>}
+                {(exit.letters || []).length > 0 && <p className="text-xs text-muted-foreground">{exit.letters.map((l) => `${l.type} sent to ${l.emailedTo} on ${fmtDate(l.issuedAt)}`).join(" · ")}</p>}
                 {["Terminated", "Absconded"].includes(exit.type) && <p className="text-xs text-amber-700">This exit is "{exit.type}" - check the wording before issuing an experience certificate.</p>}
               </Box>
             </div>

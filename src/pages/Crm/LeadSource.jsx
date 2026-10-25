@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import QuickContactDialog from "@/components/crm/QuickContactDialog";
+import RowActions from "@/components/ui/row-actions";
 import ProposalEditor from "@/components/crm/ProposalEditor";
 import LeadMessagesDialog from "@/components/crm/LeadMessagesDialog";
 import EnrollSequenceDialog from "@/components/crm/EnrollSequenceDialog";
@@ -50,6 +51,7 @@ import MultiSelectFilter from "@/components/crm/Multiselectfilter";
 import { formatCurrency, isOverdue, PIPELINE_STAGES, STAGE_COLORS } from "@/hooks/Pipelineconstants";
 import axiosInstance from "@/utils/axiosConfig";
 import { toast } from "sonner";
+import { promptDialog } from "@/components/ui/app-dialogs";
 
 const STATUS_OPTIONS = [
   "New Lead",
@@ -456,7 +458,7 @@ const createLeadClient = async (lead) => {
       case "Critical":
         return <div className="flex items-center gap-1 text-red-600 font-semibold"><Zap className="h-4 w-4" /> Critical</div>;
       default:
-        return <span className="text-gray-400">—</span>;
+        return <span className="text-muted-foreground/70">—</span>;
     }
   };
 
@@ -465,9 +467,9 @@ const createLeadClient = async (lead) => {
     return (
       <Select
         value={stage}
-        onValueChange={(newStage) => {
+        onValueChange={async (newStage) => {
           if (newStage === "Lost") {
-            const reason = window.prompt("Reason for marking this lead as Lost (optional):") || "";
+            const reason = await promptDialog("Reason for marking this lead as Lost (optional):") || "";
             handleStageChange(lead._id, newStage, currentUser, reason);
           } else {
             handleStageChange(lead._id, newStage, currentUser);
@@ -513,7 +515,7 @@ const createLeadClient = async (lead) => {
           <div className="flex flex-wrap items-center gap-3">
             {/* Search Input */}
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
               <Input
                 placeholder="Search leads..."
                 value={draftFilters.searchTerm}
@@ -576,7 +578,7 @@ const createLeadClient = async (lead) => {
                   setEditData(null);
                   setOpenLeadModal(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" /> Add Lead
               </Button>
@@ -689,7 +691,7 @@ const createLeadClient = async (lead) => {
               </div>
 
               <div className="flex gap-3 mt-4">
-                <Button onClick={applyFilters} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={applyFilters} className="">
                   Apply Filters
                 </Button>
                 <Button variant="outline" onClick={resetFilters}>
@@ -728,13 +730,13 @@ const createLeadClient = async (lead) => {
           ) : leads.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-16 border rounded-lg bg-gray-50">
               <Inbox className="h-12 w-12 text-gray-300 mb-3" />
-              <p className="text-gray-500 mb-4">No leads yet. Add your first lead to get started.</p>
+              <p className="text-muted-foreground mb-4">No leads yet. Add your first lead to get started.</p>
               <Button
                 onClick={() => {
                   setEditData(null);
                   setOpenLeadModal(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" /> Add Lead
               </Button>
@@ -787,105 +789,41 @@ const createLeadClient = async (lead) => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-emerald-600 hover:text-emerald-800 h-7 w-7"
+                                className="text-brand hover:text-emerald-800 h-7 w-7"
                                 title="Contact (email / WhatsApp / call) and log it"
                                 onClick={() => setContactLead(lead)}
                               >
                                 <PhoneCall className="h-4 w-4" />
                               </Button>
-                              {canOutreach && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-sky-600 hover:text-sky-800 h-7 w-7"
-                                title="Messages (emails + WhatsApp)"
-                                onClick={() => setMessagesLead(lead)}
-                              >
-                                <MessagesSquare className="h-4 w-4" />
-                              </Button>
-                              )}
-                              {canOutreach && !["Won", "Lost"].includes(stage) && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-amber-600 hover:text-amber-800 h-7 w-7"
-                                  title="Add to follow-up sequence"
-                                  onClick={() => setSequenceLead(lead)}
-                                >
-                                  <Repeat className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {!["Won", "Lost"].includes(stage) && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-purple-600 hover:text-purple-800 h-7 w-7"
-                                  title="Create proposal"
-                                  onClick={() => setProposalLead(lead)}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-blue-600 hover:text-blue-800 h-7 w-7"
-                                title="Edit"
-                                onClick={() => handleEditClick(lead)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-gray-600 hover:text-gray-800 h-7 w-7"
-                                title="Log Activity"
-                                onClick={() => handleOpenActivity(lead)}
-                              >
-                                <Clock className="h-4 w-4" />
-                              </Button>
-                              {isAdmin && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-red-600 hover:text-red-800 h-7 w-7"
-                                  title="Delete"
-                                  onClick={() => handleDeleteClick(lead._id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {!["Won", "Lost"].includes(stage) && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-green-600 hover:text-green-800 h-7 w-7"
-                                    title="Mark Won"
-                                    onClick={() => handleStageChange(lead._id, "Won", currentUser)}
-                                  >
-                                    <CheckCircle2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-red-600 hover:text-red-800 h-7 w-7"
-                                    title="Mark Lost"
-                                    onClick={() => {
-                                      const reason = window.prompt("Reason for marking this lead as Lost (optional):") || "";
-                                      handleStageChange(lead._id, "Lost", currentUser, reason);
-                                    }}
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
+                              <RowActions
+                                items={[
+                                  { label: "Messages", icon: MessagesSquare, onClick: () => setMessagesLead(lead), hidden: !canOutreach },
+                                  { label: "Add to sequence", icon: Repeat, onClick: () => setSequenceLead(lead), hidden: !canOutreach || ["Won", "Lost"].includes(stage) },
+                                  { label: "Create proposal", icon: FileText, onClick: () => setProposalLead(lead), hidden: ["Won", "Lost"].includes(stage) },
+                                  { label: "Log activity", icon: Clock, onClick: () => handleOpenActivity(lead) },
+                                  { label: "Edit", icon: Edit, onClick: () => handleEditClick(lead) },
+                                  "-",
+                                  { label: "Mark as Won", icon: CheckCircle2, onClick: () => handleStageChange(lead._id, "Won", currentUser), hidden: ["Won", "Lost"].includes(stage) },
+                                  {
+                                    label: "Mark as Lost",
+                                    icon: XCircle,
+                                    hidden: ["Won", "Lost"].includes(stage),
+                                    onClick: async () => {
+                                      const reason = await promptDialog({ title: "Mark as Lost", description: "Reason (optional) - it shows up in Reports under why deals are lost.", placeholder: "e.g. Budget, went with another agency" });
+                                      if (reason === null) return;
+                                      handleStageChange(lead._id, "Lost", currentUser, reason || "");
+                                    },
+                                  },
+                                  "-",
+                                  { label: "Delete", icon: Trash2, onClick: () => handleDeleteClick(lead._id), danger: true, hidden: !isAdmin },
+                                ]}
+                              />
                               {/* Lead Client Button - Shows when stage is Won and no client exists */}
                               {isWon && !hasClient && (
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="text-blue-600 border-blue-600 hover:bg-blue-50 h-7 px-2 text-xs"
+                                  className="text-brand border-blue-600 hover:bg-blue-50 h-7 px-2 text-xs"
                                   title="Lead Client"
                                   onClick={() => createLeadClient(lead)}
                                   disabled={isCreating}
@@ -904,7 +842,7 @@ const createLeadClient = async (lead) => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="text-indigo-600 border-indigo-600 hover:bg-indigo-50 h-7 px-2 text-xs"
+                                  className="text-brand border-indigo-600 hover:bg-indigo-50 h-7 px-2 text-xs"
                                   title="Create the delivery project and kickoff task"
                                   onClick={() => createProject(lead)}
                                   disabled={creatingProject === lead._id}
@@ -961,7 +899,7 @@ const createLeadClient = async (lead) => {
                                     href={doc.fileUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs text-blue-600 hover:underline"
+                                    className="text-xs text-brand hover:underline"
                                   >
                                     <Paperclip className="h-3 w-3 inline mr-1" />
                                     Doc {index + 1}
@@ -982,7 +920,7 @@ const createLeadClient = async (lead) => {
                 </Table>
 
                 {sortedLeads.length === 0 && (
-                  <p className="text-center text-gray-500 p-4">No records match your filters</p>
+                  <p className="text-center text-muted-foreground p-4">No records match your filters</p>
                 )}
 
                 {sortedLeads.length > leadsPerPage && (
@@ -994,7 +932,7 @@ const createLeadClient = async (lead) => {
                     >
                       Previous
                     </Button>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-muted-foreground">
                       Page {currentPage} of {totalPages}
                     </span>
                     <Button
@@ -1049,7 +987,7 @@ const createLeadClient = async (lead) => {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Are you sure?</h3>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 This action cannot be undone. This will permanently delete the lead and all associated data.
               </p>
               <div className="flex justify-end gap-3">

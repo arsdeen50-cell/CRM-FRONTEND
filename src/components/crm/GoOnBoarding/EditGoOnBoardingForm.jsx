@@ -16,6 +16,7 @@ import useDesignation from "@/hooks/useDesignation";
 import axiosInstance from "@/utils/axiosConfig";
 import { USER_API_END_POINT, ONBOARDING_API_END_POINT } from "@/constants";
 import { toast } from "sonner";
+import { alertDialog, confirmDialog } from "@/components/ui/app-dialogs";
 
 const EditGoOnBoardingForm = ({ onClose }) => {
     const navigate = useNavigate();
@@ -270,7 +271,7 @@ const handleSubmit = async (e) => {
     try {
         // Check if status is changing to Approved
         if (candidateStatus === "Approved" && prevStatus !== "Approved") {
-            const confirmApproval = window.confirm(
+            const confirmApproval = await confirmDialog(
                 `Are you sure you want to approve ${candidateName}? This will create a user account and send login credentials to ${email}.`
             );
             
@@ -283,7 +284,7 @@ const handleSubmit = async (e) => {
 
         // Check if response indicates duplicate email
         if (response?.error === "DUPLICATE_EMAIL") {
-            alert(`Cannot approve: User with email ${response.email} already exists.`);
+            await alertDialog(`Cannot approve: User with email ${response.email} already exists.`);
             setCandidateStatus(prevStatus);
             return;
         }
@@ -332,7 +333,7 @@ const handleSubmit = async (e) => {
                         });
                         
                         if (userResponse.data.temporaryPassword) {
-                            window.alert(`Login created for ${email}.\n\nOne-time password: ${userResponse.data.temporaryPassword}\n\nShare it privately. They can change it with "Forgot password".`);
+                            await alertDialog(`Login created for ${email}.\n\nOne-time password: ${userResponse.data.temporaryPassword}\n\nShare it privately. They can change it with "Forgot password".`);
                         } else {
                             toast.success(`Login created for ${email} with the password they chose at signup`);
                         }
@@ -361,7 +362,7 @@ const handleSubmit = async (e) => {
 
                     if (userResponse.data.success) {
                         if (userResponse.data.temporaryPassword) {
-                            window.alert(`Login created for ${email}.\n\nOne-time password: ${userResponse.data.temporaryPassword}\n\nShare it privately. They can change it with "Forgot password".`);
+                            await alertDialog(`Login created for ${email}.\n\nOne-time password: ${userResponse.data.temporaryPassword}\n\nShare it privately. They can change it with "Forgot password".`);
                         } else {
                             toast.success(`User account created successfully!`);
                         }
@@ -374,7 +375,7 @@ const handleSubmit = async (e) => {
         }
         
         if (candidateStatus === "Approved" && prevStatus !== "Approved") {
-            alert(`Candidate approved successfully! Login credentials have been sent to ${email}.`);
+            await alertDialog(`Candidate approved successfully! Login credentials have been sent to ${email}.`);
         } else {
             toast.success("Onboarding updated successfully!");
         }
@@ -384,10 +385,10 @@ const handleSubmit = async (e) => {
         console.error("Error updating onboarding:", error);
         
         if (error.response?.data?.error === "DUPLICATE_EMAIL") {
-            alert(error.response.data.message || "User with this email already exists!");
+            await alertDialog(error.response.data.message || "User with this email already exists!");
             setCandidateStatus(prevStatus);
         } else {
-            alert("Error updating onboarding. Please try again.");
+            await alertDialog("Error updating onboarding. Please try again.");
         }
     }
 };
@@ -443,7 +444,7 @@ const handleSubmit = async (e) => {
                                                         onRemove={() => removeExistingFile(setExistingUploadProfile)}
                                                         index={0}
                                                     />
-                                                    <span className="text-sm text-gray-600">Existing file</span>
+                                                    <span className="text-sm text-muted-foreground">Existing file</span>
                                                 </div>
                                             </div>
                                         )}
@@ -531,7 +532,7 @@ const handleSubmit = async (e) => {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => setShowDesignationManager(true)}
-                                                className="text-blue-600 hover:text-blue-800"
+                                                className="text-brand hover:text-blue-800"
                                             >
                                                 Manage
                                             </Button>
@@ -548,7 +549,7 @@ const handleSubmit = async (e) => {
                                                         </SelectItem>
                                                     ))
                                                 ) : (
-                                                    <div className="px-2 py-1.5 text-sm text-gray-500">
+                                                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
                                                         No designations available
                                                     </div>
                                                 )}
@@ -610,7 +611,7 @@ const handleSubmit = async (e) => {
                                                                 <li key={index} className="truncate">{item}</li>
                                                             ))}
                                                             {keyResponsibilities.length > 3 && (
-                                                                <li className="text-gray-500">+{keyResponsibilities.length - 3} more...</li>
+                                                                <li className="text-muted-foreground">+{keyResponsibilities.length - 3} more...</li>
                                                             )}
                                                         </ul>
                                                     </CardContent>
@@ -639,7 +640,7 @@ const handleSubmit = async (e) => {
                                                                 <li key={index} className="truncate">{item}</li>
                                                             ))}
                                                             {whatYoullGain.length > 3 && (
-                                                                <li className="text-gray-500">+{whatYoullGain.length - 3} more...</li>
+                                                                <li className="text-muted-foreground">+{whatYoullGain.length - 3} more...</li>
                                                             )}
                                                         </ul>
                                                     </CardContent>
@@ -721,7 +722,7 @@ const handleSubmit = async (e) => {
                                                         onRemove={() => removeExistingFile(setExistingAadharFront)}
                                                         index={0}
                                                     />
-                                                    <span className="text-sm text-gray-600">Existing file</span>
+                                                    <span className="text-sm text-muted-foreground">Existing file</span>
                                                 </div>
                                             </div>
                                         )}
@@ -752,7 +753,7 @@ const handleSubmit = async (e) => {
                                                         onRemove={() => removeExistingFile(setExistingAadharBack)}
                                                         index={0}
                                                     />
-                                                    <span className="text-sm text-gray-600">Existing file</span>
+                                                    <span className="text-sm text-muted-foreground">Existing file</span>
                                                 </div>
                                             </div>
                                         )}
@@ -783,7 +784,7 @@ const handleSubmit = async (e) => {
                                                         onRemove={() => removeExistingFile(setExistingResume)}
                                                         index={0}
                                                     />
-                                                    <span className="text-sm text-gray-600">Existing file</span>
+                                                    <span className="text-sm text-muted-foreground">Existing file</span>
                                                 </div>
                                             </div>
                                         )}
@@ -809,7 +810,7 @@ const handleSubmit = async (e) => {
                                         />
                                         {existingLastThreeMonthSalary.length > 0 && (
                                             <div className="mt-2">
-                                                <p className="text-sm text-gray-600 mb-2">Existing files:</p>
+                                                <p className="text-sm text-muted-foreground mb-2">Existing files:</p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {existingLastThreeMonthSalary.map((file, index) => (
                                                         <div key={index} className="flex items-center gap-2">
@@ -825,7 +826,7 @@ const handleSubmit = async (e) => {
                                         )}
                                         {lastThreeMonthSalary.length > 0 && (
                                             <div className="mt-2">
-                                                <p className="text-sm text-gray-600 mb-2">New files:</p>
+                                                <p className="text-sm text-muted-foreground mb-2">New files:</p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {lastThreeMonthSalary.map((file, index) => (
                                                         <FilePreview
@@ -915,7 +916,7 @@ const handleSubmit = async (e) => {
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <h4 className="font-semibold text-blue-800">Offer Letter Preview</h4>
-                                                <p className="text-sm text-blue-600 mt-1">
+                                                <p className="text-sm text-brand mt-1">
                                                     Generate and preview the offer letter before sending it to the candidate.
                                                 </p>
                                             </div>
@@ -923,7 +924,7 @@ const handleSubmit = async (e) => {
                                                 type="button" 
                                                 onClick={handlePreviewOfferLetter}
                                                 disabled={isGeneratingPreview || loading}
-                                                className="bg-blue-600 hover:bg-blue-700"
+                                                className=""
                                             >
                                                 {isGeneratingPreview ? "Generating..." : "Preview Offer Letter"}
                                             </Button>

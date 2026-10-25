@@ -53,7 +53,7 @@ useEffect(() => {
                             <TableRow>
                                 <TableCell
                                     colSpan="4"
-                                    className="py-4 text-center text-gray-500"
+                                    className="py-4 text-center text-muted-foreground"
                                 >
                                     No attendance records found.
                                 </TableCell>

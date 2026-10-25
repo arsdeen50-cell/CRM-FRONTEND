@@ -88,9 +88,9 @@ const FollowUps = () => {
             </Button>
             <div>
               <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-                <CalendarClock className="h-6 w-6 text-blue-600" /> Follow-ups
+                <CalendarClock className="h-6 w-6 text-brand" /> Follow-ups
               </h1>
-              <p className="text-sm text-gray-500">Open leads by follow-up date. Contact, log the outcome and set the next date in one step.</p>
+              <p className="text-sm text-muted-foreground">Open leads by follow-up date. Contact, log the outcome and set the next date in one step.</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -108,10 +108,10 @@ const FollowUps = () => {
             <Card
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`cursor-pointer transition ${tab === t.key ? "ring-2 ring-blue-500" : "hover:bg-gray-50 dark:hover:bg-slate-800"}`}
+              className={`cursor-pointer transition ${tab === t.key ? "ring-2 ring-brand" : "hover:bg-accent"}`}
             >
               <CardContent className="p-4">
-                <p className="text-sm text-gray-500">{t.label}</p>
+                <p className="text-sm text-muted-foreground">{t.label}</p>
                 <p className={`text-2xl font-semibold ${t.key === "overdue" && data?.counts?.overdue ? "text-red-600" : ""}`}>{data?.counts?.[t.key] ?? "–"}</p>
               </CardContent>
             </Card>
@@ -136,7 +136,7 @@ const FollowUps = () => {
               <TableBody>
                 {rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10 text-gray-500">
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                       {loading ? "Loading..." : TABS.find((t) => t.key === tab)?.empty}
                     </TableCell>
                   </TableRow>
@@ -149,7 +149,7 @@ const FollowUps = () => {
                     <TableRow key={lead._id}>
                       <TableCell>
                         <div className="font-medium">{client.brandName || lead.clientName || "—"}</div>
-                        <div className="text-xs text-gray-500">{lead.series} · {client.industry || "—"}</div>
+                        <div className="text-xs text-muted-foreground">{lead.series} · {client.industry || "—"}</div>
                       </TableCell>
                       <TableCell>
                         {tier ? <span className={`text-xs border rounded-full px-2 py-0.5 whitespace-nowrap ${TIER_STYLES[tier] || ""}`}>{tier}{client.research?.score ? ` · ${client.research.score}` : ""}</span> : "—"}
@@ -160,12 +160,12 @@ const FollowUps = () => {
                       <TableCell>{lead.priority || "—"}</TableCell>
                       <TableCell className={tab === "overdue" ? "text-red-600 font-medium" : ""}>{formatDay(lead.nextFollowUpDate)}</TableCell>
                       <TableCell className="text-sm">
-                        {ago === null ? <span className="text-gray-400">Never</span> : `${ago === 0 ? "Today" : `${ago}d ago`}${lead.lastOutcome ? ` · ${lead.lastOutcome}` : ""}`}
+                        {ago === null ? <span className="text-muted-foreground/70">Never</span> : `${ago === 0 ? "Today" : `${ago}d ago`}${lead.lastOutcome ? ` · ${lead.lastOutcome}` : ""}`}
                       </TableCell>
                       <TableCell className="text-sm">{lead.projectAccountHandledBy || "—"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-1 flex-wrap">
-                          <Button size="sm" onClick={() => setContactLead(lead)} className="bg-blue-600 hover:bg-blue-700">
+                          <Button size="sm" onClick={() => setContactLead(lead)} className="bg-primary hover:bg-primary/90">
                             <PhoneCall className="h-3 w-3 mr-1" /> Contact
                           </Button>
                           {[1, 3, 7].map((d) => (

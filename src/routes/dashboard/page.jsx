@@ -420,15 +420,15 @@ const DashboardPage = () => {
     const baseUrl = window.location.origin;
 
     return (
-        <div className="flex min-h-screen flex-col gap-6 bg-gradient-to-br from-slate-50 to-blue-50 p-6 dark:from-slate-900 dark:to-slate-800">
+        <div className="flex flex-col gap-6">
             {/* Header Section */}
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-4">
                     <div className="flex flex-col">
-                        <h1 className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+                        <h1 className="title">
                             Dashboard
                         </h1>
-                        <p className="text-lg text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                             {user?.role === "admin" ? "Your team and business at a glance" : user?.empId ? `Employee code: ${user.empId}` : `Good to see you, ${user?.fullname?.split(" ")[0] || ""}`}
                         </p>
                     </div>
@@ -436,7 +436,7 @@ const DashboardPage = () => {
 
                 {/* Profile Section */}
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white/50 p-3 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/50">
+                    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3/50">
                         <Avatar className="h-12 w-12 ring-2 ring-primary/20">
                             <AvatarImage
                                 src={user?.avatar}
@@ -462,15 +462,14 @@ const DashboardPage = () => {
                             {/* Signup Button with Copy */}
                             <div className="flex gap-1">
                                 <Link to="/signup">
-                                    <Button className="bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700">
-                                        {/* <Plus className="mr-2 h-4 w-4" /> */}
+                                    <Button>
                                         New sign up employee
                                     </Button>
                                 </Link>
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="border-green-500 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30"
+                                   
                                     onClick={() => copyToClipboard(`${baseUrl}/signup`, 'signup')}
                                     title="Copy signup link"
                                 >
@@ -485,7 +484,7 @@ const DashboardPage = () => {
                             {/* Forgot Password Button with Copy */}
                             <div className="flex gap-1">
                                 <Link to="/forgot-password">
-                                    <Button variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30">
+                                    <Button variant="outline">
                                         <Key className="mr-2 h-4 w-4" />
                                         Reset password
                                     </Button>
@@ -493,7 +492,7 @@ const DashboardPage = () => {
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="border-amber-500 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                                   
                                     onClick={() => copyToClipboard(`${baseUrl}/forgot-password`, 'forgot')}
                                     title="Copy forgot password link"
                                 >
@@ -511,54 +510,54 @@ const DashboardPage = () => {
 
             {/* Summary Stats Bar (your own attendance; admins see "Team today" instead) */}
             {user?.role !== "admin" && <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <Card className="relative overflow-hidden shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-blue-100">Today's Status</CardTitle>
-                        <Activity className="h-4 w-4 text-blue-200" />
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Today's Status</CardTitle>
+                        <Activity className="h-4 w-4 text-brand" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">
                             {safeTodayAttendance.punchIn ? (safeTodayAttendance.punchOut ? "Completed" : "Active") : "Not Started"}
                         </div>
-                        <p className="text-xs text-blue-200">{todayHours} worked today</p>
+                        <p className="text-xs text-muted-foreground">{todayHours} worked today</p>
                     </CardContent>
-                    <div className="absolute right-0 top-0 h-20 w-20 -translate-y-10 translate-x-10 rounded-full bg-white/10"></div>
+                    
                 </Card>
 
-                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <Card className="relative overflow-hidden shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-green-100">This Week</CardTitle>
-                        <Calendar className="h-4 w-4 text-green-200" />
+                        <CardTitle className="text-sm font-medium text-muted-foreground">This Week</CardTitle>
+                        <Calendar className="h-4 w-4 text-brand" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.weekPresent} days</div>
-                        <p className="text-xs text-green-200">in the last 7 days</p>
+                        <p className="text-xs text-muted-foreground">in the last 7 days</p>
                     </CardContent>
-                    <div className="absolute right-0 top-0 h-20 w-20 -translate-y-10 translate-x-10 rounded-full bg-white/10"></div>
+                    
                 </Card>
 
-                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <Card className="relative overflow-hidden shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-amber-100">Total Hours</CardTitle>
-                        <Clock4 className="h-4 w-4 text-amber-200" />
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Hours</CardTitle>
+                        <Clock4 className="h-4 w-4 text-brand" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.totalHours}h</div>
-                        <p className="text-xs text-amber-200">{stats.averageHours}h average per day</p>
+                        <p className="text-xs text-muted-foreground">{stats.averageHours}h average per day</p>
                     </CardContent>
-                    <div className="absolute right-0 top-0 h-20 w-20 -translate-y-10 translate-x-10 rounded-full bg-white/10"></div>
+                    
                 </Card>
 
-                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <Card className="relative overflow-hidden shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-purple-100">Attendance Rate</CardTitle>
-                        <Target className="h-4 w-4 text-purple-200" />
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Attendance Rate</CardTitle>
+                        <Target className="h-4 w-4 text-brand" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.attendanceRate}%</div>
-                        <p className="text-xs text-purple-200">{7 - stats.weekPresent} days remaining</p>
+                        <p className="text-xs text-muted-foreground">{7 - stats.weekPresent} days remaining</p>
                     </CardContent>
-                    <div className="absolute right-0 top-0 h-20 w-20 -translate-y-10 translate-x-10 rounded-full bg-white/10"></div>
+                    
                 </Card>
             </div>}
 
@@ -567,7 +566,7 @@ const DashboardPage = () => {
                 {user?.role !== "admin" && (
                 <div className="space-y-6">
                     {user?.role !== "admin" && (
-                        <Card className="border-0 bg-white/80 shadow-lg backdrop-blur-sm dark:bg-slate-800/80">
+                        <Card className="border-0 bg-card shadow-sm border">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Zap className="h-5 w-5 text-yellow-500" />
@@ -580,7 +579,7 @@ const DashboardPage = () => {
                                     <Button
                                         onClick={handlePunchIn}
                                         disabled={attendanceActionLoading}
-                                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg hover:from-green-600 hover:to-green-700"
+                                        className="w-full"
                                         size="lg"
                                     >
                                         <CheckCircle className="mr-2 h-4 w-4" />
@@ -592,16 +591,16 @@ const DashboardPage = () => {
                                 {/* {safeTodayAttendance.punchIn && !safeTodayAttendance.punchOut && ( */}
                                     <>
                                         <div className="text-center space-y-3">
-                                            <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 rounded-lg">
+                                            <div className="p-4 bg-brand-soft rounded-lg">
                                                 <div className="text-sm text-muted-foreground mb-1">Work Duration</div>
-                                                <div className="text-3xl font-bold font-mono text-blue-600 dark:text-blue-400">
+                                                <div className="text-3xl font-bold font-mono text-brand dark:text-blue-400">
                                                     {formatTime(workSeconds)}
                                                 </div>
                                             </div>
                                             
-                                            <div className="p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                                            <div className="p-3 bg-muted rounded-lg">
                                                 <div className="text-sm text-muted-foreground mb-1">Break Duration</div>
-                                                <div className="text-2xl font-bold font-mono text-yellow-600 dark:text-yellow-400">
+                                                <div className="text-2xl font-semibold font-mono tabular-nums text-foreground">
                                                     {formatTime(breakSeconds)}
                                                 </div>
                                             </div>
@@ -610,11 +609,7 @@ const DashboardPage = () => {
                                         <Button
                                             onClick={handleBreakToggle}
                                             disabled={attendanceActionLoading}
-                                            className={`w-full ${
-                                                isBreak 
-                                                    ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700" 
-                                                    : "bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-                                            } text-white shadow-lg`}
+                                            variant="outline" className="w-full"
                                             size="lg"
                                         >
                                             {isBreak ? (
@@ -633,7 +628,7 @@ const DashboardPage = () => {
                                         <Button
                                             onClick={handlePunchOut}
                                             disabled={attendanceActionLoading}
-                                            className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:from-red-600 hover:to-red-700"
+                                            variant="outline" className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                             size="lg"
                                         >
                                             <XCircle className="mr-2 h-4 w-4" />

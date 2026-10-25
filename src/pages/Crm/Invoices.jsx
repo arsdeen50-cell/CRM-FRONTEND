@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import CrmRoute from "@/components/crm/CrmRoute";
 import PageHeader, { Stat, Pill } from "@/components/crm/PageHeader";
 import InvoiceEditor from "@/components/crm/InvoiceEditor";
+import RowActions from "@/components/ui/row-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,8 +16,9 @@ import axiosInstance from "@/utils/axiosConfig";
 import { money, day, errMsg } from "@/lib/publicApi";
 import { downloadFile, toDateInput } from "@/lib/crmOutreach";
 import { useIntegrations } from "@/hooks/useIntegrations";
+import { confirmDialog, promptDialog } from "@/components/ui/app-dialogs";
 
-const STATUS_STYLE = { Draft: "bg-slate-100 text-slate-700", Sent: "bg-blue-100 text-blue-700", "Partially Paid": "bg-amber-100 text-amber-800", Paid: "bg-green-100 text-green-700", Cancelled: "bg-gray-100 text-gray-500" };
+const STATUS_STYLE = { Draft: "bg-slate-100 text-slate-700", Sent: "bg-blue-100 text-brand", "Partially Paid": "bg-amber-100 text-amber-800", Paid: "bg-green-100 text-green-700", Cancelled: "bg-gray-100 text-muted-foreground" };
 const FILTERS = ["All", "Draft", "Unpaid", "Overdue", "Paid", "Cancelled"];
 
 const PaymentDialog = ({ invoice, onOpenChange, onDone }) => {
@@ -53,12 +55,12 @@ const PaymentDialog = ({ invoice, onOpenChange, onDone }) => {
           </div>
           <div className="grid gap-1"><Label>Reference (UTR / cheque no.)</Label><Input value={p.reference} onChange={(e) => setP({ ...p, reference: e.target.value })} /></div>
           {invoice.payments?.length > 0 && (
-            <div className="text-xs text-gray-500 space-y-1">
+            <div className="text-xs text-muted-foreground space-y-1">
               <p className="font-medium">Already received</p>
               {invoice.payments.map((x) => <p key={x._id}>{day(x.paidAt)} · {money(x.amount)} · {x.method} {x.reference}</p>)}
             </div>
           )}
-          <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save} className="bg-blue-600 hover:bg-blue-700">Save payment</Button></div>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save} className="">Save payment</Button></div>
         </div>
       </DialogContent>
     </Dialog>
@@ -93,7 +95,7 @@ const Invoices = () => {
         downloadFile(`${inv.invoiceNo}.pdf`, res.data);
       }
       if (what === "send") {
-        const to = window.prompt(`Email ${inv.invoiceNo} (PDF + pay link) to:`, inv.billingEmail || "");
+        const to = await promptDialog(`Email ${inv.invoiceNo} (PDF + pay link) to:`, inv.billingEmail || "");
         if (!to) return;
         await axiosInstance.post(`/v1/invoice/${inv._id}/send`, { to });
         toast.success(`Sent to ${to}`);
@@ -113,11 +115,11 @@ const Invoices = () => {
         toast.success("Marked as sent");
       }
       if (what === "cancel") {
-        if (!window.confirm(`Cancel ${inv.invoiceNo}? The number is kept but it no longer counts as due.`)) return;
+        if (!await confirmDialog(`Cancel ${inv.invoiceNo}? The number is kept but it no longer counts as due.`)) return;
         await axiosInstance.post(`/v1/invoice/${inv._id}/cancel`);
       }
       if (what === "delete") {
-        if (!window.confirm(`Delete draft ${inv.invoiceNo}?`)) return;
+        if (!await confirmDialog(`Delete draft ${inv.invoiceNo}?`)) return;
         await axiosInstance.delete(`/v1/invoice/${inv._id}`);
       }
       load();
@@ -137,7 +139,7 @@ const Invoices = () => {
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={Receipt} title="Invoices" subtitle="GST invoices with online payment links. Accepted proposals and retainers create them for you.">
           <Button variant="outline" onClick={load}><RefreshCw className="h-4 w-4 mr-1" /> Refresh</Button>
-          <Button onClick={() => setEditing(null)} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New invoice</Button>
+          <Button onClick={() => setEditing(null)} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> New invoice</Button>
         </PageHeader>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Stat label="Outstanding" value={money(s.outstanding)} />
@@ -145,7 +147,7 @@ const Invoices = () => {
           <Stat label="Received this month" value={money(s.paidThisMonth)} tone="good" />
           <Stat label="Drafts to send" value={s.drafts ?? "–"} />
         </div>
-        {!integrations.razorpay?.configured && <p className="text-xs text-gray-500">Razorpay isn't connected, so invoices show your bank / UPI details instead of a "Pay online" button (CRM → Integrations).</p>}
+        {!integrations.razorpay?.configured && <p className="text-xs text-muted-foreground">Razorpay isn't connected, so invoices show your bank / UPI details instead of a "Pay online" button (CRM → Integrations).</p>}
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)}>{f}</Button>)}
         </div>
@@ -165,37 +167,35 @@ const Invoices = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-10 text-gray-500">{data ? "No invoices here." : "Loading..."}</TableCell></TableRow>}
+                {rows.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">{data ? "No invoices here." : "Loading..."}</TableCell></TableRow>}
                 {rows.map((inv) => (
                   <TableRow key={inv._id}>
-                    <TableCell className="font-medium whitespace-nowrap">{inv.invoiceNo}{inv.period && <div className="text-xs text-gray-500">{inv.period}</div>}</TableCell>
-                    <TableCell>{inv.billingName || inv.clientName}<div className="text-xs text-gray-500">{inv.billingEmail}</div></TableCell>
+                    <TableCell className="font-medium whitespace-nowrap">{inv.invoiceNo}{inv.period && <div className="text-xs text-muted-foreground">{inv.period}</div>}</TableCell>
+                    <TableCell>{inv.billingName || inv.clientName}<div className="text-xs text-muted-foreground">{inv.billingEmail}</div></TableCell>
                     <TableCell className="whitespace-nowrap text-sm">{day(inv.issueDate)}</TableCell>
-                    <TableCell className={`whitespace-nowrap text-sm ${inv.isOverdue ? "text-red-600 font-medium" : ""}`}>{day(inv.dueDate)}{inv.reminders?.length ? <div className="text-xs text-gray-500">{inv.reminders.length} reminder{inv.reminders.length > 1 ? "s" : ""}</div> : null}</TableCell>
+                    <TableCell className={`whitespace-nowrap text-sm ${inv.isOverdue ? "text-red-600 font-medium" : ""}`}>{day(inv.dueDate)}{inv.reminders?.length ? <div className="text-xs text-muted-foreground">{inv.reminders.length} reminder{inv.reminders.length > 1 ? "s" : ""}</div> : null}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">{money(inv.total)}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">{inv.status === "Cancelled" ? "—" : money(inv.balance)}</TableCell>
                     <TableCell>
                       <Pill className={inv.isOverdue ? "bg-red-100 text-red-700" : STATUS_STYLE[inv.status]}>{inv.isOverdue ? "Overdue" : inv.status}</Pill>
-                      {inv.viewedAt && <div className="text-xs text-gray-500 mt-1">Viewed {day(inv.viewedAt)}</div>}
+                      {inv.viewedAt && <div className="text-xs text-muted-foreground mt-1">Viewed {day(inv.viewedAt)}</div>}
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-end gap-0 whitespace-nowrap">
-                        <Button size="icon" variant="ghost" title="Download PDF" onClick={() => act(inv, "pdf")}><Download className="h-4 w-4" /></Button>
-                        {!["Paid", "Cancelled"].includes(inv.status) && (
-                          <>
-                            <Button size="icon" variant="ghost" title="Edit" onClick={() => setEditing(inv)}><Edit className="h-4 w-4" /></Button>
-                            <Button size="icon" variant="ghost" title="Email invoice + pay link" className="text-blue-600" disabled={busy === inv._id + "send"} onClick={() => act(inv, "send")}><Send className="h-4 w-4" /></Button>
-                            <Button size="icon" variant="ghost" title="Copy invoice / pay link" className="text-blue-600" onClick={() => act(inv, "link")}><Link2 className="h-4 w-4" /></Button>
-                            {inv.status === "Draft" && <Button size="icon" variant="ghost" title="Mark as sent (sent outside the CRM)" onClick={() => act(inv, "sent")}><CheckCheck className="h-4 w-4" /></Button>}
-                            {inv.status !== "Draft" && <Button size="icon" variant="ghost" title="Email a payment reminder" className="text-amber-600" onClick={() => act(inv, "remind")}><BellRing className="h-4 w-4" /></Button>}
-                            <Button size="icon" variant="ghost" title="Record payment" className="text-green-700" onClick={() => setPaying(inv)}><IndianRupee className="h-4 w-4" /></Button>
-                          </>
-                        )}
-                        {inv.status === "Draft" ? (
-                          <Button size="icon" variant="ghost" title="Delete draft" className="text-red-600" onClick={() => act(inv, "delete")}><Trash2 className="h-4 w-4" /></Button>
-                        ) : (
-                          !["Cancelled", "Paid"].includes(inv.status) && !inv.amountPaid && <Button size="icon" variant="ghost" title="Cancel invoice" className="text-red-600" onClick={() => act(inv, "cancel")}><Ban className="h-4 w-4" /></Button>
-                        )}
+                      <div className="flex items-center justify-end gap-0.5 whitespace-nowrap">
+                        <Button size="icon" variant="ghost" className="h-8 w-8" title="Download PDF" onClick={() => act(inv, "pdf")}><Download className="h-4 w-4" /></Button>
+                        {!["Paid", "Cancelled"].includes(inv.status) && <Button size="icon" variant="ghost" className="h-8 w-8" title="Record payment" onClick={() => setPaying(inv)}><IndianRupee className="h-4 w-4" /></Button>}
+                        <RowActions
+                          items={[
+                            { label: "Email invoice + pay link", icon: Send, onClick: () => act(inv, "send"), hidden: ["Paid", "Cancelled"].includes(inv.status), disabled: busy === inv._id + "send" },
+                            { label: "Copy invoice / pay link", icon: Link2, onClick: () => act(inv, "link"), hidden: ["Paid", "Cancelled"].includes(inv.status) },
+                            { label: "Mark as sent", icon: CheckCheck, onClick: () => act(inv, "sent"), hidden: inv.status !== "Draft" },
+                            { label: "Send payment reminder", icon: BellRing, onClick: () => act(inv, "remind"), hidden: ["Draft", "Paid", "Cancelled"].includes(inv.status) },
+                            { label: "Edit", icon: Edit, onClick: () => setEditing(inv), hidden: ["Paid", "Cancelled"].includes(inv.status) },
+                            "-",
+                            { label: "Delete draft", icon: Trash2, onClick: () => act(inv, "delete"), danger: true, hidden: inv.status !== "Draft" },
+                            { label: "Cancel invoice", icon: Ban, onClick: () => act(inv, "cancel"), danger: true, hidden: inv.status === "Draft" || ["Cancelled", "Paid"].includes(inv.status) || !!inv.amountPaid },
+                          ]}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

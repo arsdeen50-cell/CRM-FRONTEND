@@ -31,7 +31,7 @@ const HrSettings = () => {
   useEffect(() => {
     load().catch(() => toast.error("Could not load HR settings"));
   }, [load]);
-  if (!s) return <div className="p-6 text-gray-500">Loading...</div>;
+  if (!s) return <div className="p-6 text-muted-foreground">Loading...</div>;
   const set = (k, v) => setS((x) => ({ ...x, [k]: v }));
 
   const save = async () => {
@@ -82,7 +82,7 @@ const HrSettings = () => {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Leave empty for no limit. Requests over the balance are refused.</p>
+                <p className="text-xs text-muted-foreground mt-1">Leave empty for no limit. Requests over the balance are refused.</p>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="grid gap-1"><Label>Leave year starts in</Label><Select value={String(s.leaveYearStartMonth)} onValueChange={(v) => set("leaveYearStartMonth", Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent></Select></div>
@@ -95,7 +95,7 @@ const HrSettings = () => {
                 <div className="grid gap-1"><Label>Half day (hours)</Label><Input type="number" min="0" step="0.5" value={s.halfDayHours} onChange={(e) => set("halfDayHours", e.target.value)} /></div>
               </div>
               <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={s.deductAbsentDays} onChange={(e) => set("deductAbsentDays", e.target.checked)} /> Payroll: count absent days (no punch-in, no leave) as loss of pay</label>
-              <div className="flex justify-end"><Button onClick={save} className="bg-emerald-600 hover:bg-emerald-700">Save settings</Button></div>
+              <div className="flex justify-end"><Button onClick={save} className="">Save settings</Button></div>
             </CardContent></Card>
           </TabsContent>
           <TabsContent value="holidays">
@@ -107,7 +107,7 @@ const HrSettings = () => {
                 <label className="text-sm flex items-center gap-1 pb-2"><input type="checkbox" checked={h.optional} onChange={(e) => setH({ ...h, optional: e.target.checked })} /> Optional</label>
                 <Button variant="outline" onClick={addHoliday}><Plus className="h-4 w-4 mr-1" /> Add</Button>
               </div>
-              {holidays.length === 0 && <p className="text-sm text-gray-500">No holidays for {year} yet.</p>}
+              {holidays.length === 0 && <p className="text-sm text-muted-foreground">No holidays for {year} yet.</p>}
               {holidays.map((x) => (
                 <div key={x._id} className="flex items-center justify-between border rounded-md p-2">
                   <p className="text-sm"><b>{fmtDate(`${x.date}T12:00:00`)}</b> · {x.name}{x.optional ? " (optional)" : ""}</p>

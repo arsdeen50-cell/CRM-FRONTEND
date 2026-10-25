@@ -45,8 +45,8 @@ const Profitability = () => {
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={TrendingUp} title="Profit per client" subtitle="Invoiced revenue (before GST) minus the cost of hours logged. Worst first, so money-losing clients stand out.">
-          <div className="grid gap-1"><span className="text-xs text-gray-500">From</span><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
-          <div className="grid gap-1"><span className="text-xs text-gray-500">To</span><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+          <div className="grid gap-1"><span className="text-xs text-muted-foreground">From</span><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
+          <div className="grid gap-1"><span className="text-xs text-muted-foreground">To</span><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
         </PageHeader>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Stat label="Revenue invoiced" value={r0(t.revenue)} />
@@ -70,12 +70,12 @@ const Profitability = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(data?.rows || []).length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-10 text-gray-500">{data ? "No time or invoices in this range yet." : "Loading..."}</TableCell></TableRow>}
+                {(data?.rows || []).length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">{data ? "No time or invoices in this range yet." : "Loading..."}</TableCell></TableRow>}
                 {(data?.rows || []).map((r) => (
                   <TableRow key={String(r.clientId || r.clientName)} className={r.losing ? "bg-red-50 dark:bg-red-950" : ""}>
                     <TableCell>
                       <p className="font-medium flex items-center gap-1">{r.losing && <AlertTriangle className="h-4 w-4 text-red-600" />}{r.clientName}</p>
-                      <p className="text-xs text-gray-500">{Object.entries(r.people).map(([n, m]) => `${n.split(" ")[0]} ${Math.round(m / 6) / 10}h`).join(" · ")}</p>
+                      <p className="text-xs text-muted-foreground">{Object.entries(r.people).map(([n, m]) => `${n.split(" ")[0]} ${Math.round(m / 6) / 10}h`).join(" · ")}</p>
                       {r.missingRates.length > 0 && <p className="text-xs text-amber-700">No hourly cost set for {r.missingRates.join(", ")} - counted as ₹0</p>}
                     </TableCell>
                     <TableCell className="text-right">{r.hours}</TableCell>
@@ -93,7 +93,7 @@ const Profitability = () => {
         </Card>
         <Card>
           <CardContent className="p-4 space-y-3">
-            <div><p className="font-medium">Internal cost per hour</p><p className="text-xs text-gray-500">Monthly salary + overheads ÷ working hours (e.g. ₹40,000 ÷ 160 h = ₹250). Only admins see this.</p></div>
+            <div><p className="font-medium">Internal cost per hour</p><p className="text-xs text-muted-foreground">Monthly salary + overheads ÷ working hours (e.g. ₹40,000 ÷ 160 h = ₹250). Only admins see this.</p></div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {rates.map((u) => (
                 <div key={u.userId} className="flex items-center gap-2">

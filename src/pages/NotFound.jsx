@@ -10,7 +10,7 @@ const NotFound = () => {
         <img src={NotFoundImage} alt="not-found" className="w-full" />
       </div>
       <div>
-        <Link to="/" className="flex items-center gap-2 text-blue-600 hover:underline">
+        <Link to="/" className="flex items-center gap-2 text-brand hover:underline">
           <ArrowLeft className="h-4 w-4" />
          Back to Login
         </Link>

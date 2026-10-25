@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { AppDialogs } from "@/components/ui/app-dialogs";
 import Layout from "@/routes/layout";
 import DashboardPage from "@/routes/dashboard/page";
 import Login from "@/auth/Login";
@@ -244,6 +245,7 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <RouterProvider router={router} />
+      <AppDialogs />
     </ThemeProvider>
   );
 }

@@ -105,7 +105,7 @@ const ProposalEditor = ({ open, onOpenChange, lead, proposal, onSaved }) => {
                 <Input className="col-span-3 sm:col-span-2" placeholder="Unit" value={it.unit} onChange={(e) => setItem(i, "unit", e.target.value)} />
                 <Input className="col-span-4 sm:col-span-3" type="number" min="0" placeholder="Rate (₹)" value={it.rate} onChange={(e) => setItem(i, "rate", e.target.value)} />
                 <div className="col-span-2 sm:col-span-5 flex items-center justify-end gap-2 text-sm">
-                  <span className="text-gray-600">{formatCurrency((Number(it.quantity) || 0) * (Number(it.rate) || 0))}</span>
+                  <span className="text-muted-foreground">{formatCurrency((Number(it.quantity) || 0) * (Number(it.rate) || 0))}</span>
                   <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-red-600" onClick={() => set("items", form.items.filter((_, j) => j !== i))} title="Remove line">
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -132,7 +132,7 @@ const ProposalEditor = ({ open, onOpenChange, lead, proposal, onSaved }) => {
             </div>
           </div>
 
-          <div className="text-sm bg-gray-50 dark:bg-slate-800 rounded-md p-3 grid gap-1 sm:w-72 sm:ml-auto">
+          <div className="text-sm bg-muted/60 rounded-md p-3 grid gap-1 sm:w-72 sm:ml-auto">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(totals.subtotal)}</span></div>
             {Number(form.discount) > 0 && <div className="flex justify-between"><span>Discount</span><span>- {formatCurrency(form.discount)}</span></div>}
             <div className="flex justify-between"><span>GST ({form.taxPercent || 0}%)</span><span>{formatCurrency(totals.tax)}</span></div>
@@ -146,7 +146,7 @@ const ProposalEditor = ({ open, onOpenChange, lead, proposal, onSaved }) => {
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving} className="bg-blue-600 hover:bg-blue-700">{saving ? "Saving..." : "Save proposal"}</Button>
+            <Button onClick={save} disabled={saving} className="">{saving ? "Saving..." : "Save proposal"}</Button>
           </div>
         </div>
       </DialogContent>

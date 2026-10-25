@@ -15,9 +15,9 @@ const PageHeader = ({ icon: Icon, title, subtitle, children, back = "/crm" }) =>
         </Button>
         <div>
           <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-            {Icon && <Icon className="h-6 w-6 text-blue-600" />} {title}
+            {Icon && <Icon className="h-6 w-6 text-brand" />} {title}
           </h1>
-          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
@@ -28,9 +28,9 @@ const PageHeader = ({ icon: Icon, title, subtitle, children, back = "/crm" }) =>
 export const Stat = ({ label, value, sub, tone }) => (
   <Card>
     <CardContent className="p-4">
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
       <p className={`text-2xl font-semibold mt-1 ${tone === "bad" ? "text-red-600" : tone === "good" ? "text-green-700" : ""}`}>{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
     </CardContent>
   </Card>
 );

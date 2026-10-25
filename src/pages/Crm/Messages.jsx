@@ -75,21 +75,21 @@ const Messages = () => {
                   </TableHeader>
                   <TableBody>
                     {(data?.emails || []).length === 0 && (
-                      <TableRow><TableCell colSpan={5} className="text-center py-10 text-gray-500">{loading ? "Loading..." : "No emails sent from the CRM yet."}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : "No emails sent from the CRM yet."}</TableCell></TableRow>
                     )}
                     {(data?.emails || []).map((e) => (
                       <TableRow key={e._id}>
                         <TableCell className="whitespace-nowrap text-sm">{when(e.createdAt)}</TableCell>
-                        <TableCell>{e.clientName}<div className="text-xs text-gray-500">{e.to}</div></TableCell>
-                        <TableCell className="max-w-xs truncate" title={e.subject}>{e.subject}{e.source !== "manual" && <span className="text-xs text-gray-400"> · {e.source}</span>}</TableCell>
+                        <TableCell>{e.clientName}<div className="text-xs text-muted-foreground">{e.to}</div></TableCell>
+                        <TableCell className="max-w-xs truncate" title={e.subject}>{e.subject}{e.source !== "manual" && <span className="text-xs text-muted-foreground/70"> · {e.source}</span>}</TableCell>
                         <TableCell className="text-sm">{e.sentBy}</TableCell>
                         <TableCell>
                           {e.status === "Failed" ? (
                             <Pill className="bg-red-100 text-red-700">Failed</Pill>
                           ) : (
                             <div className="flex gap-3 text-xs">
-                              <span className={`flex items-center gap-1 ${e.openCount ? "text-green-700" : "text-gray-400"}`}><Eye className="h-3 w-3" />{e.openCount ? `${e.openCount}× · ${when(e.lastOpenedAt)}` : "No"}</span>
-                              <span className={`flex items-center gap-1 ${e.clicks?.length ? "text-green-700" : "text-gray-400"}`}><MousePointerClick className="h-3 w-3" />{e.clicks?.length || 0}</span>
+                              <span className={`flex items-center gap-1 ${e.openCount ? "text-green-700" : "text-muted-foreground/70"}`}><Eye className="h-3 w-3" />{e.openCount ? `${e.openCount}× · ${when(e.lastOpenedAt)}` : "No"}</span>
+                              <span className={`flex items-center gap-1 ${e.clicks?.length ? "text-green-700" : "text-muted-foreground/70"}`}><MousePointerClick className="h-3 w-3" />{e.clicks?.length || 0}</span>
                             </div>
                           )}
                         </TableCell>
@@ -115,15 +115,15 @@ const Messages = () => {
                   </TableHeader>
                   <TableBody>
                     {(data?.whatsapp || []).length === 0 && (
-                      <TableRow><TableCell colSpan={5} className="text-center py-10 text-gray-500">{loading ? "Loading..." : "No WhatsApp API messages yet."}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : "No WhatsApp API messages yet."}</TableCell></TableRow>
                     )}
                     {(data?.whatsapp || []).map((w) => (
-                      <TableRow key={w._id} className={w.direction === "in" && !w.readByTeam ? "bg-emerald-50 dark:bg-emerald-950" : ""}>
+                      <TableRow key={w._id} className={w.direction === "in" && !w.readByTeam ? "bg-brand-soft" : ""}>
                         <TableCell className="whitespace-nowrap text-sm">{when(w.createdAt)}</TableCell>
-                        <TableCell>{w.clientName}<div className="text-xs text-gray-500">+{w.phone}</div></TableCell>
+                        <TableCell>{w.clientName}<div className="text-xs text-muted-foreground">+{w.phone}</div></TableCell>
                         <TableCell><Pill className={w.direction === "in" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}>{w.direction === "in" ? "Received" : "Sent"}</Pill></TableCell>
                         <TableCell className="max-w-md whitespace-pre-wrap text-sm">{w.text}</TableCell>
-                        <TableCell className="text-xs text-gray-500">{w.status}{w.error ? `: ${w.error}` : ""}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{w.status}{w.error ? `: ${w.error}` : ""}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

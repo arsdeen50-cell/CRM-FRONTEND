@@ -16,6 +16,7 @@ import FilePreview from "./FilePreview";
 import { ONBOARDING_API_END_POINT } from "@/constants";
 import FormAlreadySubmitted from "./FormAlreadySubmitted";
 import FormSubmittedSuccess from "./FormSubmittedSuccess";
+import { alertDialog } from "@/components/ui/app-dialogs";
 
 const CandidateForm = () => {
   const { id } = useParams();
@@ -129,11 +130,11 @@ if (isSubmitted) {
     if (data.success) {
       setIsSubmitted(true);
     } else {
-      alert("Failed to submit form. Please try again.");
+      await alertDialog("Failed to submit form. Please try again.");
     }
   } catch (error) {
     console.error("Error submitting form:", error);
-    alert("Error submitting form. Please try again.");
+    await alertDialog("Error submitting form. Please try again.");
   } finally {
     setIsSubmitting(false);
   }
@@ -177,7 +178,7 @@ if (isSubmitted) {
             <h3 className="mt-4 text-lg font-medium text-gray-900">
               Form Submitted Successfully!
             </h3>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               Thank you for submitting your details. Your information has been received and will be processed shortly.
             </p>
             {/* <Button onClick={() => navigate("/")} className="mt-6">

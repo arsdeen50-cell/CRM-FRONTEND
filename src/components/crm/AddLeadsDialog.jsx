@@ -379,7 +379,7 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
             case 'Call': return <Phone className="h-4 w-4 text-green-500" />;
             case 'Email': return <Mail className="h-4 w-4 text-blue-500" />;
             case 'Meeting': return <Calendar className="h-4 w-4 text-purple-500" />;
-            default: return <Clock className="h-4 w-4 text-gray-500" />;
+            default: return <Clock className="h-4 w-4 text-muted-foreground" />;
         }
     };
 
@@ -727,7 +727,7 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                         disabled={files.length >= 5}
                                     />
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-muted-foreground">
                                         {files.length >= 5
                                             ? "Maximum 5 files reached"
                                             : `You can upload ${5 - files.length} more files (PDF, Word, Images)`}
@@ -744,7 +744,7 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                                                     <div className="flex items-center gap-2">
                                                         <Paperclip className="h-4 w-4" />
                                                         <span className="text-sm">{file.name}</span>
-                                                        <span className="text-xs text-gray-500">
+                                                        <span className="text-xs text-muted-foreground">
                                                             ({(file.size / 1024 / 1024).toFixed(2)} MB)
                                                         </span>
                                                     </div>
@@ -775,7 +775,7 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                                                             href={doc.fileUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="text-sm text-blue-600 hover:underline"
+                                                            className="text-sm text-brand hover:underline"
                                                         >
                                                             {doc.fileName}
                                                         </a>
@@ -832,7 +832,7 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                             {pendingSubmitData?.location && <p><span className="font-medium">Location:</span> {pendingSubmitData?.location}</p>}
                             {pendingSubmitData?.instagramLink && <p><span className="font-medium">Instagram:</span> {pendingSubmitData?.instagramLink}</p>}
                             {pendingSubmitData?.websiteLink && <p><span className="font-medium">Website:</span> {pendingSubmitData?.websiteLink}</p>}
-                            <p className="text-xs text-gray-500 mt-2">This will create a new entry in the Client List.</p>
+                            <p className="text-xs text-muted-foreground mt-2">This will create a new entry in the Client List.</p>
                         </div>
                     </div>
                     <DialogFooter className="flex gap-2">
@@ -845,7 +845,7 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                         </Button>
                         <Button
                             type="button"
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                            className=" text-white"
                             onClick={handleWonConfirm}
                         >
                             Yes, Create Client & Lead

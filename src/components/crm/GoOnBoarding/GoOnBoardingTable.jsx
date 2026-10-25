@@ -54,7 +54,7 @@ const GoOnBoardingTable = () => {
 
             <CardContent>
                 {loading ? (
-                    <p className="text-center text-sm text-gray-500">Loading...</p>
+                    <p className="text-center text-sm text-muted-foreground">Loading...</p>
                 ) : (
                     <Table>
                         <TableHeader>
