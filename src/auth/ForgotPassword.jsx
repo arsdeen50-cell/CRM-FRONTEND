@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import AuthShell from "./AuthShell";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,14 +100,14 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md border rounded-lg p-6 shadow-sm">
+    <AuthShell title="Reset your password" subtitle="We'll email you a 6-digit code.">
+      <div className="space-y-2">
 
         {/* STEP 1 */}
         {step === 1 && (
           <>
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Forgot Password
+            <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+              Step 1 of 3 · Your email
             </h2>
 
             <Label>Email</Label>
@@ -126,7 +127,7 @@ const ForgotPassword = () => {
             </Button>
 
             <p className="text-sm text-center mt-4">
-              <Link to="/login" className="text-blue-600">
+              <Link to="/login" className="text-brand">
                 Back to Login
               </Link>
             </p>
@@ -136,8 +137,8 @@ const ForgotPassword = () => {
         {/* STEP 2 */}
         {step === 2 && (
           <>
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Verify OTP
+            <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+              Step 2 of 3 · Enter the code
             </h2>
 
             <Label>OTP</Label>
@@ -163,8 +164,8 @@ const ForgotPassword = () => {
         {/* STEP 3 */}
         {step === 3 && (
           <>
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Reset Password
+            <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+              Step 3 of 3 · New password
             </h2>
 
             <Label>New Password</Label>
@@ -193,7 +194,7 @@ const ForgotPassword = () => {
           </>
         )}
       </div>
-    </div>
+    </AuthShell>
   );
 };
 

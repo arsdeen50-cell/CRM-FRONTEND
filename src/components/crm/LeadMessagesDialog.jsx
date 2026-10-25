@@ -28,15 +28,15 @@ const LeadMessagesDialog = ({ open, onOpenChange, lead }) => {
           <DialogDescription>Emails and WhatsApp messages sent from or received by the CRM.</DialogDescription>
         </DialogHeader>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        {!items && !error && <p className="text-sm text-gray-500">Loading...</p>}
-        {items?.length === 0 && <p className="text-sm text-gray-500 py-6 text-center">No messages yet. Use Contact to send one from the CRM.</p>}
+        {!items && !error && <p className="text-sm text-muted-foreground">Loading...</p>}
+        {items?.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">No messages yet. Use Contact to send one from the CRM.</p>}
         <div className="space-y-3">
           {items?.map((m) => {
             const inbound = m.direction === "in";
             return (
               <div key={m._id} className={`flex ${inbound ? "justify-start" : "justify-end"}`}>
-                <div className={`max-w-[85%] rounded-lg border p-3 text-sm ${inbound ? "bg-white dark:bg-slate-800" : m.kind === "email" ? "bg-blue-50 dark:bg-blue-950 border-blue-200" : "bg-emerald-50 dark:bg-emerald-950 border-emerald-200"}`}>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                <div className={`max-w-[85%] rounded-lg border p-3 text-sm ${inbound ? "bg-white dark:bg-slate-800" : m.kind === "email" ? "bg-brand-soft border-brand/20" : "bg-brand-soft border-emerald-200"}`}>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                     {m.kind === "email" ? <Mail className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
                     <span>{inbound ? m.profileName || "Client" : m.sentBy || "You"}</span>
                     <span>· {when(m.createdAt)}</span>
@@ -50,7 +50,7 @@ const LeadMessagesDialog = ({ open, onOpenChange, lead }) => {
                     )}
                     {m.kind === "email" && m.status === "Sent" && (
                       <>
-                        <span className={`flex items-center gap-1 ${m.openCount ? "text-green-700" : "text-gray-500"}`}>
+                        <span className={`flex items-center gap-1 ${m.openCount ? "text-green-700" : "text-muted-foreground"}`}>
                           <Eye className="h-3 w-3" /> {m.openCount ? `Opened ${m.openCount}× · last ${when(m.lastOpenedAt)}` : "Not opened yet"}
                         </span>
                         {m.clicks?.length > 0 && (
@@ -60,7 +60,7 @@ const LeadMessagesDialog = ({ open, onOpenChange, lead }) => {
                         )}
                       </>
                     )}
-                    {m.kind === "whatsapp" && !inbound && m.status && <span className={m.status === "failed" ? "text-red-600" : "text-gray-500"}>{m.status}{m.error ? `: ${m.error}` : ""}</span>}
+                    {m.kind === "whatsapp" && !inbound && m.status && <span className={m.status === "failed" ? "text-red-600" : "text-muted-foreground"}>{m.status}{m.error ? `: ${m.error}` : ""}</span>}
                   </div>
                 </div>
               </div>
@@ -68,7 +68,7 @@ const LeadMessagesDialog = ({ open, onOpenChange, lead }) => {
           })}
         </div>
         {items?.some((m) => m.kind === "email") && (
-          <p className="text-xs text-gray-400">Opens are approximate: some email apps load images automatically (counts an open) or block them (no open recorded).</p>
+          <p className="text-xs text-muted-foreground/70">Opens are approximate: some email apps load images automatically (counts an open) or block them (no open recorded).</p>
         )}
       </DialogContent>
     </Dialog>

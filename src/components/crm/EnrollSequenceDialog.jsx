@@ -48,21 +48,21 @@ const EnrollSequenceDialog = ({ open, onOpenChange, leads = [], onDone }) => {
           <DialogDescription>Auto steps send by themselves in business hours; manual steps appear in Sequences → Steps due. It stops when they reply or the lead is Won/Lost.</DialogDescription>
         </DialogHeader>
         {sequences.length === 0 ? (
-          <p className="text-sm text-gray-500">No active sequences yet. An admin can create one under CRM → Sequences.</p>
+          <p className="text-sm text-muted-foreground">No active sequences yet. An admin can create one under CRM → Sequences.</p>
         ) : (
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {sequences.map((s) => (
-              <label key={s._id} className={`block border rounded-md p-3 cursor-pointer ${picked === s._id ? "ring-2 ring-blue-500" : ""}`}>
+              <label key={s._id} className={`block border rounded-md p-3 cursor-pointer ${picked === s._id ? "ring-2 ring-brand" : ""}`}>
                 <input type="radio" className="mr-2" checked={picked === s._id} onChange={() => setPicked(s._id)} />
                 <span className="font-medium">{s.name}</span>
-                <span className="block text-xs text-gray-500 mt-1">{s.steps.map(stepLabel).join("  →  ")}</span>
+                <span className="block text-xs text-muted-foreground mt-1">{s.steps.map(stepLabel).join("  →  ")}</span>
               </label>
             ))}
           </div>
         )}
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={enroll} disabled={!picked || saving} className="bg-blue-600 hover:bg-blue-700">{saving ? "Adding..." : "Add to sequence"}</Button>
+          <Button onClick={enroll} disabled={!picked || saving} className="">{saving ? "Adding..." : "Add to sequence"}</Button>
         </div>
       </DialogContent>
     </Dialog>

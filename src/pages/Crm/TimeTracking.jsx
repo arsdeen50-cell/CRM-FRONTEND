@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import axiosInstance from "@/utils/axiosConfig";
 import { errMsg } from "@/lib/publicApi";
 import { toDateInput } from "@/lib/crmOutreach";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const TIMER_KEY = "crm.timer";
 const readTimer = () => {
@@ -88,7 +89,7 @@ const TimeTracking = () => {
     save(minutes, { ...timer, date: toDateInput(new Date()) });
   };
   const remove = async (e) => {
-    if (!window.confirm("Delete this entry?")) return;
+    if (!await confirmDialog("Delete this entry?")) return;
     await axiosInstance.delete(`/v1/time/${e._id}`).catch((err) => toast.error(errMsg(err)));
     load();
   };
@@ -103,7 +104,7 @@ const TimeTracking = () => {
         {timer && (
           <Card className="border-blue-300">
             <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
-              <div><p className="text-sm text-gray-500">Timer running</p><p className="text-xl font-semibold">{hm(running)} · {timerClient}</p>{timer.description && <p className="text-sm">{timer.description}</p>}</div>
+              <div><p className="text-sm text-muted-foreground">Timer running</p><p className="text-xl font-semibold">{hm(running)} · {timerClient}</p>{timer.description && <p className="text-sm">{timer.description}</p>}</div>
               <Button onClick={stop} className="bg-red-600 hover:bg-red-700"><Square className="h-4 w-4 mr-1" /> Stop & log</Button>
             </CardContent>
           </Card>
@@ -125,14 +126,14 @@ const TimeTracking = () => {
               <div className="grid gap-1"><Label>Date</Label><Input type="date" value={entry.date} onChange={(e) => setEntry({ ...entry, date: e.target.value })} /></div>
               <div className="grid gap-1 w-28"><Label>Hours</Label><Input type="number" min="0" step="0.25" value={entry.hours} onChange={(e) => setEntry({ ...entry, hours: e.target.value })} placeholder="1.5" /></div>
               <label className="text-sm flex items-center gap-2 pb-2"><input type="checkbox" checked={entry.billable} onChange={(e) => setEntry({ ...entry, billable: e.target.checked })} /> Client work</label>
-              <Button onClick={() => save(Number(entry.hours) * 60)} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> Log time</Button>
+              <Button onClick={() => save(Number(entry.hours) * 60)} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> Log time</Button>
               {!timer && <Button variant="outline" onClick={start}><Play className="h-4 w-4 mr-1" /> Start timer</Button>}
             </div>
           </CardContent>
         </Card>
         <div className="flex flex-wrap items-end gap-2">
-          <div className="grid gap-1"><span className="text-xs text-gray-500">From</span><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
-          <div className="grid gap-1"><span className="text-xs text-gray-500">To</span><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+          <div className="grid gap-1"><span className="text-xs text-muted-foreground">From</span><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
+          <div className="grid gap-1"><span className="text-xs text-muted-foreground">To</span><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Stat label="Total" value={hm(total)} sub={`${entries.length} entries`} />
@@ -143,13 +144,13 @@ const TimeTracking = () => {
             <Table>
               <TableHeader><TableRow><TableHead>Date</TableHead>{isAdmin && <TableHead>Person</TableHead>}<TableHead>Client</TableHead><TableHead>Description</TableHead><TableHead className="text-right">Time</TableHead><TableHead /></TableRow></TableHeader>
               <TableBody>
-                {entries.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-10 text-gray-500">No time logged in this range.</TableCell></TableRow>}
+                {entries.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">No time logged in this range.</TableCell></TableRow>}
                 {entries.map((e) => (
                   <TableRow key={e._id}>
                     <TableCell className="whitespace-nowrap text-sm">{new Date(e.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", weekday: "short" })}</TableCell>
                     {isAdmin && <TableCell className="text-sm">{e.userName}</TableCell>}
                     <TableCell>{e.clientName}</TableCell>
-                    <TableCell className="text-sm">{e.description}{!e.billable && <span className="text-xs text-gray-400"> · internal</span>}</TableCell>
+                    <TableCell className="text-sm">{e.description}{!e.billable && <span className="text-xs text-muted-foreground/70"> · internal</span>}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">{hm(e.minutes)}</TableCell>
                     <TableCell><Button size="icon" variant="ghost" className="text-red-600" onClick={() => remove(e)}><Trash2 className="h-4 w-4" /></Button></TableCell>
                   </TableRow>

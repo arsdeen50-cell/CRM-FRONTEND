@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { X, Plus } from "lucide-react";
 import useDesignation from "@/hooks/useDesignation";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const DesignationManager = ({ isOpen, onClose }) => {
   const [newDesignation, setNewDesignation] = useState("");
@@ -39,7 +40,7 @@ const DesignationManager = ({ isOpen, onClose }) => {
   };
 
   const handleDeleteDesignation = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+    if (await confirmDialog(`Are you sure you want to delete "${name}"?`)) {
       await deleteDesignation(id);
     }
   };
@@ -79,9 +80,9 @@ const DesignationManager = ({ isOpen, onClose }) => {
           {/* Designation List */}
           <div className="max-h-60 overflow-y-auto border rounded-md p-2">
             {loading ? (
-              <p className="text-center text-gray-500 py-4">Loading...</p>
+              <p className="text-center text-muted-foreground py-4">Loading...</p>
             ) : designations.length === 0 ? (
-              <p className="text-center text-gray-500 py-4">No designations added yet.</p>
+              <p className="text-center text-muted-foreground py-4">No designations added yet.</p>
             ) : (
               <div className="space-y-2">
                 {designations.map((designation) => (

@@ -44,7 +44,7 @@ const UserTeamsDialog = ({ user, teams, onOpenChange, onSaved }) => {
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">
-          {rows.length === 0 && <p className="text-sm text-gray-500">Not in any team yet.</p>}
+          {rows.length === 0 && <p className="text-sm text-muted-foreground">Not in any team yet.</p>}
           {rows.map((r, i) => {
             const t = teamOf(r.team);
             return (
@@ -73,10 +73,10 @@ const UserTeamsDialog = ({ user, teams, onOpenChange, onSaved }) => {
           <Button variant="outline" size="sm" className="w-fit" disabled={!free.length} onClick={() => setRows((rs) => [...rs, { team: String(free[0]._id), subRole: "", isLead: false }])}>
             <Plus className="h-4 w-4 mr-1" /> Add to a team
           </Button>
-          {user.role === "admin" && <p className="text-xs text-gray-500">This person is an admin, so they already see every team.</p>}
+          {user.role === "admin" && <p className="text-xs text-muted-foreground">This person is an admin, so they already see every team.</p>}
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving} className="bg-blue-600 hover:bg-blue-700">{saving ? "Saving..." : "Save teams"}</Button>
+            <Button onClick={save} disabled={saving} className="">{saving ? "Saving..." : "Save teams"}</Button>
           </div>
         </div>
       </DialogContent>

@@ -48,9 +48,9 @@ const setPath = (obj, path, value) => {
 };
 
 const STATUS_STYLE = {
-  create: "text-blue-700 bg-blue-50",
+  create: "text-brand bg-blue-50",
   created: "text-green-700 bg-green-50",
-  exists: "text-gray-600 bg-gray-100",
+  exists: "text-muted-foreground bg-gray-100",
   invalid: "text-amber-700 bg-amber-50",
   failed: "text-red-700 bg-red-50",
 };
@@ -139,21 +139,21 @@ const ImportLeads = () => {
           </Button>
           <div>
             <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-              <FileUp className="h-6 w-6 text-blue-600" /> Import leads from CSV
+              <FileUp className="h-6 w-6 text-brand" /> Import leads from CSV
             </h1>
-            <p className="text-sm text-gray-500">Upload a sheet, match its columns, preview, then import. Brands already in the CRM are skipped, never duplicated.</p>
+            <p className="text-sm text-muted-foreground">Upload a sheet, match its columns, preview, then import. Brands already in the CRM are skipped, never duplicated.</p>
           </div>
         </div>
 
         <Card>
           <CardContent className="p-5 space-y-3">
             <Label className="font-medium">1. Choose a CSV file</Label>
-            <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800">
-              <Upload className="h-6 w-6 text-gray-400 mb-2" />
+            <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 cursor-pointer hover:bg-accent">
+              <Upload className="h-6 w-6 text-muted-foreground/70 mb-2" />
               <span className="text-sm">{fileName || "Click to choose a .csv file (export from Excel or Google Sheets as CSV)"}</span>
               <input type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
             </label>
-            {records.length > 0 && <p className="text-sm text-gray-600">{records.length} rows · {headers.length} columns</p>}
+            {records.length > 0 && <p className="text-sm text-muted-foreground">{records.length} rows · {headers.length} columns</p>}
           </CardContent>
         </Card>
 
@@ -164,7 +164,7 @@ const ImportLeads = () => {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {FIELDS.map((f) => (
                   <div key={f.key} className="grid gap-1">
-                    <span className="text-xs text-gray-600">{f.label}</span>
+                    <span className="text-xs text-muted-foreground">{f.label}</span>
                     <Select value={mapping[f.key] || NONE} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === NONE ? undefined : v }))}>
                       <SelectTrigger className="h-9">
                         <SelectValue />
@@ -192,7 +192,7 @@ const ImportLeads = () => {
                   ["serviceType", "Default service", SERVICE_OPTIONS],
                 ].map(([key, label, opts]) => (
                   <div key={key} className="grid gap-1">
-                    <span className="text-xs text-gray-600">{label}</span>
+                    <span className="text-xs text-muted-foreground">{label}</span>
                     <Select value={defaults[key]} onValueChange={(v) => setDefaults((d) => ({ ...d, [key]: v }))} disabled={!createLeads}>
                       <SelectTrigger className="h-9">
                         <SelectValue />
@@ -216,7 +216,7 @@ const ImportLeads = () => {
                 <Button
                   onClick={() => send(false)}
                   disabled={busy || !result?.dryRun || !result.summary.create}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-primary hover:bg-primary/90"
                   title={!result?.dryRun ? "Preview first" : ""}
                 >
                   4. Import {result?.dryRun ? result.summary.create : ""} new
@@ -258,7 +258,7 @@ const ImportLeads = () => {
                         <TableCell>
                           <span className={`text-xs rounded px-2 py-0.5 ${STATUS_STYLE[r.status] || ""}`}>{r.status}</span>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">{r.message || ""}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{r.message || ""}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

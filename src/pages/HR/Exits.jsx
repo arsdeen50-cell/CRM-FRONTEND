@@ -51,7 +51,7 @@ export const StartExitDialog = ({ people, userId, onClose, onStarted }) => {
             <div className="grid gap-1"><Label>Last working day</Label><Input type="date" value={f.lastWorkingDay} onChange={(e) => setF({ ...f, lastWorkingDay: e.target.value })} /></div>
           </div>
           <div className="grid gap-1"><Label>Reason (internal)</Label><Textarea rows={2} value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} /></div>
-          <div className="flex justify-end gap-2"><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={save} className="bg-emerald-600 hover:bg-emerald-700">Start exit</Button></div>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={save} className="">Start exit</Button></div>
         </div>
       </DialogContent>
     </Dialog>
@@ -79,21 +79,21 @@ const Exits = () => {
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
         <HrHeader icon={DoorOpen} title="Exits" subtitle="Notice periods, handover, access cut-off, full & final settlement and letters.">
-          <Button onClick={() => setStarting(true)} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="h-4 w-4 mr-1" /> Start an exit</Button>
+          <Button onClick={() => setStarting(true)} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> Start an exit</Button>
         </HrHeader>
         <Card><CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader><TableRow><TableHead>Person</TableHead><TableHead>Type</TableHead><TableHead>Last working day</TableHead><TableHead>Checklist</TableHead><TableHead>Settlement</TableHead><TableHead>CRM login</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
             <TableBody>
-              {rows.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-gray-500">No exits yet.</TableCell></TableRow>}
+              {rows.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">No exits yet.</TableCell></TableRow>}
               {rows.map((r) => (
                 <TableRow key={r.user._id} className="cursor-pointer" onClick={() => navigate(`/hr/exits/${r.user._id}`)}>
-                  <TableCell><p className="font-medium">{r.user.fullname}</p><p className="text-xs text-gray-500">{r.designation || r.user.email}</p></TableCell>
+                  <TableCell><p className="font-medium">{r.user.fullname}</p><p className="text-xs text-muted-foreground">{r.designation || r.user.email}</p></TableCell>
                   <TableCell>{r.exit?.type || "—"}</TableCell>
                   <TableCell>{fmtDate(r.exit?.lastWorkingDay)}</TableCell>
                   <TableCell>{r.exit ? `${r.exit.checklistDone}/${r.exit.checklistTotal}` : "—"}</TableCell>
                   <TableCell>{r.exit?.settlement?.status || "—"}</TableCell>
-                  <TableCell>{r.user.isActive === false ? <span className="text-xs rounded-full px-2 py-0.5 bg-gray-100 text-gray-600">Off</span> : <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">Active</span>}</TableCell>
+                  <TableCell>{r.user.isActive === false ? <span className="text-xs rounded-full px-2 py-0.5 bg-gray-100 text-muted-foreground">Off</span> : <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">Active</span>}</TableCell>
                   <TableCell><span className={`text-xs rounded-full px-2 py-0.5 ${r.exit?.status === "Completed" ? "bg-slate-100 text-slate-600" : "bg-amber-100 text-amber-800"}`}>{r.exit?.status || r.status}</span></TableCell>
                 </TableRow>
               ))}

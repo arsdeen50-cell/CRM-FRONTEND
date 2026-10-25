@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import DatePickerWithRange from "@/components/DatePickerWithRange";
 import useAttendance from "@/hooks/useAttendance";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const AttendanceTable = ({ attendanceRecords }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -106,7 +107,7 @@ const AttendanceTable = ({ attendanceRecords }) => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this attendance record?")) return;
+    if (!await confirmDialog("Are you sure you want to delete this attendance record?")) return;
 
     try {
       const success = await deleteAttendance(id);
@@ -188,7 +189,7 @@ const AttendanceTable = ({ attendanceRecords }) => {
                     <TableCell>
                       <div className="flex items-center gap-x-4">
                         <button
-                          className="text-blue-500 dark:text-blue-600"
+                          className="text-blue-500 dark:text-brand"
                           onClick={() => openEditModal(record)}
                         >
                           <PencilLine size={20} />
@@ -220,7 +221,7 @@ const AttendanceTable = ({ attendanceRecords }) => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan="9" className="py-4 text-center text-gray-500">
+                  <TableCell colSpan="9" className="py-4 text-center text-muted-foreground">
                     No attendance records found.
                   </TableCell>
                 </TableRow>

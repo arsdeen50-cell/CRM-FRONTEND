@@ -51,7 +51,7 @@ const FilePreview = ({ file, onRemove, index }) => {
                         alt="PDF"
                         className="w-12 h-12 object-contain mb-1"
                     />
-                    <span className="text-xs text-blue-600 font-medium">PDF</span>
+                    <span className="text-xs text-brand font-medium">PDF</span>
                 </div>
             );
         } else if (isDocument) {
@@ -71,7 +71,7 @@ const FilePreview = ({ file, onRemove, index }) => {
                     <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center mb-1">
                         <span className="text-lg">📄</span>
                     </div>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-muted-foreground">
                         {file.name.split('.').pop()?.toUpperCase() || 'FILE'}
                     </span>
                 </div>
@@ -129,7 +129,7 @@ const FilePreview = ({ file, onRemove, index }) => {
                 <div className="text-xs text-gray-700 font-medium truncate max-w-24">
                     {file.name.length > 18 ? file.name.substring(0, 15) + '...' : file.name}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                     {(file.size / 1024).toFixed(1)} KB
                 </div>
             </div>

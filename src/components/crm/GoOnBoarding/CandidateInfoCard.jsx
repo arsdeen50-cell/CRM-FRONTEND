@@ -17,7 +17,7 @@ import ExistingFilePreview from "./ExistingFilePreview";
 
 const InfoItem = ({ label, value }) => (
     <div className="bg-gray-50 p-3 rounded-lg border">
-        <p className="text-sm text-gray-500">{label}</p>
+        <p className="text-sm text-muted-foreground">{label}</p>
         <p className="font-medium text-gray-800">{value || "Not provided"}</p>
     </div>
 );
@@ -76,7 +76,7 @@ const CandidateInfoCard = ({ candidateData }) => {
                     {/* Banking Info */}
                     {hasBankingInfo && (
                         <section>
-                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-indigo-700">
+                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-brand">
                                 <FileText className="h-5 w-5" />
                                 Banking & Statutory Information
                             </h3>

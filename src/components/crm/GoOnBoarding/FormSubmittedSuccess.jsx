@@ -13,7 +13,7 @@ const FormSubmittedSuccess = () => {
             Form Submitted Successfully!
           </h3>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-muted-foreground">
             Thank you for submitting your details. We will contact you soon.
           </p>
 

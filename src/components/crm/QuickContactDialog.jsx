@@ -23,6 +23,7 @@ import {
   fromDateInput,
   googleCalendarUrl,
 } from "@/lib/crmOutreach";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const CHANNELS = [
   { key: "Email", icon: Mail },
@@ -110,7 +111,7 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
   // Send directly from the CRM (server email / WhatsApp Business API). The server logs the activity itself.
   const sendNow = async () => {
     if (!lead?._id) return;
-    if (/\[(\w+)\]/.test(`${subject} ${body}`) && !window.confirm("The message still has [bracketed] gaps. Send anyway?")) return;
+    if (/\[(\w+)\]/.test(`${subject} ${body}`) && !await confirmDialog("The message still has [bracketed] gaps. Send anyway?")) return;
     setSending(true);
     try {
       const nextFollowUpDate = nextDate ? fromDateInput(nextDate).toISOString() : "";
@@ -180,7 +181,7 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
             </Button>
           ))}
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           {email ? `Email: ${email}` : "No real email on file"} · {phone ? `Phone: ${phone}` : "No real phone on file"}
           {client.location ? ` · ${client.location}` : ""}
         </p>
@@ -218,7 +219,7 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
           </div>
           <div className="flex flex-wrap gap-2">
             {(canSendEmail || canSendWhatsApp) && (
-              <Button type="button" onClick={sendNow} disabled={sending || !body.trim() || (channel === "Email" && !subject.trim())} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button type="button" onClick={sendNow} disabled={sending || !body.trim() || (channel === "Email" && !subject.trim())} className="">
                 <Send className="h-4 w-4 mr-1" /> {sending ? "Sending..." : channel === "Email" ? "Send from CRM" : "Send via WhatsApp API"}
               </Button>
             )}
@@ -277,7 +278,7 @@ const QuickContactDialog = ({ open, onOpenChange, lead, onLogged }) => {
                 </a>
               </Button>
             )}
-            <Button type="button" onClick={logIt} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="button" onClick={logIt} disabled={saving} className="">
               {saving ? "Saving..." : "Save to activity log"}
             </Button>
           </div>

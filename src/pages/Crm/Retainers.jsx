@@ -3,6 +3,7 @@ import { Repeat2, Plus, Edit, Trash2, Receipt, CalendarRange, RotateCw } from "l
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import CrmRoute from "@/components/crm/CrmRoute";
+import RowActions from "@/components/ui/row-actions";
 import PageHeader, { Stat, Pill } from "@/components/crm/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,10 +16,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import axiosInstance from "@/utils/axiosConfig";
 import { money, day, errMsg } from "@/lib/publicApi";
 import { toDateInput } from "@/lib/crmOutreach";
+import { confirmDialog, promptDialog } from "@/components/ui/app-dialogs";
 
 const TYPES = ["Post", "Reel", "Story", "Carousel", "Video", "Blog", "Ad", "Newsletter", "Other"];
 const PLATFORMS = ["Instagram", "Facebook", "LinkedIn", "YouTube", "X", "Website", "Email", "Other"];
-const STATUS_STYLE = { Active: "bg-green-100 text-green-700", Paused: "bg-amber-100 text-amber-800", Ended: "bg-gray-100 text-gray-500" };
+const STATUS_STYLE = { Active: "bg-green-100 text-green-700", Paused: "bg-amber-100 text-amber-800", Ended: "bg-gray-100 text-muted-foreground" };
 const thisMonth = () => new Date(Date.now() + 330 * 60000).toISOString().slice(0, 7);
 
 const RetainerEditor = ({ open, onOpenChange, retainer, clients, onSaved }) => {
@@ -107,7 +109,7 @@ const RetainerEditor = ({ open, onOpenChange, retainer, clients, onSaved }) => {
             </div>
           </div>
           <div className="grid gap-1"><Label>Notes</Label><Textarea rows={2} value={f.notes} onChange={(e) => set("notes", e.target.value)} /></div>
-          <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save} className="bg-blue-600 hover:bg-blue-700">Save retainer</Button></div>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save} className="">Save retainer</Button></div>
         </div>
       </DialogContent>
     </Dialog>
@@ -149,7 +151,7 @@ const Retainers = () => {
     }
   };
   const renew = async (r) => {
-    const months = window.prompt(`Renew "${r.name}" for how many months?`, String(r.renewalMonths || 12));
+    const months = await promptDialog(`Renew "${r.name}" for how many months?`, String(r.renewalMonths || 12));
     if (!months) return;
     try {
       await axiosInstance.post(`/v1/retainer/${r._id}/renew`, { months: Number(months) });
@@ -160,7 +162,7 @@ const Retainers = () => {
     }
   };
   const remove = async (r) => {
-    if (!window.confirm(`Delete "${r.name}"? Invoices already raised are kept.`)) return;
+    if (!await confirmDialog(`Delete "${r.name}"? Invoices already raised are kept.`)) return;
     await axiosInstance.delete(`/v1/retainer/${r._id}`).catch(() => {});
     load();
   };
@@ -169,7 +171,7 @@ const Retainers = () => {
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={Repeat2} title="Retainers & renewals" subtitle="Monthly contracts: recurring revenue, upcoming renewals and automatic monthly invoices.">
-          <Button onClick={() => setEditing(null)} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New retainer</Button>
+          <Button onClick={() => setEditing(null)} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> New retainer</Button>
         </PageHeader>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Stat label="MRR (monthly recurring)" value={money(s.mrr).replace(/\.00$/, "")} sub={`${s.active || 0} active retainers`} />
@@ -192,25 +194,30 @@ const Retainers = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(data?.retainers || []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-gray-500">{data ? "No retainers yet." : "Loading..."}</TableCell></TableRow>}
+                {(data?.retainers || []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">{data ? "No retainers yet." : "Loading..."}</TableCell></TableRow>}
                 {(data?.retainers || []).map((r) => (
                   <TableRow key={r._id} className={r.renewalDue ? "bg-amber-50 dark:bg-amber-950" : ""}>
-                    <TableCell><p className="font-medium">{r.clientName}</p><p className="text-xs text-gray-500">{r.name}{r.accountManager ? ` · ${r.accountManager}` : ""}</p></TableCell>
+                    <TableCell><p className="font-medium">{r.clientName}</p><p className="text-xs text-muted-foreground">{r.name}{r.accountManager ? ` · ${r.accountManager}` : ""}</p></TableCell>
                     <TableCell className="text-right whitespace-nowrap">{money(r.monthlyFee).replace(/\.00$/, "")}{r.unpaid > 0 && <div className="text-xs text-red-600">{money(r.unpaid).replace(/\.00$/, "")} unpaid</div>}</TableCell>
                     <TableCell className="text-xs">{(r.deliverables || []).filter((d) => d.perMonth).map((d) => `${d.perMonth} ${d.platform} ${d.type}s`).join(", ") || "—"}</TableCell>
                     <TableCell className="text-sm whitespace-nowrap">
                       {day(r.startDate)} → {r.endDate ? day(r.endDate) : "open"}
-                      {r.daysToEnd !== null && r.status === "Active" && <div className={`text-xs ${r.renewalDue ? "text-amber-700 font-medium" : "text-gray-500"}`}>{r.daysToEnd < 0 ? "ended" : `${r.daysToEnd} days left`}{r.autoRenew ? " · auto-renews" : ""}</div>}
+                      {r.daysToEnd !== null && r.status === "Active" && <div className={`text-xs ${r.renewalDue ? "text-amber-700 font-medium" : "text-muted-foreground"}`}>{r.daysToEnd < 0 ? "ended" : `${r.daysToEnd} days left`}{r.autoRenew ? " · auto-renews" : ""}</div>}
                     </TableCell>
-                    <TableCell className="text-xs">Day {r.billingDay}{r.autoInvoice ? (r.autoSendInvoice ? " · auto-send" : " · auto draft") : " · manual"}<div className="text-gray-500">{r.lastInvoicedPeriod ? `last: ${r.lastInvoicedPeriod}` : "not invoiced yet"}</div></TableCell>
+                    <TableCell className="text-xs">Day {r.billingDay}{r.autoInvoice ? (r.autoSendInvoice ? " · auto-send" : " · auto draft") : " · manual"}<div className="text-muted-foreground">{r.lastInvoicedPeriod ? `last: ${r.lastInvoicedPeriod}` : "not invoiced yet"}</div></TableCell>
                     <TableCell><Pill className={STATUS_STYLE[r.status]}>{r.status}</Pill></TableCell>
                     <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" title="Create this month's invoice" className="text-emerald-600" onClick={() => invoiceNow(r)}><Receipt className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Add this month's deliverables to the content calendar" className="text-blue-600" onClick={() => plan(r)}><CalendarRange className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Renew now" onClick={() => renew(r)}><RotateCw className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Edit" onClick={() => setEditing(r)}><Edit className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Delete" className="text-red-600" onClick={() => remove(r)}><Trash2 className="h-4 w-4" /></Button>
+                      <div className="flex items-center justify-end gap-0.5 whitespace-nowrap">
+                        <Button size="sm" variant="ghost" className="h-8" title="Create this month's invoice" onClick={() => invoiceNow(r)}><Receipt className="h-4 w-4 mr-1" /> Invoice</Button>
+                        <RowActions
+                          items={[
+                            { label: "Plan this month's content", icon: CalendarRange, onClick: () => plan(r) },
+                            { label: "Renew now", icon: RotateCw, onClick: () => renew(r) },
+                            { label: "Edit", icon: Edit, onClick: () => setEditing(r) },
+                            "-",
+                            { label: "Delete", icon: Trash2, onClick: () => remove(r), danger: true },
+                          ]}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

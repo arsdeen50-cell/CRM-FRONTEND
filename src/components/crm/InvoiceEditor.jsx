@@ -115,7 +115,7 @@ const InvoiceEditor = ({ open, onOpenChange, invoice, clients = [], onSaved }) =
             <div className="grid gap-1"><Label>Invoice date</Label><Input type="date" value={f.issueDate} onChange={(e) => set("issueDate", e.target.value)} /></div>
             <div className="grid gap-1"><Label>Due date</Label><Input type="date" value={f.dueDate} onChange={(e) => set("dueDate", e.target.value)} /></div>
           </div>
-          <div className="text-sm bg-gray-50 dark:bg-slate-800 rounded-md p-3 grid gap-1 sm:w-72 sm:ml-auto">
+          <div className="text-sm bg-muted/60 rounded-md p-3 grid gap-1 sm:w-72 sm:ml-auto">
             <div className="flex justify-between"><span>Taxable value</span><span>{money(totals.taxable)}</span></div>
             {f.interState ? (
               <div className="flex justify-between"><span>IGST {f.taxPercent}%</span><span>{money(totals.tax)}</span></div>
@@ -133,7 +133,7 @@ const InvoiceEditor = ({ open, onOpenChange, invoice, clients = [], onSaved }) =
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving} className="bg-blue-600 hover:bg-blue-700">{saving ? "Saving..." : "Save invoice"}</Button>
+            <Button onClick={save} disabled={saving} className="">{saving ? "Saving..." : "Save invoice"}</Button>
           </div>
         </div>
       </DialogContent>

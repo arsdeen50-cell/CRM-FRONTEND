@@ -50,7 +50,7 @@ const SignaturePad = ({ onChange }) => {
   return (
     <div>
       <canvas ref={ref} className="w-full h-32 border border-dashed border-gray-400 rounded-md bg-white touch-none" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
-      <button type="button" onClick={clear} className="text-xs text-gray-500 underline mt-1">Clear signature</button>
+      <button type="button" onClick={clear} className="text-xs text-muted-foreground underline mt-1">Clear signature</button>
     </div>
   );
 };
@@ -88,7 +88,7 @@ const PublicProposal = () => {
       setError(errMsg(err));
     }
   };
-  if (!p) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600 p-4">{error || "Loading proposal..."}</div>;
+  if (!p) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-muted-foreground p-4">{error || "Loading proposal..."}</div>;
   const cur = p.currency;
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 text-gray-900" style={{ colorScheme: "light" }}>
@@ -96,8 +96,8 @@ const PublicProposal = () => {
         <div className="flex flex-wrap justify-between gap-4">
           <div>
             <p className="text-2xl font-bold">{p.company?.name}</p>
-            <p className="text-sm text-gray-500">{p.company?.tagline}</p>
-            <p className="text-xs text-gray-500 mt-1">{[p.company?.address, p.company?.email, p.company?.phone].filter(Boolean).join(" · ")}</p>
+            <p className="text-sm text-muted-foreground">{p.company?.tagline}</p>
+            <p className="text-xs text-muted-foreground mt-1">{[p.company?.address, p.company?.email, p.company?.phone].filter(Boolean).join(" · ")}</p>
           </div>
           <div className="text-right text-sm">
             <p className="text-lg font-semibold">Proposal {p.proposalNo}</p>
@@ -106,7 +106,7 @@ const PublicProposal = () => {
           </div>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Prepared for</p>
+          <p className="text-xs text-muted-foreground">Prepared for</p>
           <p className="font-semibold text-lg">{p.clientName}</p>
           {p.contactPerson && <p className="text-sm">{p.contactPerson}</p>}
         </div>
@@ -120,7 +120,7 @@ const PublicProposal = () => {
             <tbody>
               {p.items.map((it, i) => (
                 <tr key={i} className="border-b">
-                  <td className="p-2"><p className="font-medium">{it.service}</p>{it.description && <p className="text-xs text-gray-500">{it.description}</p>}</td>
+                  <td className="p-2"><p className="font-medium">{it.service}</p>{it.description && <p className="text-xs text-muted-foreground">{it.description}</p>}</td>
                   <td className="p-2 text-right whitespace-nowrap">{it.quantity} {it.unit}</td>
                   <td className="p-2 text-right whitespace-nowrap">{money(it.rate, cur)}</td>
                   <td className="p-2 text-right whitespace-nowrap">{money(it.quantity * it.rate, cur)}</td>
@@ -135,8 +135,8 @@ const PublicProposal = () => {
           <div className="flex justify-between"><span>GST ({p.taxPercent}%)</span><span>{money(p.tax, cur)}</span></div>
           <div className="flex justify-between font-semibold text-base border-t pt-1"><span>Total</span><span>{money(p.total, cur)}</span></div>
         </div>
-        {p.terms && <div><p className="font-semibold text-sm">Terms</p><p className="text-sm text-gray-600 whitespace-pre-wrap">{p.terms}</p></div>}
-        <a href={`${backend_url}/v1/public/proposal/${token}/pdf`} target="_blank" rel="noreferrer" className="inline-block text-sm text-blue-600 underline">Download PDF</a>
+        {p.terms && <div><p className="font-semibold text-sm">Terms</p><p className="text-sm text-muted-foreground whitespace-pre-wrap">{p.terms}</p></div>}
+        <a href={`${backend_url}/v1/public/proposal/${token}/pdf`} target="_blank" rel="noreferrer" className="inline-block text-sm text-brand underline">Download PDF</a>
 
         {p.status === "Accepted" && (
           <div className="bg-green-50 border border-green-200 rounded-md p-4 text-green-800">
@@ -153,7 +153,7 @@ const PublicProposal = () => {
               <input className="border rounded-md px-3 py-2 text-sm" placeholder="Title (e.g. Founder)" value={sign.title} onChange={(e) => setSign({ ...sign, title: e.target.value })} />
               <input className="border rounded-md px-3 py-2 text-sm" type="email" placeholder="Email" value={sign.email} onChange={(e) => setSign({ ...sign, email: e.target.value })} />
             </div>
-            <div><p className="text-sm text-gray-600 mb-1">Sign below</p><SignaturePad onChange={(signature) => setSign((s) => ({ ...s, signature }))} /></div>
+            <div><p className="text-sm text-muted-foreground mb-1">Sign below</p><SignaturePad onChange={(signature) => setSign((s) => ({ ...s, signature }))} /></div>
             <label className="flex items-start gap-2 text-sm">
               <input type="checkbox" className="mt-1" checked={sign.agree} onChange={(e) => setSign({ ...sign, agree: e.target.checked })} />
               <span>I agree to this proposal, its pricing of {money(p.total, cur)} and the terms above, on behalf of {p.clientName}. My typed name and signature count as my signature.</span>

@@ -1,11 +1,12 @@
 import { useTheme } from "@/hooks/use-theme";
 
-import { Bell, ChevronsLeft, LogOut, Moon, Search, Sun, User2 } from "lucide-react";
+import { LogOut, Moon, PanelLeft, Search, Sun, User2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import CommandPalette from "@/components/CommandPalette";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 
-import profileImg from "@/assets/profile-image.jpg";
 
 import PropTypes from "prop-types";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
@@ -55,95 +56,69 @@ export const Header = ({ collapsed, setCollapsed }) => {
         return color;
     };
 
+    const [searchOpen, setSearchOpen] = useState(false);
+    useEffect(() => {
+        const onKey = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                setSearchOpen((o) => !o);
+            }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, []);
+    const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
+
+    const avatar = (size = "h-8 w-8", text = "text-sm") =>
+        user?.profile?.profilePhoto ? (
+            <Avatar className={size}><AvatarImage src={user.profile.profilePhoto} alt="Profile" /></Avatar>
+        ) : (
+            <div className={`flex ${size} items-center justify-center rounded-full ${text} font-semibold text-white`} style={{ backgroundColor: stringToColor(user?.fullname || "Guest") }}>
+                {(user?.fullname?.[0] || "G").toUpperCase()}
+            </div>
+        );
+
     return (
-        <header className="relative z-10 flex h-[60px] items-center justify-between bg-white px-4 shadow-md transition-colors dark:bg-slate-900">
-            <div className="flex items-center gap-x-3">
-                <button
-                    className="btn-ghost size-10"
-                    onClick={() => setCollapsed(!collapsed)}
-                >
-                    <ChevronsLeft className={collapsed && "rotate-180"} />
+        <header className="sticky top-0 z-40 flex h-[60px] items-center justify-between gap-3 border-b border-border bg-card/90 px-3 backdrop-blur md:px-5">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+                <button className="btn-ghost size-9 shrink-0" onClick={() => setCollapsed(!collapsed)} title={collapsed ? "Open menu" : "Collapse menu"}>
+                    <PanelLeft className="h-5 w-5" />
+                </button>
+                <button onClick={() => setSearchOpen(true)} className="flex h-9 w-full min-w-0 max-w-sm items-center gap-2 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground transition-colors hover:border-ring/40 hover:text-foreground">
+                    <Search className="h-4 w-4 shrink-0" />
+                    <span className="truncate">Search pages, clients, people...</span>
+                    <kbd className="ml-auto hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium sm:inline">{isMac ? "⌘" : "Ctrl"} K</kbd>
                 </button>
             </div>
-            <div className="flex items-center gap-x-3">
-                <button
-                    className="btn-ghost size-10"
-                    onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                >
-                    <Sun
-                        size={20}
-                        className="dark:hidden"
-                    />
-                    <Moon
-                        size={20}
-                        className="hidden dark:block"
-                    />
+            <div className="flex shrink-0 items-center gap-1">
+                <button className="btn-ghost size-9 shrink-0" onClick={() => setTheme(theme === "light" ? "dark" : "light")} title="Light / dark">
+                    <Sun size={18} className="dark:hidden" />
+                    <Moon size={18} className="hidden dark:block" />
                 </button>
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Avatar className="cursor-pointer">
-                            {user?.profile?.profilePhoto ? (
-                                <AvatarImage
-                                    src={user.profile.profilePhoto}
-                                    alt="Profile"
-                                />
-                            ) : (
-                                <div
-                                    className="flex h-full w-full items-center justify-center rounded-full text-xl font-semibold text-white"
-                                    style={{
-                                        backgroundColor: stringToColor(user?.fullname || "Guest"),
-                                    }}
-                                >
-                                    {(user?.fullname?.[0] || "G").toUpperCase()}
-                                </div>
-                            )}
-                        </Avatar>
+                        <button className="ml-1 flex items-center gap-2 rounded-full p-0.5 pr-2 hover:bg-accent" title="Account">
+                            {avatar()}
+                            <span className="hidden max-w-[140px] truncate text-sm font-medium lg:block">{user?.fullname?.split(" ")[0]}</span>
+                        </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80">
-                        <div className="mb-4 flex gap-4 dark:text-blue-600">
-                            <Avatar className="cursor-pointer">
-                                {user?.profile?.profilePhoto ? (
-                                    <AvatarImage
-                                        src={user.profile.profilePhoto}
-                                        alt="Profile"
-                                    />
-                                ) : (
-                                    <div
-                                        className="flex h-full w-full items-center justify-center rounded-full text-xl font-semibold text-white"
-                                        style={{
-                                            backgroundColor: stringToColor(user?.fullname || "Guest"),
-                                        }}
-                                    >
-                                        {(user?.fullname?.[0] || "G").toUpperCase()}
-                                    </div>
-                                )}
-                            </Avatar>
-
-                            <div>
-                                <h4 className="font-medium dark:text-blue-600">{user?.fullname || "Guest"}</h4>
-                                <p className="text-sm text-muted-foreground">{user?.email || "No bio available"}</p>
+                    <PopoverContent align="end" className="w-72 p-0">
+                        <div className="flex items-center gap-3 border-b border-border p-4">
+                            {avatar("h-10 w-10", "text-base")}
+                            <div className="min-w-0">
+                                <p className="truncate font-medium">{user?.fullname || "Guest"}</p>
+                                <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
+                                <p className="text-xs capitalize text-muted-foreground">{user?.role}</p>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-1 text-gray-600">
-                            {/* <div className="flex items-center gap-2">
-        <User2 size={18} />
-        <Button variant="link" asChild>
-          <Link to="/profile">View Profile</Link>
-        </Button>
-      </div> */}
-                            <div className="flex items-center gap-2">
-                                <LogOut size={18} />
-                                <Button
-                                    variant="link"
-                                    onClick={logOutHandler}
-                                >
-                                    Logout
-                                </Button>
-                            </div>
+                        <div className="p-1">
+                            <Link to={`/hr/people/${user?._id}`} className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent"><User2 size={16} /> My profile</Link>
+                            <button onClick={logOutHandler} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-accent"><LogOut size={16} /> Log out</button>
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
+            <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
         </header>
     );
 };

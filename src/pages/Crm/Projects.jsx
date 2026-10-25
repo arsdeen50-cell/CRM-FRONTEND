@@ -11,13 +11,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/hooks/Pipelineconstants";
 import axiosInstance from "@/utils/axiosConfig";
 import { fromDateInput, realEmail, toDateInput } from "@/lib/crmOutreach";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const STATUS_STYLE = {
   Planning: "bg-slate-100 text-slate-700",
-  "In Progress": "bg-blue-100 text-blue-700",
+  "In Progress": "bg-blue-100 text-brand",
   "On Hold": "bg-amber-100 text-amber-700",
   Completed: "bg-green-100 text-green-700",
-  Cancelled: "bg-gray-100 text-gray-500",
+  Cancelled: "bg-gray-100 text-muted-foreground",
 };
 
 /* Delivery projects. Created automatically when a lead is marked Won or a proposal is accepted;
@@ -58,7 +59,7 @@ const Projects = () => {
   const welcome = async (p) => {
     const email = realEmail(p.clientId);
     if (!email) return toast.error("This client has no real email address on file");
-    if (!window.confirm(`Send the welcome email to ${email} from the CRM's mail account?`)) return;
+    if (!await confirmDialog(`Send the welcome email to ${email} from the CRM's mail account?`)) return;
     try {
       const res = await axiosInstance.post(`/v1/project/${p._id}/welcome-email`);
       toast.success(res.data.message);
@@ -68,7 +69,7 @@ const Projects = () => {
   };
 
   const remove = async (p) => {
-    if (!window.confirm(`Delete project ${p.projectNo}? The lead stays Won.`)) return;
+    if (!await confirmDialog(`Delete project ${p.projectNo}? The lead stays Won.`)) return;
     try {
       await axiosInstance.delete(`/v1/project/${p._id}`);
       toast.success("Project deleted");
@@ -91,9 +92,9 @@ const Projects = () => {
             </Button>
             <div>
               <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-                <Briefcase className="h-6 w-6 text-blue-600" /> Projects
+                <Briefcase className="h-6 w-6 text-brand" /> Projects
               </h1>
-              <p className="text-sm text-gray-500">Won deals turn into projects automatically, with a kickoff task for the account owner.</p>
+              <p className="text-sm text-muted-foreground">Won deals turn into projects automatically, with a kickoff task for the account owner.</p>
             </div>
           </div>
           <Select value={filter} onValueChange={setFilter}>
@@ -106,9 +107,9 @@ const Projects = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Card><CardContent className="p-4"><p className="text-sm text-gray-500">Projects</p><p className="text-2xl font-semibold">{projects.length}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-sm text-gray-500">Active</p><p className="text-2xl font-semibold">{projects.filter((p) => ["Planning", "In Progress"].includes(p.status)).length}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-sm text-gray-500">Active value</p><p className="text-2xl font-semibold">{formatCurrency(activeValue)}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Projects</p><p className="text-2xl font-semibold">{projects.length}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Active</p><p className="text-2xl font-semibold">{projects.filter((p) => ["Planning", "In Progress"].includes(p.status)).length}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Active value</p><p className="text-2xl font-semibold">{formatCurrency(activeValue)}</p></CardContent></Card>
         </div>
 
         <Card>
@@ -128,11 +129,11 @@ const Projects = () => {
               </TableHeader>
               <TableBody>
                 {shown.length === 0 && (
-                  <TableRow><TableCell colSpan={8} className="text-center py-10 text-gray-500">{loading ? "Loading..." : "No projects yet. Mark a lead as Won to create one."}</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : "No projects yet. Mark a lead as Won to create one."}</TableCell></TableRow>
                 )}
                 {shown.map((p) => (
                   <TableRow key={p._id}>
-                    <TableCell><div className="font-medium">{p.name}</div><div className="text-xs text-gray-500">{p.projectNo} · {p.leadId?.series}</div></TableCell>
+                    <TableCell><div className="font-medium">{p.name}</div><div className="text-xs text-muted-foreground">{p.projectNo} · {p.leadId?.series}</div></TableCell>
                     <TableCell>{p.clientId?.brandName || p.clientName}</TableCell>
                     <TableCell className="text-sm">{(p.services || []).join(", ") || "—"}</TableCell>
                     <TableCell>

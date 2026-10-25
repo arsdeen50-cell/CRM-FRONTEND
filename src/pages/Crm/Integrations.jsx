@@ -11,15 +11,15 @@ const Row = ({ on, title, children, vars, url }) => (
   <Card>
     <CardContent className="p-4 space-y-2">
       <div className="flex items-center gap-2">
-        {on ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <CircleDashed className="h-5 w-5 text-gray-400" />}
+        {on ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <CircleDashed className="h-5 w-5 text-muted-foreground/70" />}
         <p className="font-medium">{title}</p>
-        <span className={`text-xs rounded-full px-2 py-0.5 ${on ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>{on ? "On" : "Off"}</span>
+        <span className={`text-xs rounded-full px-2 py-0.5 ${on ? "bg-green-100 text-green-700" : "bg-gray-100 text-muted-foreground"}`}>{on ? "On" : "Off"}</span>
       </div>
-      <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">{children}</div>
-      {vars && <p className="text-xs text-gray-500">Server variables: <code className="bg-gray-100 dark:bg-slate-800 px-1 rounded">{vars}</code></p>}
+      <div className="text-sm text-muted-foreground dark:text-gray-300 space-y-1">{children}</div>
+      {vars && <p className="text-xs text-muted-foreground">Server variables: <code className="bg-gray-100 dark:bg-slate-800 px-1 rounded">{vars}</code></p>}
       {url && (
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-gray-500">Webhook URL:</span>
+          <span className="text-muted-foreground">Webhook URL:</span>
           <code className="bg-gray-100 dark:bg-slate-800 px-1 rounded break-all">{url}</code>
           <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => navigator.clipboard.writeText(url).then(() => toast.success("Copied"))}><Copy className="h-3 w-3" /></Button>
         </div>
@@ -57,7 +57,7 @@ const Integrations = () => {
         <Row on={i.automation?.retainerBilling} title="Monthly retainer invoices" vars="optional RETAINER_BILLING_DISABLED=true · INVOICE_PREFIX, COMPANY_GSTIN, COMPANY_BANK_NAME, COMPANY_BANK_ACCOUNT, COMPANY_BANK_IFSC, COMPANY_UPI_ID">
           <p>On each retainer's billing day a draft invoice is created (or sent, if "auto-send" is ticked on the retainer). Contracts auto-renew or end on their end date.</p>
         </Row>
-        <p className="text-xs text-gray-500">Public links use {i.appUrl || "CRM_APP_URL"} (CRM_APP_URL) and tracking uses {i.publicApiUrl || "CRM_API_PUBLIC_URL"}.</p>
+        <p className="text-xs text-muted-foreground">Public links use {i.appUrl || "CRM_APP_URL"} (CRM_APP_URL) and tracking uses {i.publicApiUrl || "CRM_API_PUBLIC_URL"}.</p>
       </div>
     </CrmRoute>
   );

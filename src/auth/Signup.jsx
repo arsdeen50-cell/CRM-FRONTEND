@@ -1,5 +1,6 @@
 // Signup.js - Updated (don't store file in localStorage)
 
+import AuthShell from "./AuthShell";
 import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -78,26 +79,11 @@ const Signup = () => {
     };
 
     return (
-        <div>
-            <div className="mx-auto flex max-w-7xl flex-col items-center justify-center py-10">
-                <div className="flex w-[60%] items-center justify-center p-3 text-center">
-                    <img
-                        src={darkText}
-                        alt="Logoipsum"
-                        className="w-[60%] dark:hidden"
-                    />
-                    <img
-                        src={whiteText}
-                        alt="Logoipsum"
-                        className="hidden w-[60%] dark:block"
-                    />
-                </div>
+        <AuthShell title="Join the team" subtitle="Fill in your details to create your account.">
                 <form
                     onSubmit={submitHandler}
-                    className="w-3/3 my-10 h-[20%] rounded-md border border-gray-100 p-4 lg:h-full lg:w-2/3"
+                    className="space-y-4"
                 >
-                    <h1 className="mb-5 text-xl font-bold">Sign Up</h1>
-
                     <div className="flex items-center gap-10">
                         <div className="my-2 w-full">
                             <Label>Full Name</Label>
@@ -174,7 +160,7 @@ const Signup = () => {
                             onChange={changeFileHandler}
                             className="cursor-pointer"
                         />
-                        <span className="text-xs text-gray-500">Max 2MB</span>
+                        <span className="text-xs text-muted-foreground">Max 2MB</span>
                     </div>
 
                     {loading ? (
@@ -190,8 +176,7 @@ const Signup = () => {
                         </Button>
                     )}
                 </form>
-            </div>
-        </div>
+        </AuthShell>
     );
 };
 

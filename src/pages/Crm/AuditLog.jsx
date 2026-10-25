@@ -55,8 +55,8 @@ const AuditLog = () => {
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => navigate("/crm")} title="Back to CRM"><ArrowLeft className="h-4 w-4" /></Button>
             <div>
-              <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2"><History className="h-6 w-6 text-blue-600" /> Audit log</h1>
-              <p className="text-sm text-gray-500">Every create, edit, stage change, contact and delete in the sales pipeline. Last 300 shown.</p>
+              <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2"><History className="h-6 w-6 text-brand" /> Audit log</h1>
+              <p className="text-sm text-muted-foreground">Every create, edit, stage change, contact and delete in the sales pipeline. Last 300 shown.</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -86,19 +86,19 @@ const AuditLog = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-10 text-gray-500">{loading ? "Loading..." : "No entries."}</TableCell></TableRow>}
+                {logs.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : "No entries."}</TableCell></TableRow>}
                 {logs.map((l) => {
                   const changes = l.changes ? Object.entries(l.changes) : [];
                   return (
                     <TableRow key={l._id}>
                       <TableCell className="whitespace-nowrap text-sm">{new Date(l.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</TableCell>
                       <TableCell className="text-sm">{l.userName}</TableCell>
-                      <TableCell className="text-sm"><span className="text-gray-500">{ENTITY_LABEL[l.entityType] || l.entityType}:</span> {l.entityLabel || "—"}</TableCell>
+                      <TableCell className="text-sm"><span className="text-muted-foreground">{ENTITY_LABEL[l.entityType] || l.entityType}:</span> {l.entityLabel || "—"}</TableCell>
                       <TableCell><span className="text-xs bg-gray-100 dark:bg-slate-700 rounded px-2 py-0.5">{l.action}</span></TableCell>
                       <TableCell className="text-sm">
                         {l.summary}
                         {changes.length > 0 && (
-                          <ul className="text-xs text-gray-500 mt-1 space-y-0.5">
+                          <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
                             {changes.slice(0, 6).map(([field, c]) => (
                               <li key={field}><span className="font-medium">{field}</span>: {fmtValue(c.from)} → {fmtValue(c.to)}</li>
                             ))}

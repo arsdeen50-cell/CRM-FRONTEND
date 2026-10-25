@@ -5,19 +5,21 @@ import { ArrowLeft, FileText, Download, Edit, Send, CheckCircle2, XCircle, Trash
 import { toast } from "sonner";
 import { useIsAdmin } from "@/components/crm/CrmMemberRoute";
 import ProposalEditor from "@/components/crm/ProposalEditor";
+import RowActions from "@/components/ui/row-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/hooks/Pipelineconstants";
 import axiosInstance from "@/utils/axiosConfig";
 import { downloadFile, formatDay } from "@/lib/crmOutreach";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const STATUS_STYLE = {
   Draft: "bg-slate-100 text-slate-700",
   Sent: "bg-purple-100 text-purple-700",
   Accepted: "bg-green-100 text-green-700",
   Rejected: "bg-red-100 text-red-700",
-  Expired: "bg-gray-100 text-gray-500",
+  Expired: "bg-gray-100 text-muted-foreground",
 };
 
 export const downloadProposalPdf = async (p) => {
@@ -57,7 +59,7 @@ const Proposals = () => {
       Accepted: "Mark as accepted? The lead becomes Won and a project + kickoff task are created.",
       Rejected: "Mark as rejected? The lead stage is left unchanged.",
     }[status];
-    if (confirmText && !window.confirm(confirmText)) return;
+    if (confirmText && !await confirmDialog(confirmText)) return;
     try {
       const res = await axiosInstance.patch(`/v1/proposal/${p._id}/status`, { status });
       toast.success(`Proposal ${status.toLowerCase()}${res.data.project ? ` - project ${res.data.project.projectNo} created` : ""}`);
@@ -93,7 +95,7 @@ const Proposals = () => {
   };
 
   const remove = async (p) => {
-    if (!window.confirm(`Delete ${p.proposalNo}? This can't be undone.`)) return;
+    if (!await confirmDialog(`Delete ${p.proposalNo}? This can't be undone.`)) return;
     try {
       await axiosInstance.delete(`/v1/proposal/${p._id}`);
       toast.success("Proposal deleted");
@@ -115,16 +117,16 @@ const Proposals = () => {
           </Button>
           <div>
             <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-              <FileText className="h-6 w-6 text-blue-600" /> Proposals
+              <FileText className="h-6 w-6 text-brand" /> Proposals
             </h1>
-            <p className="text-sm text-gray-500">{'Create a proposal from a lead on the Leads page ("Proposal" button). Share the client link to see when they open it and let them accept and sign online.'}</p>
+            <p className="text-sm text-muted-foreground">{'Create a proposal from a lead on the Leads page ("Proposal" button). Share the client link to see when they open it and let them accept and sign online.'}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Card><CardContent className="p-4"><p className="text-sm text-gray-500">Proposals</p><p className="text-2xl font-semibold">{proposals.length}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-sm text-gray-500">Awaiting decision</p><p className="text-2xl font-semibold">{formatCurrency(totalOpen)}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-sm text-gray-500">Accepted</p><p className="text-2xl font-semibold">{formatCurrency(totalWon)}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Proposals</p><p className="text-2xl font-semibold">{proposals.length}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Awaiting decision</p><p className="text-2xl font-semibold">{formatCurrency(totalOpen)}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Accepted</p><p className="text-2xl font-semibold">{formatCurrency(totalWon)}</p></CardContent></Card>
         </div>
 
         <Card>
@@ -145,13 +147,13 @@ const Proposals = () => {
               <TableBody>
                 {proposals.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10 text-gray-500">{loading ? "Loading..." : "No proposals yet."}</TableCell>
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : "No proposals yet."}</TableCell>
                   </TableRow>
                 )}
                 {proposals.map((p) => (
                   <TableRow key={p._id}>
                     <TableCell className="font-medium whitespace-nowrap">{p.proposalNo}</TableCell>
-                    <TableCell className="min-w-[140px]">{p.clientName}<div className="text-xs text-gray-500 whitespace-nowrap">{p.leadId?.series}</div></TableCell>
+                    <TableCell className="min-w-[140px]">{p.clientName}<div className="text-xs text-muted-foreground whitespace-nowrap">{p.leadId?.series}</div></TableCell>
                     <TableCell className="max-w-xs truncate" title={p.title}>{p.title}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">{formatCurrency(p.total)}</TableCell>
                     <TableCell><span className={`text-xs rounded-full px-2 py-0.5 ${STATUS_STYLE[p.status] || ""}`}>{p.status}</span></TableCell>
@@ -160,32 +162,30 @@ const Proposals = () => {
                       {p.signature?.signedAt ? (
                         <span className="text-green-700">Signed by {p.signature.name}</span>
                       ) : p.viewCount ? (
-                        <span className="flex items-center gap-1 text-blue-700" title={`First opened ${formatDay(p.firstViewedAt)}`}><Eye className="h-3 w-3" /> Viewed {p.viewCount}× · {formatDay(p.lastViewedAt)}</span>
+                        <span className="flex items-center gap-1 text-brand" title={`First opened ${formatDay(p.firstViewedAt)}`}><Eye className="h-3 w-3" /> Viewed {p.viewCount}× · {formatDay(p.lastViewedAt)}</span>
                       ) : p.publicToken ? (
-                        <span className="text-gray-500">Link sent, not opened</span>
+                        <span className="text-muted-foreground">Link sent, not opened</span>
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-muted-foreground/70">—</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" title="Download PDF" onClick={() => downloadProposalPdf(p)}><Download className="h-4 w-4" /></Button>
-                        {["Draft", "Sent"].includes(p.status) && (
-                          <>
-                            <Button size="icon" variant="ghost" title="Copy client link (view + accept online)" className="text-blue-600" onClick={() => share(p, false)}><Link2 className="h-4 w-4" /></Button>
-                            <Button size="icon" variant="ghost" title="Email the client link" className="text-blue-600" onClick={() => window.confirm("Email the proposal link to the client now?") && share(p, true)}><Mail className="h-4 w-4" /></Button>
-                          </>
-                        )}
-                        {p.status === "Accepted" && isAdmin && <Button size="icon" variant="ghost" title="Create invoice" className="text-emerald-600" onClick={() => toInvoice(p)}><Receipt className="h-4 w-4" /></Button>}
-                        {p.status !== "Accepted" && <Button size="icon" variant="ghost" title="Edit" onClick={() => setEditing(p)}><Edit className="h-4 w-4" /></Button>}
-                        {p.status === "Draft" && <Button size="icon" variant="ghost" title="Mark as sent" className="text-purple-600" onClick={() => setStatus(p, "Sent")}><Send className="h-4 w-4" /></Button>}
-                        {["Draft", "Sent"].includes(p.status) && (
-                          <>
-                            <Button size="icon" variant="ghost" title="Mark accepted (lead becomes Won)" className="text-green-600" onClick={() => setStatus(p, "Accepted")}><CheckCircle2 className="h-4 w-4" /></Button>
-                            <Button size="icon" variant="ghost" title="Mark rejected" className="text-red-600" onClick={() => setStatus(p, "Rejected")}><XCircle className="h-4 w-4" /></Button>
-                          </>
-                        )}
-                        {isAdmin && <Button size="icon" variant="ghost" title="Delete" className="text-red-600" onClick={() => remove(p)}><Trash2 className="h-4 w-4" /></Button>}
+                      <div className="flex items-center justify-end gap-0.5 whitespace-nowrap">
+                        <Button size="icon" variant="ghost" className="h-8 w-8" title="Download PDF" onClick={() => downloadProposalPdf(p)}><Download className="h-4 w-4" /></Button>
+                        {["Draft", "Sent"].includes(p.status) && <Button size="icon" variant="ghost" className="h-8 w-8" title="Copy client link (view + accept online)" onClick={() => share(p, false)}><Link2 className="h-4 w-4" /></Button>}
+                        <RowActions
+                          items={[
+                            { label: "Email the client link", icon: Mail, hidden: !["Draft", "Sent"].includes(p.status), onClick: async () => (await confirmDialog("Email the proposal link to the client now?")) && share(p, true) },
+                            { label: "Create invoice", icon: Receipt, onClick: () => toInvoice(p), hidden: !(p.status === "Accepted" && isAdmin) },
+                            { label: "Edit", icon: Edit, onClick: () => setEditing(p), hidden: p.status === "Accepted" },
+                            { label: "Mark as sent", icon: Send, onClick: () => setStatus(p, "Sent"), hidden: p.status !== "Draft" },
+                            "-",
+                            { label: "Mark accepted (lead Won)", icon: CheckCircle2, onClick: () => setStatus(p, "Accepted"), hidden: !["Draft", "Sent"].includes(p.status) },
+                            { label: "Mark rejected", icon: XCircle, onClick: () => setStatus(p, "Rejected"), hidden: !["Draft", "Sent"].includes(p.status) },
+                            "-",
+                            { label: "Delete", icon: Trash2, onClick: () => remove(p), danger: true, hidden: !isAdmin },
+                          ]}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

@@ -17,9 +17,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import axiosInstance from "@/utils/axiosConfig";
 import { errMsg } from "@/lib/publicApi";
 import { ACTIVITY_OUTCOMES, formatDay } from "@/lib/crmOutreach";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const CHANNELS = ["Email", "WhatsApp", "Call", "Visit", "Instagram DM"];
-const STATUS_STYLE = { active: "bg-blue-100 text-blue-700", waiting: "bg-amber-100 text-amber-800", completed: "bg-green-100 text-green-700", stopped: "bg-gray-100 text-gray-600" };
+const STATUS_STYLE = { active: "bg-blue-100 text-brand", waiting: "bg-amber-100 text-amber-800", completed: "bg-green-100 text-green-700", stopped: "bg-gray-100 text-muted-foreground" };
 const STARTER = {
   name: "New prospect - 3 touches",
   description: "Email, then WhatsApp, then a call.",
@@ -115,7 +116,7 @@ const SequenceEditor = ({ open, onOpenChange, sequence, onSaved }) => {
           </Button>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving} className="bg-blue-600 hover:bg-blue-700">{saving ? "Saving..." : "Save sequence"}</Button>
+            <Button onClick={save} disabled={saving} className="">{saving ? "Saving..." : "Save sequence"}</Button>
           </div>
         </div>
       </DialogContent>
@@ -152,8 +153,8 @@ const CompleteDialog = ({ enrollment, onOpenChange, onDone }) => {
           <DialogTitle>{enrollment.clientName}: {enrollment.step?.channel}</DialogTitle>
           <DialogDescription>{enrollment.sequenceId?.name} · step {enrollment.stepIndex + 1} of {enrollment.sequenceId?.steps?.length}</DialogDescription>
         </DialogHeader>
-        {enrollment.step?.body && <p className="text-sm whitespace-pre-wrap bg-gray-50 dark:bg-slate-800 rounded-md p-3">{enrollment.step.body}</p>}
-        <p className="text-xs text-gray-500">Use the Contact button on the lead to send it, then record the result here. Placeholders are filled in on the Contact screen.</p>
+        {enrollment.step?.body && <p className="text-sm whitespace-pre-wrap bg-muted/60 rounded-md p-3">{enrollment.step.body}</p>}
+        <p className="text-xs text-muted-foreground">Use the Contact button on the lead to send it, then record the result here. Placeholders are filled in on the Contact screen.</p>
         <div className="grid gap-1">
           <Label>Outcome</Label>
           <Select value={outcome} onValueChange={setOutcome}>
@@ -164,7 +165,7 @@ const CompleteDialog = ({ enrollment, onOpenChange, onDone }) => {
         <Input placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => submit(true)} disabled={saving}><SkipForward className="h-4 w-4 mr-1" /> Skip step</Button>
-          <Button onClick={() => submit(false)} disabled={saving} className="bg-blue-600 hover:bg-blue-700"><CheckCircle2 className="h-4 w-4 mr-1" /> Done</Button>
+          <Button onClick={() => submit(false)} disabled={saving} className="bg-primary hover:bg-primary/90"><CheckCircle2 className="h-4 w-4 mr-1" /> Done</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -198,7 +199,7 @@ const Sequences = () => {
   const done = enrollments.filter((e) => ["completed", "stopped"].includes(e.status));
 
   const stop = async (e) => {
-    if (!window.confirm(`Stop the sequence for ${e.clientName}?`)) return;
+    if (!await confirmDialog(`Stop the sequence for ${e.clientName}?`)) return;
     try {
       await axiosInstance.post(`/v1/sequence/enrollments/${e._id}/stop`);
       load();
@@ -215,7 +216,7 @@ const Sequences = () => {
     }
   };
   const remove = async (s) => {
-    if (!window.confirm(`Delete "${s.name}"? Leads in it stop.`)) return;
+    if (!await confirmDialog(`Delete "${s.name}"? Leads in it stop.`)) return;
     try {
       await axiosInstance.delete(`/v1/sequence/${s._id}`);
       load();
@@ -239,19 +240,19 @@ const Sequences = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-10 text-gray-500">{loading ? "Loading..." : empty}</TableCell></TableRow>}
+            {rows.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : empty}</TableCell></TableRow>}
             {rows.map((e) => (
               <TableRow key={e._id}>
                 <TableCell className="font-medium">{e.clientName}</TableCell>
                 <TableCell>{e.sequenceId?.name || "—"}</TableCell>
-                <TableCell className="text-sm">{e.step ? `${e.stepIndex + 1}/${e.sequenceId?.steps?.length} · ${stepLabel(e.step)}` : "—"}<div className="text-xs text-gray-500">{e.log?.[e.log.length - 1]?.detail}</div></TableCell>
+                <TableCell className="text-sm">{e.step ? `${e.stepIndex + 1}/${e.sequenceId?.steps?.length} · ${stepLabel(e.step)}` : "—"}<div className="text-xs text-muted-foreground">{e.log?.[e.log.length - 1]?.detail}</div></TableCell>
                 <TableCell className="text-sm">
                   {showDue ? formatDay(e.dueSince) : e.status === "active" ? formatDay(e.nextRunAt) : <Pill className={STATUS_STYLE[e.status]}>{e.status}{e.stoppedReason ? `: ${e.stoppedReason}` : ""}</Pill>}
                 </TableCell>
                 <TableCell className="text-sm">{e.enrolledBy}</TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
-                    {showDue && <Button size="sm" onClick={() => setCompleting(e)} className="bg-blue-600 hover:bg-blue-700"><CheckCircle2 className="h-3 w-3 mr-1" /> Done / skip</Button>}
+                    {showDue && <Button size="sm" onClick={() => setCompleting(e)} className="bg-primary hover:bg-primary/90"><CheckCircle2 className="h-3 w-3 mr-1" /> Done / skip</Button>}
                     {["active", "waiting"].includes(e.status) && <Button size="icon" variant="ghost" className="text-red-600" title="Stop" onClick={() => stop(e)}><StopCircle className="h-4 w-4" /></Button>}
                   </div>
                 </TableCell>
@@ -268,7 +269,7 @@ const Sequences = () => {
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={Repeat} title="Follow-up sequences" subtitle='Multi-step cadences. Add leads from the Leads page ("Add to sequence"). They stop when the lead replies or is Won/Lost.'>
           <Button variant="outline" onClick={load} disabled={loading}><RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>
-          {isAdmin && <Button onClick={() => setEditing(null)} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New sequence</Button>}
+          {isAdmin && <Button onClick={() => setEditing(null)} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> New sequence</Button>}
         </PageHeader>
         <Tabs defaultValue={due.length ? "due" : "sequences"} key={due.length ? "d" : "s"}>
           <TabsList>
@@ -282,14 +283,14 @@ const Sequences = () => {
           <TabsContent value="done"><EnrollmentTable rows={done} empty="Nothing finished yet." /></TabsContent>
           <TabsContent value="sequences">
             <div className="grid md:grid-cols-2 gap-3">
-              {sequences.length === 0 && <p className="text-sm text-gray-500">{isAdmin ? 'No sequences yet. Click "New sequence" - it starts with a 3-step example you can edit.' : "No sequences yet. Ask an admin to create one."}</p>}
+              {sequences.length === 0 && <p className="text-sm text-muted-foreground">{isAdmin ? 'No sequences yet. Click "New sequence" - it starts with a 3-step example you can edit.' : "No sequences yet. Ask an admin to create one."}</p>}
               {sequences.map((s) => (
                 <Card key={s._id} className={s.isActive ? "" : "opacity-60"}>
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-medium">{s.name} {!s.isActive && <Pill className="bg-gray-100 text-gray-600">Paused</Pill>}</p>
-                        {s.description && <p className="text-sm text-gray-500">{s.description}</p>}
+                        <p className="font-medium">{s.name} {!s.isActive && <Pill className="bg-gray-100 text-muted-foreground">Paused</Pill>}</p>
+                        {s.description && <p className="text-sm text-muted-foreground">{s.description}</p>}
                       </div>
                       {isAdmin && (
                         <div className="flex gap-1">
@@ -300,9 +301,9 @@ const Sequences = () => {
                       )}
                     </div>
                     <ol className="text-sm space-y-1">
-                      {s.steps.map((st, i) => <li key={i} className="flex gap-2"><span className="text-gray-400 w-5">{i + 1}.</span>{stepLabel(st)}{st.subject ? <span className="text-gray-500 truncate">· {st.subject}</span> : null}</li>)}
+                      {s.steps.map((st, i) => <li key={i} className="flex gap-2"><span className="text-muted-foreground/70 w-5">{i + 1}.</span>{stepLabel(st)}{st.subject ? <span className="text-muted-foreground truncate">· {st.subject}</span> : null}</li>)}
                     </ol>
-                    <p className="text-xs text-gray-500">Running {s.stats?.active || 0} · due {s.stats?.waiting || 0} · finished {(s.stats?.completed || 0) + (s.stats?.stopped || 0)}</p>
+                    <p className="text-xs text-muted-foreground">Running {s.stats?.active || 0} · due {s.stats?.waiting || 0} · finished {(s.stats?.completed || 0) + (s.stats?.stopped || 0)}</p>
                   </CardContent>
                 </Card>
               ))}

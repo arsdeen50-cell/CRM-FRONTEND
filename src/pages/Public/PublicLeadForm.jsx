@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { publicApi, errMsg } from "@/lib/publicApi";
 
 // Public enquiry form (no login). Works standalone or embedded in an iframe (?embed=1).
-const field = "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900";
+const field = "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white text-gray-900";
 const PublicLeadForm = () => {
   const { key } = useParams();
   const [params] = useSearchParams();
@@ -32,14 +32,14 @@ const PublicLeadForm = () => {
       setState("idle");
     }
   };
-  if (!form) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600 p-4">{error || "Loading..."}</div>;
+  if (!form) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-muted-foreground p-4">{error || "Loading..."}</div>;
   const f = form.fields || {};
   return (
     <div className={`${embed ? "" : "min-h-screen bg-gray-50 py-10"} px-4 text-gray-900`} style={{ colorScheme: "light" }}>
       <div className={`max-w-lg mx-auto bg-white ${embed ? "" : "rounded-xl shadow-sm border"} p-6`}>
-        {!embed && <p className="text-sm font-semibold text-gray-500 mb-1">{form.company}</p>}
+        {!embed && <p className="text-sm font-semibold text-muted-foreground mb-1">{form.company}</p>}
         <h1 className="text-2xl font-semibold mb-2">{form.title}</h1>
-        {form.intro && <p className="text-gray-600 mb-4 whitespace-pre-wrap">{form.intro}</p>}
+        {form.intro && <p className="text-muted-foreground mb-4 whitespace-pre-wrap">{form.intro}</p>}
         {state === "done" ? (
           <p className="text-green-700 bg-green-50 border border-green-200 rounded-md p-4">{thanks}</p>
         ) : (
@@ -68,7 +68,7 @@ const PublicLeadForm = () => {
             <button type="submit" disabled={state === "sending"} className="w-full text-white font-medium rounded-md py-2.5 disabled:opacity-60" style={{ background: form.accentColor || "#2563eb" }}>
               {state === "sending" ? "Sending..." : "Send"}
             </button>
-            <p className="text-xs text-gray-400">We only use your details to reply to this enquiry.</p>
+            <p className="text-xs text-muted-foreground/70">We only use your details to reply to this enquiry.</p>
           </form>
         )}
       </div>

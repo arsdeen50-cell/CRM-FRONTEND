@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import UserTeamsDialog from "./UserTeamsDialog";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const UserTable = ({ teams = [], onTeamsChanged }) => {
     const { users } = useSelector((state) => state.user);
@@ -49,7 +50,7 @@ const UserTable = ({ teams = [], onTeamsChanged }) => {
     };
 
     const handleDelete = async (userId) => {
-        const confirmDelete = window.confirm("Are you sure you want to delete this user?");
+        const confirmDelete = await confirmDialog("Are you sure you want to delete this user?");
         if (confirmDelete) {
             await deleteUser(userId);
         }
@@ -141,13 +142,13 @@ const UserTable = ({ teams = [], onTeamsChanged }) => {
                                     <TableCell>
                                         <div className="flex items-center gap-x-4">
                                             <button
-                                                className="text-blue-500 dark:text-blue-600"
+                                                className="text-blue-500 dark:text-brand"
                                                 onClick={() => openEditModal(user)}
                                             >
                                                 <PencilLine size={20} />
                                             </button>
                                             <button
-                                                className="text-emerald-600 hover:text-emerald-700"
+                                                className="text-brand hover:text-emerald-700"
                                                 onClick={() => setTeamsUser(user)}
                                                 title="Teams and sub-roles"
                                             >
@@ -177,7 +178,7 @@ const UserTable = ({ teams = [], onTeamsChanged }) => {
                                                     {t.teamName}{t.subRole ? ` · ${t.subRole}` : ""}
                                                 </span>
                                             ))}
-                                            {!(user.teams || []).length && <button className="text-xs text-blue-600" onClick={() => setTeamsUser(user)}>+ Add to team</button>}
+                                            {!(user.teams || []).length && <button className="text-xs text-brand" onClick={() => setTeamsUser(user)}>+ Add to team</button>}
                                         </div>
                                     </TableCell>
                                     <TableCell>{formatDateSafe(user.createdAt, "dd MMM yyyy")}</TableCell>
@@ -187,7 +188,7 @@ const UserTable = ({ teams = [], onTeamsChanged }) => {
                             <TableRow>
                                 <TableCell
                                     colSpan="9"
-                                    className="py-4 text-center text-gray-500"
+                                    className="py-4 text-center text-muted-foreground"
                                 >
                                     No users found.
                                 </TableCell>

@@ -29,9 +29,9 @@ const useIsDark = () => {
 const Stat = ({ label, value, sub }) => (
   <Card>
     <CardContent className="p-4">
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-2xl font-semibold mt-1">{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
     </CardContent>
   </Card>
 );
@@ -40,7 +40,7 @@ const ChartCard = ({ title, note, children, height = 260 }) => (
   <Card>
     <CardContent className="p-4">
       <p className="font-medium">{title}</p>
-      {note && <p className="text-xs text-gray-500 mb-2">{note}</p>}
+      {note && <p className="text-xs text-muted-foreground mb-2">{note}</p>}
       <div style={{ height }}>{children}</div>
     </CardContent>
   </Card>
@@ -118,18 +118,18 @@ const Reports = () => {
             </Button>
             <div>
               <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-blue-600" /> Pipeline reports
+                <BarChart3 className="h-6 w-6 text-brand" /> Pipeline reports
               </h1>
-              <p className="text-sm text-gray-500">Conversion, sources, time in stage and why deals are lost.</p>
+              <p className="text-sm text-muted-foreground">Conversion, sources, time in stage and why deals are lost.</p>
             </div>
           </div>
           <div className="flex items-end gap-2">
             <div>
-              <span className="text-xs text-gray-500">Leads created from</span>
+              <span className="text-xs text-muted-foreground">Leads created from</span>
               <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9" />
             </div>
             <div>
-              <span className="text-xs text-gray-500">to</span>
+              <span className="text-xs text-muted-foreground">to</span>
               <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9" />
             </div>
             <Button variant="outline" onClick={load} disabled={loading}>
@@ -200,7 +200,7 @@ const Reports = () => {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-sm text-gray-500 pt-10 text-center">No activity logged in the last 30 days.</p>
+                <p className="text-sm text-muted-foreground pt-10 text-center">No activity logged in the last 30 days.</p>
               )}
             </ChartCard>
           </div>
@@ -227,7 +227,7 @@ const Reports = () => {
                     </TableBody>
                   </Table>
                 ) : (
-                  <p className="text-sm text-gray-500">No lost deals in this range.</p>
+                  <p className="text-sm text-muted-foreground">No lost deals in this range.</p>
                 )}
               </CardContent>
             </Card>
@@ -246,7 +246,7 @@ const Reports = () => {
                     </TableBody>
                   </Table>
                 ) : (
-                  <p className="text-sm text-gray-500">{'No outcomes logged yet. Use "Contact" on a lead to log them.'}</p>
+                  <p className="text-sm text-muted-foreground">{'No outcomes logged yet. Use "Contact" on a lead to log them.'}</p>
                 )}
               </CardContent>
             </Card>

@@ -1,107 +1,82 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { NavLink } from "react-router-dom";
-
-import { navbarLinks } from "@/constants";
-
-import logoLight from "@/assets/white.png";
-import logoDark from "@/assets/black.png";
-
-import { cn } from "@/utils/cn";
-
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
-import AdminRoute from "@/utils/AdminRoute";
+import { ChevronDown } from "lucide-react";
+import logoLight from "@/assets/white.png";
+import logoDark from "@/assets/black.png";
+import { cn } from "@/utils/cn";
+import { visibleNav } from "@/constants/nav";
+import { useAccess } from "@/components/crm/AccessRoute";
 
-export const Sidebar = forwardRef(({ collapsed }, ref) => {
-    const { user } = useSelector((state) => state.auth);
-    console.log("User role in Sidebar:", user); // Debugging line to check the user role
+const STORE = "crm.sidebar.closedGroups";
+const readClosed = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORE) || "[]");
+  } catch {
+    return [];
+  }
+};
 
-    return (
-        <aside
-            ref={ref}
-            className={cn(
-                "fixed z-[100] flex h-full w-[240px] flex-col overflow-x-hidden border-r border-slate-300 bg-white [transition:_width_300ms_cubic-bezier(0.4,_0,_0.2,_1),_left_300ms_cubic-bezier(0.4,_0,_0.2,_1),_background-color_150ms_cubic-bezier(0.4,_0,_0.2,_1),_border_150ms_cubic-bezier(0.4,_0,_0.2,_1)] dark:border-slate-700 dark:bg-slate-900",
-                collapsed ? "md:w-[70px] md:items-center" : "md:w-[240px]",
-                collapsed ? "max-md:-left-full" : "max-md:left-0",
-            )}
-        >
-            <div className="flex w-20 gap-x-3 p-3">
-                <img
-                    src={logoDark}
-                    alt="Logoipsum"
-                    className="w-24 dark:hidden"
-                />
-                <img
-                    src={logoLight}
-                    alt="Logoipsum"
-                    className="hidden dark:block"
-                />
-                {!collapsed && <p className="text-lg font-medium text-slate-900 transition-colors dark:text-slate-50">ARSDEEN</p>}
-            </div>
-            <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:_thin]">
-                {navbarLinks.map((navbarLink) => (
-                    <nav
-                        key={navbarLink.title}
-                        className={cn("sidebar-group", collapsed && "md:items-center")}
-                    >
-                        <p className={cn("sidebar-group-title", collapsed && "md:w-[45px]")}>{navbarLink.title}</p>
-                        {navbarLink.links.map((link) => {
-                            // CRM is open to everyone; the CRM page only shows each person the areas they can use
-                            if (link.path === "/task") {
-                                return user?.role !== "admin" ? (
-                                    <NavLink
-                                        key={link.label}
-                                        to={link.path}
-                                        className={cn("sidebar-item", collapsed && "md:w-[45px]")}
-                                    >
-                                        <link.icon
-                                            size={22}
-                                            className="flex-shrink-0"
-                                        />
-                                        {!collapsed && <p className="whitespace-nowrap">{link.label}</p>}
-                                    </NavLink>
-                                ) : null;
-                            }
+/* Grouped navigation. Expanded: section titles you can fold; collapsed: icons with tooltips.
+   On phones it slides in as a drawer and closes after you pick a page. */
+export const Sidebar = forwardRef(({ collapsed, onNavigate }, ref) => {
+  const { user } = useSelector((state) => state.auth);
+  const access = useAccess();
+  const groups = visibleNav({ admin: access.isAdmin, sales: access.canSales, outreach: access.canOutreach, teamLead: access.isTeamLead }, user);
+  const [closed, setClosed] = useState(readClosed);
+  const toggle = (key) => {
+    const next = closed.includes(key) ? closed.filter((k) => k !== key) : [...closed, key];
+    setClosed(next);
+    try {
+      localStorage.setItem(STORE, JSON.stringify(next));
+    } catch {
+      /* private mode */
+    }
+  };
 
-                            if (link.path === "/employeetask" || link.path === "/rolebased") {
-                                return user?.role === "employee" ? null : (
-                                    <NavLink
-                                        key={link.label}
-                                        to={link.path}
-                                        className={cn("sidebar-item", collapsed && "md:w-[45px]")}
-                                    >
-                                        <link.icon
-                                            size={22}
-                                            className="flex-shrink-0"
-                                        />
-                                        {!collapsed && <p className="whitespace-nowrap">{link.label}</p>}
-                                    </NavLink>
-                                );
-                            }
-
-                            return (
-                                <NavLink
-                                    key={link.label}
-                                    to={link.path}
-                                    className={cn("sidebar-item", collapsed && "md:w-[45px]")}
-                                >
-                                    <link.icon
-                                        size={22}
-                                        className="flex-shrink-0"
-                                    />
-                                    {!collapsed && <p className="whitespace-nowrap">{link.label}</p>}
-                                </NavLink>
-                            );
-                        })}
-                    </nav>
+  return (
+    <aside
+      ref={ref}
+      className={cn(
+        "fixed z-[45] flex h-full w-[248px] flex-col overflow-x-hidden border-r border-border bg-card [transition:_width_250ms_ease,_left_250ms_ease]",
+        collapsed ? "md:w-[68px]" : "md:w-[248px]",
+        collapsed ? "max-md:-left-full" : "max-md:left-0 max-md:shadow-2xl",
+      )}
+    >
+      <div className={cn("flex h-[60px] shrink-0 items-center gap-2 border-b border-border px-4", collapsed && "md:justify-center md:px-0")}>
+        <img src={logoDark} alt="ARSDEEN" className="h-7 w-auto dark:hidden" />
+        <img src={logoLight} alt="ARSDEEN" className="hidden h-7 w-auto dark:block" />
+        {!collapsed && <span className="text-sm font-semibold tracking-wide">ARSDEEN</span>}
+      </div>
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden p-2 [scrollbar-width:_thin]">
+        {groups.map((g) => {
+          const isClosed = closed.includes(g.key) && !collapsed;
+          return (
+            <div key={g.key} className="flex flex-col gap-0.5">
+              {g.key !== "home" &&
+                (collapsed ? (
+                  <div className="mx-auto my-2 hidden h-px w-6 bg-border md:block" />
+                ) : (
+                  <button type="button" onClick={() => toggle(g.key)} className="sidebar-group-title flex items-center justify-between rounded-md hover:text-foreground">
+                    {g.title}
+                    <ChevronDown className={cn("h-3 w-3 transition-transform", isClosed && "-rotate-90")} />
+                  </button>
+                ))}
+              {!isClosed &&
+                g.items.map((item) => (
+                  <NavLink key={item.label} to={item.to} end={item.end} title={collapsed ? item.label : undefined} onClick={onNavigate} className={({ isActive }) => cn("sidebar-item", isActive && "active", collapsed && "md:justify-center md:px-0")}>
+                    <item.icon className="h-[18px] w-[18px] shrink-0" />
+                    {(!collapsed || window.innerWidth < 768) && <span className="truncate">{item.label}</span>}
+                  </NavLink>
                 ))}
             </div>
-        </aside>
-    );
+          );
+        })}
+      </nav>
+    </aside>
+  );
 });
 
 Sidebar.displayName = "Sidebar";
-
-Sidebar.propTypes = {
-    collapsed: PropTypes.bool,
-};
+Sidebar.propTypes = { collapsed: PropTypes.bool, onNavigate: PropTypes.func };

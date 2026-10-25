@@ -438,7 +438,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => setShowDesignationManager(true)}
-                                                className="text-blue-600 hover:text-blue-800"
+                                                className="text-brand hover:text-blue-800"
                                             >
                                                 Manage
                                             </Button>
@@ -455,7 +455,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                                         </SelectItem>
                                                     ))
                                                 ) : (
-                                                    <div className="px-2 py-1.5 text-sm text-gray-500">
+                                                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
                                                         No designations available
                                                     </div>
                                                 )}
@@ -522,7 +522,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                                                 <li key={index} className="truncate">{item}</li>
                                                             ))}
                                                             {keyResponsibilities.length > 3 && (
-                                                                <li className="text-gray-500">+{keyResponsibilities.length - 3} more...</li>
+                                                                <li className="text-muted-foreground">+{keyResponsibilities.length - 3} more...</li>
                                                             )}
                                                         </ul>
                                                     </CardContent>
@@ -551,7 +551,7 @@ const CreateGoOnBoardingForm = ({ onClose }) => {
                                                                 <li key={index} className="truncate">{item}</li>
                                                             ))}
                                                             {whatYoullGain.length > 3 && (
-                                                                <li className="text-gray-500">+{whatYoullGain.length - 3} more...</li>
+                                                                <li className="text-muted-foreground">+{whatYoullGain.length - 3} more...</li>
                                                             )}
                                                         </ul>
                                                     </CardContent>

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import axiosInstance from "@/utils/axiosConfig";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const TeamEditor = ({ team, onOpenChange, onSaved }) => {
   const [f, setF] = useState(() => ({ name: team?.name || "", description: team?.description || "", color: team?.color || "#2563eb", subRoles: (team?.subRoles || []).join("\n"), sales: !!team?.access?.sales, outreach: !!team?.access?.outreach }));
@@ -40,11 +41,11 @@ const TeamEditor = ({ team, onOpenChange, onSaved }) => {
           <div className="grid gap-1"><Label>Sub-roles (one per line)</Label><Textarea rows={5} value={f.subRoles} onChange={(e) => setF({ ...f, subRoles: e.target.value })} placeholder={"Social Strategist\nContent Creator\nAd Manager"} /></div>
           <div className="grid gap-2 border rounded-md p-3">
             <Label>Access for this team</Label>
-            <p className="text-xs text-gray-500">Everyone gets tasks, leave, projects, content calendar and time tracking. Admins always have everything.</p>
+            <p className="text-xs text-muted-foreground">Everyone gets tasks, leave, projects, content calendar and time tracking. Admins always have everything.</p>
             <label className="text-sm flex items-start gap-2"><input type="checkbox" className="mt-1" checked={f.sales} onChange={(e) => setF({ ...f, sales: e.target.checked })} /><span><b>Sales</b> - leads, clients, follow-ups, proposals, templates and targets</span></label>
             <label className="text-sm flex items-start gap-2"><input type="checkbox" className="mt-1" checked={f.outreach} onChange={(e) => setF({ ...f, outreach: e.target.checked })} /><span><b>Outreach automation</b> - send email / WhatsApp from the CRM, messages, sequences</span></label>
           </div>
-          <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save} className="bg-blue-600 hover:bg-blue-700">Save team</Button></div>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save} className="">Save team</Button></div>
         </div>
       </DialogContent>
     </Dialog>
@@ -59,7 +60,7 @@ const TeamsManager = ({ teams, reload }) => {
     reload();
   };
   const remove = async (t) => {
-    if (!window.confirm(`Delete ${t.name}?`)) return;
+    if (!await confirmDialog(`Delete ${t.name}?`)) return;
     try {
       await axiosInstance.delete(`/v1/team/${t._id}`);
       reload();
@@ -70,8 +71,8 @@ const TeamsManager = ({ teams, reload }) => {
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-500">Each team (department) has its own sub-roles. Add people from the Users tab.</p>
-        <Button onClick={() => setEditing({})} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New team</Button>
+        <p className="text-sm text-muted-foreground">Each team (department) has its own sub-roles. Add people from the Users tab.</p>
+        <Button onClick={() => setEditing({})} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> New team</Button>
       </div>
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
         {teams.map((t) => (
@@ -81,8 +82,8 @@ const TeamsManager = ({ teams, reload }) => {
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full" style={{ background: t.color }} />
                   <div>
-                    <p className="font-medium">{t.name}{!t.isActive && <span className="text-xs text-gray-500"> (off)</span>}</p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1"><Users className="h-3 w-3" /> {t.members?.length || 0} people</p>
+                    <p className="font-medium">{t.name}{!t.isActive && <span className="text-xs text-muted-foreground"> (off)</span>}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {t.members?.length || 0} people</p>
                   </div>
                 </div>
                 <div className="flex">
@@ -91,25 +92,25 @@ const TeamsManager = ({ teams, reload }) => {
                   <Button size="icon" variant="ghost" className="text-red-600" onClick={() => remove(t)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               </div>
-              {t.description && <p className="text-sm text-gray-600 dark:text-gray-300">{t.description}</p>}
+              {t.description && <p className="text-sm text-muted-foreground dark:text-gray-300">{t.description}</p>}
               <div className="flex flex-wrap gap-1">
                 {t.access?.sales && <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">Sales access</span>}
                 {t.access?.outreach && <span className="text-xs rounded-full px-2 py-0.5 bg-amber-100 text-amber-800">Outreach access</span>}
-                {!t.access?.sales && !t.access?.outreach && <span className="text-xs text-gray-400">No sales or outreach access</span>}
+                {!t.access?.sales && !t.access?.outreach && <span className="text-xs text-muted-foreground/70">No sales or outreach access</span>}
               </div>
               <div className="flex flex-wrap gap-1">
                 {(t.subRoles || []).map((s) => <span key={s} className="text-xs border rounded-full px-2 py-0.5">{s}</span>)}
-                {!t.subRoles?.length && <span className="text-xs text-gray-400">No sub-roles yet</span>}
+                {!t.subRoles?.length && <span className="text-xs text-muted-foreground/70">No sub-roles yet</span>}
               </div>
               <div className="space-y-1">
                 {(t.members || []).map((m) => (
                   <p key={m._id} className="text-sm flex items-center gap-1">
                     {m.isLead && <Crown className="h-3 w-3 text-amber-600" />}
                     <span className={m.isLead ? "font-medium" : ""}>{m.fullname}</span>
-                    {m.subRole && <span className="text-xs text-gray-500">· {m.subRole}</span>}
+                    {m.subRole && <span className="text-xs text-muted-foreground">· {m.subRole}</span>}
                   </p>
                 ))}
-                {!t.members?.length && <p className="text-xs text-gray-400">Nobody in this team yet.</p>}
+                {!t.members?.length && <p className="text-xs text-muted-foreground/70">Nobody in this team yet.</p>}
                 {t.members?.length > 0 && !t.members.some((m) => m.isLead) && <p className="text-xs text-amber-700">No Team Lead set</p>}
               </div>
             </CardContent>

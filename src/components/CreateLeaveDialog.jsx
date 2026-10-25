@@ -79,7 +79,7 @@ const CreateLeaveDialog = ({ open, onOpenChange, onCreate }) => {
                 <option value="Other">Other</option>
               </select>
               {b && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {b.available === null ? `No limit${b.unpaid ? " (unpaid - deducted from salary)" : ""}` : `${b.available} day${b.available === 1 ? "" : "s"} left this leave year`}
                   {b.pending ? ` · ${b.pending} pending` : ""}
                 </p>
@@ -120,7 +120,7 @@ const CreateLeaveDialog = ({ open, onOpenChange, onCreate }) => {
                 )}
               </div>
             )}
-            <p className="text-xs text-gray-500">Weekly offs and company holidays aren't counted.</p>
+            <p className="text-xs text-muted-foreground">Weekly offs and company holidays aren't counted.</p>
 
             <div className="grid gap-2">
               <Label htmlFor="reason">Reason</Label>

@@ -24,29 +24,29 @@ const SummaryStats = ({ leads }) => {
     <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardContent className="p-4">
-          <p className="text-sm text-gray-500">Total Leads</p>
+          <p className="text-sm text-muted-foreground">Total Leads</p>
           <p className="text-2xl font-semibold mt-1">{totalLeads}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="p-4">
-          <p className="text-sm text-gray-500">Pipeline Value (Open)</p>
+          <p className="text-sm text-muted-foreground">Pipeline Value (Open)</p>
           <p className="text-2xl font-semibold mt-1">{formatCurrency(pipelineValue)}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="p-4">
-          <p className="text-sm text-gray-500">Conversion Rate</p>
+          <p className="text-sm text-muted-foreground">Conversion Rate</p>
           <p className="text-2xl font-semibold mt-1">{conversionRate}%</p>
-          <p className="text-xs text-gray-400 mt-1">{wonCount} won / {closedCount} closed</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">{wonCount} won / {closedCount} closed</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="p-4">
-          <p className="text-sm text-gray-500 mb-2">Leads by Stage</p>
+          <p className="text-sm text-muted-foreground mb-2">Leads by Stage</p>
           <div className="flex flex-wrap gap-1.5">
             {PIPELINE_STAGES.map((stage) => (
               <span

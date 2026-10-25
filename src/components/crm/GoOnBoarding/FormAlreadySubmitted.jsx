@@ -13,7 +13,7 @@ const FormAlreadySubmitted = () => {
             You Already Submitted This Form
           </h3>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-muted-foreground">
             This form has already been filled. You cannot submit it again.
           </p>
 

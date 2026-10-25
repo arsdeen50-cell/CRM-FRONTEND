@@ -11,8 +11,8 @@ const time = (d) => (d ? new Date(d).toLocaleTimeString("en-IN", { hour: "2-digi
 const mdLabel = (md) => new Date(`2000-${md}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
 
 const KIND = {
-  task: { icon: CheckSquare, cls: "text-blue-600" },
-  followup: { icon: PhoneCall, cls: "text-emerald-600" },
+  task: { icon: CheckSquare, cls: "text-brand" },
+  followup: { icon: PhoneCall, cls: "text-brand" },
   sequence: { icon: Repeat, cls: "text-amber-600" },
   leave: { icon: CalendarDays, cls: "text-purple-600" },
   correction: { icon: CalendarCheck, cls: "text-purple-600" },
@@ -22,16 +22,16 @@ const STATUS = {
   in: ["In", "bg-green-100 text-green-700"],
   break: ["On break", "bg-yellow-100 text-yellow-800"],
   left: ["Left", "bg-slate-100 text-slate-600"],
-  leave: ["On leave", "bg-blue-100 text-blue-700"],
+  leave: ["On leave", "bg-blue-100 text-brand"],
   "half-leave": ["Half-day leave", "bg-sky-100 text-sky-700"],
   "not-in": ["Not in", "bg-red-100 text-red-700"],
-  "not-yet": ["Not in yet", "bg-gray-100 text-gray-600"],
-  off: ["Off today", "bg-gray-100 text-gray-500"],
+  "not-yet": ["Not in yet", "bg-gray-100 text-muted-foreground"],
+  off: ["Off today", "bg-gray-100 text-muted-foreground"],
 };
 
 const Tile = ({ label, value, sub, tone, to }) => {
   const body = (
-    <div className="rounded-lg border bg-white/70 dark:bg-slate-900/60 p-3 h-full hover:shadow-sm transition">
+    <div className="rounded-lg border bg-card p-3 h-full hover:shadow-sm transition">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`text-xl font-semibold ${tone === "bad" ? "text-red-600" : tone === "good" ? "text-green-700" : ""}`}>{value}</p>
       {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
@@ -41,7 +41,7 @@ const Tile = ({ label, value, sub, tone, to }) => {
 };
 
 const Section = ({ icon: Icon, title, action, children }) => (
-  <Card className="border-0 bg-white/80 shadow-lg backdrop-blur-sm dark:bg-slate-800/80">
+  <Card className="border-0 bg-card shadow-sm border">
     <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
       <CardTitle className="flex items-center gap-2 text-lg"><Icon className="h-5 w-5 text-primary" />{title}</CardTitle>
       {action}
@@ -86,7 +86,7 @@ const DashboardSections = () => {
             {visible.map((a, i) => {
               const k = KIND[a.kind] || KIND.task;
               return (
-                <Link key={i} to={a.link} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                <Link key={i} to={a.link} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
                   <k.icon className={`h-4 w-4 shrink-0 ${k.cls}`} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{a.title}</p>

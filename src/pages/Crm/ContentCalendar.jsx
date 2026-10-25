@@ -15,14 +15,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import axiosInstance from "@/utils/axiosConfig";
 import { errMsg } from "@/lib/publicApi";
 import { toDateInput } from "@/lib/crmOutreach";
+import { confirmDialog } from "@/components/ui/app-dialogs";
 
 const TYPES = ["Post", "Reel", "Story", "Carousel", "Video", "Blog", "Ad", "Newsletter", "Other"];
 const PLATFORMS = ["Instagram", "Facebook", "LinkedIn", "YouTube", "X", "Website", "Email", "Other"];
 const STATUSES = ["Idea", "In Progress", "Internal Review", "Client Review", "Changes Requested", "Approved", "Scheduled", "Published"];
 export const CONTENT_STYLE = {
   Idea: "bg-slate-100 text-slate-700 border-slate-200",
-  "In Progress": "bg-blue-100 text-blue-700 border-blue-200",
-  "Internal Review": "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "In Progress": "bg-blue-100 text-brand border-blue-200",
+  "Internal Review": "bg-indigo-100 text-brand border-indigo-200",
   "Client Review": "bg-purple-100 text-purple-700 border-purple-200",
   "Changes Requested": "bg-red-100 text-red-700 border-red-200",
   Approved: "bg-green-100 text-green-700 border-green-200",
@@ -96,7 +97,7 @@ const ItemDialog = ({ item, clients, onOpenChange, onSaved }) => {
     if (res) setF((x) => ({ ...x, assets: res.data.item.assets }));
   };
   const remove = async () => {
-    if (!window.confirm(`Delete "${item.title}"?`)) return;
+    if (!await confirmDialog(`Delete "${item.title}"?`)) return;
     await axiosInstance.delete(`/v1/content/${item._id}`).then(() => { onSaved(null); onOpenChange(false); }).catch((e) => toast.error(errMsg(e)));
   };
   return (
@@ -122,21 +123,21 @@ const ItemDialog = ({ item, clients, onOpenChange, onSaved }) => {
           </div>
           <div className="grid gap-1">
             <Label>Status</Label>
-            <div className="flex flex-wrap gap-1">{STATUSES.map((s) => <button key={s} type="button" onClick={() => set("status", s)} className={`text-xs border rounded-full px-2 py-1 ${f.status === s ? CONTENT_STYLE[s] + " ring-2 ring-offset-1 ring-blue-500" : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300"}`}>{s}</button>)}</div>
+            <div className="flex flex-wrap gap-1">{STATUSES.map((s) => <button key={s} type="button" onClick={() => set("status", s)} className={`text-xs border rounded-full px-2 py-1 ${f.status === s ? CONTENT_STYLE[s] + " ring-2 ring-offset-1 ring-brand" : "bg-white dark:bg-slate-800 text-muted-foreground dark:text-gray-300"}`}>{s}</button>)}</div>
           </div>
           <div className="grid gap-1"><Label>Brief (internal)</Label><Textarea rows={2} value={f.brief} onChange={(e) => set("brief", e.target.value)} /></div>
           <div className="grid gap-1"><Label>Caption (client sees this)</Label><Textarea rows={3} value={f.caption} onChange={(e) => set("caption", e.target.value)} /></div>
           {["Published", "Scheduled"].includes(f.status) && <div className="grid gap-1"><Label>Post link</Label><Input value={f.publishedUrl} onChange={(e) => set("publishedUrl", e.target.value)} /></div>}
           <div className="flex justify-between gap-2">
             {!isNew && (isAdmin || item.createdBy === user?.fullname) ? <Button variant="ghost" className="text-red-600" onClick={remove}><Trash2 className="h-4 w-4 mr-1" /> Delete</Button> : <span />}
-            <Button onClick={save} className="bg-blue-600 hover:bg-blue-700">{isNew ? "Create" : "Save changes"}</Button>
+            <Button onClick={save} className="">{isNew ? "Create" : "Save changes"}</Button>
           </div>
           {!isNew && (
             <>
               <div className="border-t pt-3 grid gap-2">
                 <Label>Files</Label>
                 {(f.assets || []).map((a, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm"><a href={a.url} target="_blank" rel="noreferrer" className="text-blue-600 underline truncate">{a.name}</a><Button size="icon" variant="ghost" className="h-7 w-7 text-red-600" onClick={() => removeAsset(i)}><Trash2 className="h-3 w-3" /></Button></div>
+                  <div key={i} className="flex items-center justify-between text-sm"><a href={a.url} target="_blank" rel="noreferrer" className="text-brand underline truncate">{a.name}</a><Button size="icon" variant="ghost" className="h-7 w-7 text-red-600" onClick={() => removeAsset(i)}><Trash2 className="h-3 w-3" /></Button></div>
                 ))}
                 <div className="flex flex-wrap gap-2">
                   <label className="inline-flex items-center gap-1 text-sm border rounded-md px-3 py-1.5 cursor-pointer"><Paperclip className="h-4 w-4" /> Upload<input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} /></label>
@@ -148,7 +149,7 @@ const ItemDialog = ({ item, clients, onOpenChange, onSaved }) => {
                 <Label>Comments</Label>
                 <div className="space-y-1 max-h-48 overflow-y-auto">
                   {(f.comments || []).map((c, i) => (
-                    <p key={i} className={`text-sm ${c.fromClient ? "bg-purple-50 dark:bg-purple-950 rounded p-1" : ""}`}><b>{c.by}</b>{c.fromClient ? " (client)" : ""}: {c.text} <span className="text-xs text-gray-400">{new Date(c.at).toLocaleString("en-IN")}</span></p>
+                    <p key={i} className={`text-sm ${c.fromClient ? "bg-purple-50 dark:bg-purple-950 rounded p-1" : ""}`}><b>{c.by}</b>{c.fromClient ? " (client)" : ""}: {c.text} <span className="text-xs text-muted-foreground/70">{new Date(c.at).toLocaleString("en-IN")}</span></p>
                   ))}
                 </div>
                 <div className="flex gap-2"><Input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a comment" onKeyDown={(e) => e.key === "Enter" && addComment()} /><Button variant="outline" onClick={addComment}>Post</Button></div>
@@ -211,7 +212,7 @@ const ContentCalendar = () => {
             <SelectContent><SelectItem value="all">All clients</SelectItem>{clients.map((c) => <SelectItem key={c._id} value={String(c._id)}>{c.brandName}</SelectItem>)}</SelectContent>
           </Select>
           <Button variant="outline" size="icon" onClick={() => setView(view === "calendar" ? "list" : "calendar")} title="Switch view">{view === "calendar" ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}</Button>
-          <Button onClick={() => setOpen({ title: "", type: "Post", platform: "Instagram", status: "Idea", scheduledDate: `${month}-${month === today.slice(0, 7) ? today.slice(8) : "01"}`, clientId: clientFilter !== "all" ? clientFilter : "", caption: "", brief: "", assignee: "" })} className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> Add item</Button>
+          <Button onClick={() => setOpen({ title: "", type: "Post", platform: "Instagram", status: "Idea", scheduledDate: `${month}-${month === today.slice(0, 7) ? today.slice(8) : "01"}`, clientId: clientFilter !== "all" ? clientFilter : "", caption: "", brief: "", assignee: "" })} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> Add item</Button>
         </PageHeader>
 
         {summary.length > 0 && (
@@ -220,7 +221,7 @@ const ContentCalendar = () => {
               <Card key={String(r.clientId || r.clientName)}>
                 <CardContent className="p-3">
                   <p className="font-medium text-sm truncate">{r.clientName}</p>
-                  <p className="text-xs text-gray-500">{r.done} done of {r.promised || r.planned} {r.promised ? "promised" : "planned"}{r.promised && r.planned < r.promised ? ` · ${r.promised - r.planned} not planned yet` : ""}</p>
+                  <p className="text-xs text-muted-foreground">{r.done} done of {r.promised || r.planned} {r.promised ? "promised" : "planned"}{r.promised && r.planned < r.promised ? ` · ${r.promised - r.planned} not planned yet` : ""}</p>
                   <div className="h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full mt-2 overflow-hidden"><div className="h-full bg-green-600" style={{ width: `${Math.min(100, Math.round((r.done / Math.max(1, r.promised || r.planned)) * 100))}%` }} /></div>
                   {(r.clientReview > 0 || r.changes > 0) && <p className="text-xs mt-1">{r.clientReview > 0 && <span className="text-purple-700">{r.clientReview} awaiting client </span>}{r.changes > 0 && <span className="text-red-600">· {r.changes} changes requested</span>}</p>}
                 </CardContent>
@@ -231,12 +232,12 @@ const ContentCalendar = () => {
 
         {view === "calendar" ? (
           <div className="grid grid-cols-7 gap-1 text-xs">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d} className="text-center font-medium text-gray-500 py-1">{d}</div>)}
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d} className="text-center font-medium text-muted-foreground py-1">{d}</div>)}
             {grid.map((d, i) => (
-              <div key={i} className={`min-h-[96px] border rounded-md p-1 ${d ? "bg-white dark:bg-slate-900" : "bg-transparent border-transparent"} ${d && `${month}-${String(d).padStart(2, "0")}` === today ? "ring-2 ring-blue-500" : ""}`}>
+              <div key={i} className={`min-h-[96px] border rounded-md p-1 ${d ? "bg-white dark:bg-slate-900" : "bg-transparent border-transparent"} ${d && `${month}-${String(d).padStart(2, "0")}` === today ? "ring-2 ring-brand" : ""}`}>
                 {d && (
                   <>
-                    <div className="text-gray-500 mb-1">{d}</div>
+                    <div className="text-muted-foreground mb-1">{d}</div>
                     <div className="space-y-1">
                       {onDay(d).map((it) => (
                         <button key={it._id} onClick={() => setOpen(it)} className={`block w-full text-left border rounded px-1 py-0.5 truncate ${CONTENT_STYLE[it.status]}`} title={`${it.clientName}: ${it.title} (${it.status})`}>
@@ -255,12 +256,12 @@ const ContentCalendar = () => {
               <Table>
                 <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Client</TableHead><TableHead>Item</TableHead><TableHead>Assignee</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {shown.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-10 text-gray-500">Nothing planned for {label}. Use "Add item", or Retainers → plan month.</TableCell></TableRow>}
+                  {shown.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">Nothing planned for {label}. Use "Add item", or Retainers → plan month.</TableCell></TableRow>}
                   {shown.map((it) => (
                     <TableRow key={it._id} className="cursor-pointer" onClick={() => setOpen(it)}>
                       <TableCell className="whitespace-nowrap text-sm">{it.scheduledDate ? new Date(it.scheduledDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", weekday: "short" }) : "—"}</TableCell>
                       <TableCell>{it.clientName}</TableCell>
-                      <TableCell>{it.title}<div className="text-xs text-gray-500">{it.platform} {it.type}{it.assets?.length ? ` · ${it.assets.length} file${it.assets.length > 1 ? "s" : ""}` : ""}</div></TableCell>
+                      <TableCell>{it.title}<div className="text-xs text-muted-foreground">{it.platform} {it.type}{it.assets?.length ? ` · ${it.assets.length} file${it.assets.length > 1 ? "s" : ""}` : ""}</div></TableCell>
                       <TableCell className="text-sm">{it.assignee || "—"}</TableCell>
                       <TableCell><Pill className={`border ${CONTENT_STYLE[it.status]}`}>{it.status}</Pill></TableCell>
                     </TableRow>

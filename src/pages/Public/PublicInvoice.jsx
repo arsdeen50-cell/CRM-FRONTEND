@@ -11,7 +11,7 @@ const PublicInvoice = () => {
   useEffect(() => {
     publicApi.get(`/invoice/${token}`).then((r) => setInv(r.data.invoice)).catch((e) => setError(errMsg(e, "Invoice not found")));
   }, [token]);
-  if (!inv) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600 p-4">{error || "Loading invoice..."}</div>;
+  if (!inv) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-muted-foreground p-4">{error || "Loading invoice..."}</div>;
   const cur = inv.currency;
   const paid = inv.status === "Paid";
   return (
@@ -21,7 +21,7 @@ const PublicInvoice = () => {
         <div className="flex flex-wrap justify-between gap-3">
           <div>
             <p className="text-xl font-bold">{inv.company?.name}</p>
-            <p className="text-xs text-gray-500">{[inv.company?.address, inv.company?.email].filter(Boolean).join(" · ")}</p>
+            <p className="text-xs text-muted-foreground">{[inv.company?.address, inv.company?.email].filter(Boolean).join(" · ")}</p>
             {inv.company?.gstin && <p className="text-xs">GSTIN {inv.company.gstin}</p>}
           </div>
           <div className="text-right text-sm">
@@ -34,7 +34,7 @@ const PublicInvoice = () => {
         <table className="w-full text-sm">
           <tbody>
             {inv.items.map((it, i) => (
-              <tr key={i} className="border-b"><td className="py-2"><p className="font-medium">{it.service}</p>{it.description && <p className="text-xs text-gray-500">{it.description}</p>}</td><td className="py-2 text-right whitespace-nowrap">{money(it.quantity * it.rate, cur)}</td></tr>
+              <tr key={i} className="border-b"><td className="py-2"><p className="font-medium">{it.service}</p>{it.description && <p className="text-xs text-muted-foreground">{it.description}</p>}</td><td className="py-2 text-right whitespace-nowrap">{money(it.quantity * it.rate, cur)}</td></tr>
             ))}
           </tbody>
         </table>
@@ -51,7 +51,7 @@ const PublicInvoice = () => {
           <p className="bg-gray-50 border rounded-md p-3 text-center">This invoice was cancelled.</p>
         ) : (
           <div className="space-y-3">
-            {inv.payUrl && <a href={inv.payUrl} className="block text-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-3">Pay {money(inv.balance, cur)} online</a>}
+            {inv.payUrl && <a href={inv.payUrl} className="block text-center bg-primary hover:bg-primary/90 text-white font-medium rounded-md py-3">Pay {money(inv.balance, cur)} online</a>}
             {(inv.bank?.account || inv.bank?.upi) && (
               <div className="text-sm bg-gray-50 rounded-md p-3">
                 <p className="font-medium mb-1">{inv.payUrl ? "Or pay by bank transfer / UPI" : "Pay by bank transfer / UPI"}</p>
@@ -59,12 +59,12 @@ const PublicInvoice = () => {
                 {inv.bank.account && <p>Account: {inv.bank.account}</p>}
                 {inv.bank.ifsc && <p>IFSC: {inv.bank.ifsc}</p>}
                 {inv.bank.upi && <p>UPI: {inv.bank.upi}</p>}
-                <p className="text-xs text-gray-500 mt-1">Please mention {inv.invoiceNo} as the reference.</p>
+                <p className="text-xs text-muted-foreground mt-1">Please mention {inv.invoiceNo} as the reference.</p>
               </div>
             )}
           </div>
         )}
-        <a href={`${backend_url}/v1/public/invoice/${token}/pdf`} target="_blank" rel="noreferrer" className="inline-block text-sm text-blue-600 underline">Download PDF</a>
+        <a href={`${backend_url}/v1/public/invoice/${token}/pdf`} target="_blank" rel="noreferrer" className="inline-block text-sm text-brand underline">Download PDF</a>
       </div>
     </div>
   );
