@@ -107,7 +107,7 @@ const DashboardSections = () => {
           {team.dayOff && <p className="text-sm text-muted-foreground mb-2">Today is a {team.dayOff === "Weekly off" ? "weekly off" : `holiday: ${team.dayOff}`}.</p>}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
             <Tile label="In today" value={`${team.counts.in}/${team.counts.total}`} />
-            <Tile label="Late" value={team.counts.late} tone={team.counts.late ? "bad" : undefined} />
+            <Tile label="Late" value={team.counts.late} tone={team.counts.late ? "bad" : undefined} sub={team.counts.outside ? `${team.counts.outside} outside office` : undefined} />
             <Tile label="On leave" value={team.counts.leave} />
             <Tile label="Not in" value={team.counts.notIn} sub={team.counts.notYet ? `${team.counts.notYet} not due yet` : undefined} tone={team.counts.notIn ? "bad" : undefined} />
           </div>
@@ -119,6 +119,7 @@ const DashboardSections = () => {
                   <Link to={`/hr/people/${p._id}`} className="truncate hover:underline">{p.fullname}</Link>
                   <div className="flex items-center gap-2 shrink-0">
                     {p.punchIn && <span className={`text-xs ${p.late ? "text-red-600" : "text-muted-foreground"}`}>{time(p.punchIn)}{p.late ? " late" : ""}</span>}
+                    {p.outside && <span title={p.outside === "unknown" ? "Punched in without sharing location" : "Punched in outside the office geofence"} className="text-xs rounded-full px-2 py-0.5 bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300">{p.outside === "unknown" ? "No location" : "Outside office"}</span>}
                     <span className={`text-xs rounded-full px-2 py-0.5 ${cls}`}>{label}{p.leaveType ? ` · ${p.leaveType}` : ""}</span>
                   </div>
                 </div>

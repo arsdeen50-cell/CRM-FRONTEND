@@ -15,6 +15,8 @@ import { downloadFile } from "@/lib/crmOutreach";
 import { HrHeader, fmtDate, toInput, inr, monthLabel, LEAVE_TYPES } from "./hrShared";
 import { confirmDialog } from "@/components/ui/app-dialogs";
 
+const PUNCH_RULES = { office: "Office only (geofenced)", wfh: "Anywhere - work from home", field: "Anywhere - field staff" };
+
 const DOC_TYPES = ["ID proof", "PAN", "Offer letter", "Contract", "Certificate", "Previous employment", "Bank", "Relieving letter", "Other"];
 const Field = ({ label, children }) => <div className="grid gap-1"><Label className="text-xs text-muted-foreground">{label}</Label>{children}</div>;
 
@@ -66,7 +68,7 @@ const EmployeeProfile = () => {
 
   const save = async () => {
     const personal = ["dob", "gender", "personalEmail", "personalPhone", "currentAddress", "permanentAddress", "bloodGroup", "emergencyContact"];
-    const work = ["designation", "employmentType", "status", "dateOfJoining", "probationEndDate", "dateOfExit", "reportingManager", "workLocation", "bank", "pan", "uan", "esic", "notes"];
+    const work = ["designation", "employmentType", "status", "dateOfJoining", "probationEndDate", "dateOfExit", "reportingManager", "workLocation", "punchRule", "bank", "pan", "uan", "esic", "notes"];
     const keys = editAll ? [...personal, ...work] : personal;
     try {
       await axiosInstance.put(`/v1/hr/employees/${userId}`, Object.fromEntries(keys.map((k) => [k, form[k]])));
@@ -141,6 +143,7 @@ const EmployeeProfile = () => {
             {(editAll || profile.dateOfExit) && <Field label="Exit date">{editAll ? <Input type="date" value={form.dateOfExit} onChange={(e) => set("dateOfExit", e.target.value)} /> : ro(fmtDate(profile.dateOfExit))}</Field>}
             <Field label="Reporting manager">{editAll ? <Select value={form.reportingManager || "none"} onValueChange={(v) => set("reportingManager", v === "none" ? "" : v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem>{people.filter((p) => String(p._id) !== String(userId)).map((p) => <SelectItem key={p._id} value={String(p._id)}>{p.fullname}</SelectItem>)}</SelectContent></Select> : ro(profile.reportingManager?.fullname)}</Field>
             <Field label="Work location">{editAll ? <Input value={form.workLocation || ""} onChange={(e) => set("workLocation", e.target.value)} /> : ro(profile.workLocation)}</Field>
+            <Field label="Punch-in from">{editAll ? <Select value={form.punchRule || "office"} onValueChange={(v) => set("punchRule", v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PUNCH_RULES).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent></Select> : ro(PUNCH_RULES[profile.punchRule || "office"])}</Field>
             <Field label="Work email">{ro(user.email)}</Field>
             {editAll && <div className="sm:col-span-2 lg:col-span-3"><Field label="HR notes (only admins see this)"><Textarea rows={2} value={form.notes || ""} onChange={(e) => set("notes", e.target.value)} /></Field></div>}
           </CardContent></Card>

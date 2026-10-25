@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import {
@@ -18,8 +19,41 @@ import axios from "axios";
 import { ATTENDANCE_API_END_POINT } from "@/constants/index";
 import axiosInstance from "@/utils/axiosConfig";
 
+// Device location for the punch-in geofence. Asked only when the geofence is on; resolves {} if it can't be had
+// (the server then decides: flag the punch, or refuse it in "block" mode).
+const punchLocation = async () => {
+    let g;
+    try {
+        g = (await axiosInstance.get(`${ATTENDANCE_API_END_POINT}/geofence`)).data;
+    } catch {
+        return {};
+    }
+    if (!g?.enabled || g.punchRule === "wfh" || !navigator.geolocation) return {};
+    return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+            (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
+            (e) => {
+                if (e.code === 1) toast.error("Location access is blocked - allow it for this site so your punch can be checked against the office");
+                resolve({});
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+        );
+    });
+};
+
+const PUNCH_NOTICE_KEY = "crm.punchNotice";
+
 const useAttendance = () => {
     const dispatch = useDispatch();
+    useEffect(() => {
+        try {
+            const notice = sessionStorage.getItem(PUNCH_NOTICE_KEY);
+            if (notice) {
+                sessionStorage.removeItem(PUNCH_NOTICE_KEY);
+                toast.warning(notice, { id: "punch-notice", duration: 8000 });
+            }
+        } catch {}
+    }, []);
     const { token } = useSelector((state) => state.auth);
 
  const punchIn = async () => {
@@ -28,7 +62,7 @@ const useAttendance = () => {
 
     const res = await axiosInstance.post(
       `${ATTENDANCE_API_END_POINT}/punch-in`,
-      {},
+      await punchLocation(),
       {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
@@ -40,12 +74,19 @@ const useAttendance = () => {
     // ✅ ADD THIS (VERY IMPORTANT)
     await getMyAttendance(); 
 
-    toast.success("Punched in successfully");
+    const where = res.data?.punchInLocation?.status;
+    const notice = where === "outside" ? "Punched in - you look to be outside the office, so HR will see this flagged" : where === "unknown" ? "Punched in without your location - HR will see this flagged" : "";
+    if (notice) {
+      toast.warning(notice, { id: "punch-notice" });
+      // The dashboard reloads after a punch; show the warning again once it has
+      try { sessionStorage.setItem(PUNCH_NOTICE_KEY, notice); } catch {}
+    } else toast.success("Punched in successfully");
 
     return { success: true };
   } catch (error) {
-    dispatch(punchInFailure(error.message));
-    toast.error(error.message);
+    const msg = error.response?.data?.msg || error.response?.data?.message || error.message;
+    dispatch(punchInFailure(msg));
+    toast.error(msg, { duration: error.response?.data?.geofence ? 8000 : undefined });
     return { success: false };
   }
 };
@@ -56,7 +97,7 @@ const useAttendance = () => {
 
     const res = await axiosInstance.post(
       `${ATTENDANCE_API_END_POINT}/punch-out`,
-      {}, // ✅ FIX 2 also here (explained below)
+      await punchLocation(),
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -74,8 +115,8 @@ const useAttendance = () => {
 
     return { success: true }; // ✅ also return success
   } catch (error) {
-    dispatch(punchOutFailure(error.response?.data?.message || error.message));
-    toast.error(error.response?.data?.message || "Failed to punch out");
+    dispatch(punchOutFailure(error.response?.data?.msg || error.response?.data?.message || error.message));
+    toast.error(error.response?.data?.msg || error.response?.data?.message || "Failed to punch out");
     return { success: false };
   }
 };
