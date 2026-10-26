@@ -26,6 +26,7 @@ const EmployeeProfile = () => {
   const [data, setData] = useState(null);
   const [form, setForm] = useState(null);
   const [people, setPeople] = useState([]);
+  const [hr, setHr] = useState(null);
   const [balance, setBalance] = useState(null);
   const [payslips, setPayslips] = useState([]);
   const [upload, setUpload] = useState({ type: "Other", file: null });
@@ -58,6 +59,7 @@ const EmployeeProfile = () => {
   useEffect(() => {
     load();
     if (admin) axiosInstance.get("/v1/hr/employees").then((r) => setPeople(r.data.people || [])).catch(() => {});
+    axiosInstance.get("/v1/hr/settings").then((r) => setHr(r.data.settings || null)).catch(() => {});
   }, [load, admin]);
 
   if (!data || !form) return <div className="p-6 text-muted-foreground">Loading...</div>;
@@ -68,7 +70,7 @@ const EmployeeProfile = () => {
 
   const save = async () => {
     const personal = ["dob", "gender", "personalEmail", "personalPhone", "currentAddress", "permanentAddress", "bloodGroup", "emergencyContact"];
-    const work = ["designation", "employmentType", "status", "dateOfJoining", "probationEndDate", "dateOfExit", "reportingManager", "workLocation", "punchRule", "bank", "pan", "uan", "esic", "notes"];
+    const work = ["designation", "employmentType", "status", "dateOfJoining", "probationEndDate", "dateOfExit", "reportingManager", "workLocation", "punchRule", "shiftId", "bank", "pan", "uan", "esic", "notes"];
     const keys = editAll ? [...personal, ...work] : personal;
     try {
       await axiosInstance.put(`/v1/hr/employees/${userId}`, Object.fromEntries(keys.map((k) => [k, form[k]])));
@@ -143,6 +145,11 @@ const EmployeeProfile = () => {
             {(editAll || profile.dateOfExit) && <Field label="Exit date">{editAll ? <Input type="date" value={form.dateOfExit} onChange={(e) => set("dateOfExit", e.target.value)} /> : ro(fmtDate(profile.dateOfExit))}</Field>}
             <Field label="Reporting manager">{editAll ? <Select value={form.reportingManager || "none"} onValueChange={(v) => set("reportingManager", v === "none" ? "" : v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem>{people.filter((p) => String(p._id) !== String(userId)).map((p) => <SelectItem key={p._id} value={String(p._id)}>{p.fullname}</SelectItem>)}</SelectContent></Select> : ro(profile.reportingManager?.fullname)}</Field>
             <Field label="Work location">{editAll ? <Input value={form.workLocation || ""} onChange={(e) => set("workLocation", e.target.value)} /> : ro(profile.workLocation)}</Field>
+            <Field label="Shift">{(() => {
+              const shifts = hr?.shifts || [];
+              const label = (id) => { const x = shifts.find((y) => String(y._id) === String(id)); return x ? `${x.name} · from ${x.start}, ${x.fullDayHours}h` : `Regular${hr ? ` · from ${hr.officeStart}, ${hr.fullDayHours}h` : ""}`; };
+              return editAll ? <Select value={form.shiftId ? String(form.shiftId) : "regular"} onValueChange={(v) => set("shiftId", v === "regular" ? "" : v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="regular">{label("")}</SelectItem>{shifts.map((x) => <SelectItem key={x._id} value={String(x._id)}>{label(x._id)}</SelectItem>)}</SelectContent></Select> : ro(label(profile.shiftId));
+            })()}</Field>
             <Field label="Punch-in from">{editAll ? <Select value={form.punchRule || "office"} onValueChange={(v) => set("punchRule", v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PUNCH_RULES).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent></Select> : ro(PUNCH_RULES[profile.punchRule || "office"])}</Field>
             <Field label="Work email">{ro(user.email)}</Field>
             {editAll && <div className="sm:col-span-2 lg:col-span-3"><Field label="HR notes (only admins see this)"><Textarea rows={2} value={form.notes || ""} onChange={(e) => set("notes", e.target.value)} /></Field></div>}

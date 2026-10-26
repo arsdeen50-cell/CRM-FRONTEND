@@ -128,7 +128,7 @@ const DashboardSections = ({ myDay }) => {
                 <div key={p._id} className="flex items-center justify-between gap-2 border-b border-border/60 py-1.5 text-sm last:border-0">
                   <Link to={`/hr/people/${p._id}`} className="flex min-w-0 items-center gap-2 hover:underline">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold">{(p.fullname || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}</span>
-                    <span className="truncate">{p.fullname}</span>
+                    <span className="truncate">{p.fullname}{p.shift && <span className="ml-1 text-xs text-muted-foreground">· {p.shift}</span>}</span>
                   </Link>
                   <div className="flex shrink-0 items-center gap-1.5">
                     {p.punchIn && <span className={`text-xs ${p.late ? "text-red-600" : "text-muted-foreground"}`}>{time(p.punchIn)}{p.late ? " late" : ""}</span>}
