@@ -48,10 +48,12 @@ const attendanceSlice = createSlice({
         
         // Find today's attendance if needed
         if (Array.isArray(state.myAttendance)) {
+          // An open shift (overnight ones run past midnight), otherwise the one that started today
           const today = new Date().setHours(0, 0, 0, 0);
-          state.todayAttendance = state.myAttendance.find(record => 
-            new Date(record.punchIn) >= today
-          );
+          const since = Date.now() - 20 * 60 * 60 * 1000;
+          state.todayAttendance =
+            state.myAttendance.find((record) => !record.punchOut && new Date(record.punchIn) >= since) ||
+            state.myAttendance.find((record) => new Date(record.punchIn) >= today);
         }
       },
     getMyAttendanceFailure: (state, action) => {

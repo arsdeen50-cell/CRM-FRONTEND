@@ -3,6 +3,7 @@ import {
   Briefcase, CalendarRange, Timer, Receipt, Repeat2, TrendingUp, KeyRound, UserCircle, CalendarCheck, CalendarDays,
   Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact,
 } from "lucide-react";
+import { pageHidden } from "@/constants/brand";
 
 /* Every page in one place. `show` decides who sees it (the API enforces access; this just hides links
    people can't use). ctx = { admin, sales, outreach, teamLead }. The sidebar, the CRM page and the
@@ -90,5 +91,5 @@ export const NAV_GROUPS = [
 
 export const visibleNav = (ctx, user) =>
   NAV_GROUPS.filter((g) => !g.show || g.show(ctx))
-    .map((g) => ({ ...g, items: g.items.filter((i) => !i.show || i.show(ctx)).map((i) => ({ ...i, to: typeof i.to === "function" ? i.to(user) : i.to })) }))
+    .map((g) => ({ ...g, items: g.items.filter((i) => (!i.show || i.show(ctx)) && (typeof i.to !== "string" || !pageHidden(i.to))).map((i) => ({ ...i, to: typeof i.to === "function" ? i.to(user) : i.to })) }))
     .filter((g) => g.items.length);

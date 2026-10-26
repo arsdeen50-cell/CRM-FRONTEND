@@ -7,6 +7,7 @@ import logoLight from "@/assets/white.png";
 import logoDark from "@/assets/black.png";
 import { cn } from "@/utils/cn";
 import { visibleNav } from "@/constants/nav";
+import { BRAND } from "@/constants/brand";
 import { useAccess } from "@/components/crm/AccessRoute";
 
 const STORE = "crm.sidebar.closedGroups";
@@ -45,9 +46,18 @@ export const Sidebar = forwardRef(({ collapsed, onNavigate }, ref) => {
       )}
     >
       <div className={cn("flex h-[60px] shrink-0 items-center gap-2 border-b border-border px-4", collapsed && "md:justify-center md:px-0")}>
-        <img src={logoDark} alt="ARSDEEN" className="h-7 w-auto dark:hidden" />
-        <img src={logoLight} alt="ARSDEEN" className="hidden h-7 w-auto dark:block" />
-        {!collapsed && <span className="text-sm font-semibold tracking-wide">ARSDEEN</span>}
+        {BRAND.logo ? (
+          // A client's own logo: the full logo when open, its square mark when the sidebar is collapsed
+          <span className="flex h-9 items-center rounded-md bg-white px-1.5">
+            <img src={collapsed && BRAND.mark ? BRAND.mark : BRAND.logo} alt={BRAND.name} className={cn("w-auto object-contain", collapsed ? "h-6 max-w-[40px]" : "h-7 max-w-[180px]")} />
+          </span>
+        ) : (
+          <>
+            <img src={logoDark} alt={BRAND.name} className="h-7 w-auto dark:hidden" />
+            <img src={logoLight} alt={BRAND.name} className="hidden h-7 w-auto dark:block" />
+            {!collapsed && <span className="text-sm font-semibold tracking-wide">{BRAND.name}</span>}
+          </>
+        )}
       </div>
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden p-2 [scrollbar-width:_thin]">
         {groups.map((g) => {

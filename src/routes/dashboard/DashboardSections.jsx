@@ -4,6 +4,7 @@ import { AlertCircle, CheckSquare, PhoneCall, Repeat, CalendarDays, CalendarChec
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/axiosConfig";
+import { pageHidden } from "@/constants/brand";
 
 const inr = (n) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(n) || 0);
 const day = (d) => (d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "");
@@ -195,7 +196,7 @@ const DashboardSections = ({ myDay }) => {
             <Tile icon={Wallet} label="Outstanding" value={inr(business.money.outstanding)} sub={business.money.overdue ? `${inr(business.money.overdue)} overdue` : "nothing overdue"} tone={business.money.overdue ? "bad" : undefined} to="/crm/invoices" />
             <Tile icon={Banknote} label="Received this month" value={inr(business.money.paidThisMonth)} tone="good" to="/crm/invoices" />
             <Tile icon={Repeat2} label="Monthly retainers" value={inr(business.money.mrr)} sub={business.money.renewalsDue ? `${business.money.renewalsDue} renewal${business.money.renewalsDue > 1 ? "s" : ""} due` : "no renewals due"} tone={business.money.renewalsDue ? "bad" : undefined} to="/crm/retainers" />
-            <Tile icon={Clapperboard} label="Content this month" value={`${business.content.done}/${business.content.promised || business.content.planned}`} sub={business.content.awaitingClient ? `${business.content.awaitingClient} with client` : "delivered"} to="/crm/content" />
+            {!pageHidden("/crm/content") && <Tile icon={Clapperboard} label="Content this month" value={`${business.content.done}/${business.content.promised || business.content.planned}`} sub={business.content.awaitingClient ? `${business.content.awaitingClient} with client` : "delivered"} to="/crm/content" />}
           </div>
           {business.pipeline.byStage.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
