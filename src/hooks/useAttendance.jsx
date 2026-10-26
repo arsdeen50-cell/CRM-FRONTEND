@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import {
@@ -41,19 +40,8 @@ const punchLocation = async () => {
     });
 };
 
-const PUNCH_NOTICE_KEY = "crm.punchNotice";
-
 const useAttendance = () => {
     const dispatch = useDispatch();
-    useEffect(() => {
-        try {
-            const notice = sessionStorage.getItem(PUNCH_NOTICE_KEY);
-            if (notice) {
-                sessionStorage.removeItem(PUNCH_NOTICE_KEY);
-                toast.warning(notice, { id: "punch-notice", duration: 8000 });
-            }
-        } catch {}
-    }, []);
     const { token } = useSelector((state) => state.auth);
 
  const punchIn = async () => {
@@ -77,9 +65,7 @@ const useAttendance = () => {
     const where = res.data?.punchInLocation?.status;
     const notice = where === "outside" ? "Punched in - you look to be outside the office, so HR will see this flagged" : where === "unknown" ? "Punched in without your location - HR will see this flagged" : "";
     if (notice) {
-      toast.warning(notice, { id: "punch-notice" });
-      // The dashboard reloads after a punch; show the warning again once it has
-      try { sessionStorage.setItem(PUNCH_NOTICE_KEY, notice); } catch {}
+      toast.warning(notice, { id: "punch-notice", duration: 8000 });
     } else toast.success("Punched in successfully");
 
     return { success: true };
