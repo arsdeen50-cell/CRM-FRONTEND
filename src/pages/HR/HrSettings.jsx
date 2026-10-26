@@ -144,11 +144,31 @@ const HrSettings = () => {
                 <div className="grid gap-1"><Label>Leave year starts in</Label><Select value={String(s.leaveYearStartMonth)} onValueChange={(v) => set("leaveYearStartMonth", Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent></Select></div>
                 <div className="grid gap-1"><Label>Weekly offs</Label><div className="flex flex-wrap gap-2 pt-2">{WEEKDAYS.map((d, i) => <label key={d} className="text-sm flex items-center gap-1"><input type="checkbox" checked={s.weeklyOffs.includes(i)} onChange={(e) => set("weeklyOffs", e.target.checked ? [...s.weeklyOffs, i] : s.weeklyOffs.filter((x) => x !== i))} /> {d}</label>)}</div></div>
               </div>
+              <p className="font-medium -mb-2">Regular shift <span className="text-xs font-normal text-muted-foreground">(everyone without a shift)</span></p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="grid gap-1"><Label>Office starts</Label><Input type="time" value={s.officeStart} onChange={(e) => set("officeStart", e.target.value)} /></div>
                 <div className="grid gap-1"><Label>Late after (grace, min)</Label><Input type="number" min="0" value={s.graceMinutes} onChange={(e) => set("graceMinutes", e.target.value)} /></div>
                 <div className="grid gap-1"><Label>Full day (hours)</Label><Input type="number" min="0" step="0.5" value={s.fullDayHours} onChange={(e) => set("fullDayHours", e.target.value)} /></div>
                 <div className="grid gap-1"><Label>Half day (hours)</Label><Input type="number" min="0" step="0.5" value={s.halfDayHours} onChange={(e) => set("halfDayHours", e.target.value)} /></div>
+              </div>
+              <div>
+                <p className="font-medium">Other shifts</p>
+                <p className="text-xs text-muted-foreground mb-2">For people with different hours, e.g. interns 2 PM - 8 PM. Pick the shift on each person's profile. Late = after the shift start + the grace above.</p>
+                <div className="space-y-2">
+                  {(s.shifts || []).map((sh, i) => {
+                    const upd = (k, v) => set("shifts", s.shifts.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+                    return (
+                      <div key={sh._id || `new-${i}`} className="grid grid-cols-2 sm:grid-cols-[1fr_120px_120px_120px_auto] gap-2 items-end">
+                        <div className="grid gap-1"><Label className="text-xs">Name</Label><Input value={sh.name} onChange={(e) => upd("name", e.target.value)} placeholder="Interns" /></div>
+                        <div className="grid gap-1"><Label className="text-xs">Starts</Label><Input type="time" value={sh.start} onChange={(e) => upd("start", e.target.value)} /></div>
+                        <div className="grid gap-1"><Label className="text-xs">Full day (h)</Label><Input type="number" min="0" step="0.5" value={sh.fullDayHours} onChange={(e) => upd("fullDayHours", e.target.value)} /></div>
+                        <div className="grid gap-1"><Label className="text-xs">Half day (h)</Label><Input type="number" min="0" step="0.5" value={sh.halfDayHours} onChange={(e) => upd("halfDayHours", e.target.value)} /></div>
+                        <Button variant="ghost" size="icon" title="Remove shift" onClick={() => set("shifts", s.shifts.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    );
+                  })}
+                  <Button variant="outline" size="sm" onClick={() => set("shifts", [...(s.shifts || []), { name: "", start: "14:00", fullDayHours: 6, halfDayHours: 3 }])}><Plus className="h-4 w-4 mr-1" /> Add shift</Button>
+                </div>
               </div>
               <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={s.deductAbsentDays} onChange={(e) => set("deductAbsentDays", e.target.checked)} /> Payroll: count absent days (no punch-in, no leave) as loss of pay</label>
               <div className="flex justify-end"><Button onClick={save} className="">Save settings</Button></div>

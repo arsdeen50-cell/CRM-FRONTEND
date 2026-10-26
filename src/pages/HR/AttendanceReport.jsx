@@ -111,7 +111,7 @@ const AttendanceReport = () => {
                 <tbody>
                   {report.rows.map((r) => (
                     <tr key={r.user._id}>
-                      <td className="p-1 sticky left-0 bg-card font-medium whitespace-nowrap">{r.user.fullname}</td>
+                      <td className="p-1 sticky left-0 bg-card font-medium whitespace-nowrap">{r.user.fullname}{r.shift && r.shift.name !== "Regular" && <div className="text-[10px] font-normal text-muted-foreground">{r.shift.name} · {r.shift.start}</div>}</td>
                       {r.cells.map((c) => <Cell key={c.date} c={c} />)}
                       {SUMMARY.map(([k]) => <td key={k} className="p-1 text-center">{r.summary[k]}</td>)}
                     </tr>
