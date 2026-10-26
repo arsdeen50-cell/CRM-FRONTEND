@@ -4,6 +4,7 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 
 import { Sidebar } from "@/layouts/sidebar";
 import { Header } from "@/layouts/header";
+import DemoBanner from "@/components/DemoBanner";
 import { cn } from "@/utils/cn";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -59,6 +60,8 @@ const Layout = () => {
         )}
       >
         {user && <Header collapsed={collapsed} setCollapsed={setCollapsed} />}
+        {/* Demo builds (VITE_DEMO_MODE=true) say so, so nobody mistakes sample data for a real workspace */}
+        {import.meta.env.VITE_DEMO_MODE === "true" && <DemoBanner />}
         <div className="mx-auto w-full max-w-[1600px] overflow-x-hidden p-3 sm:p-4 md:p-6">
           <Outlet />
         </div>
