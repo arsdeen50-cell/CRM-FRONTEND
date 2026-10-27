@@ -22,7 +22,7 @@ const Cell = ({ c }) => {
   const d = DAY_CODES[c.code];
   return (
     <td className="p-0.5">
-      <div title={`${c.date}: ${d?.label || "—"}${c.late ? " (late)" : ""}${c.holiday ? ` - ${c.holiday}` : ""}${c.leaveType ? ` - ${c.leaveType}` : ""}${c.punchIn ? `\nIn ${time(c.punchIn)}  Out ${time(c.punchOut)}  ${c.worked}h` : ""}${c.outside ? `\nOutside office: ${outsideText(c.outside)}` : ""}`} className={`relative h-7 w-8 rounded text-[10px] font-medium flex items-center justify-center ${d?.cls || "bg-card text-muted-foreground/50"} ${c.late ? "ring-1 ring-red-400" : ""}`}>
+      <div title={`${c.date}: ${d?.label || "—"}${c.late ? " (late)" : ""}${c.holiday ? ` - ${c.holiday}` : ""}${c.leaveType ? ` - ${c.leaveType}` : ""}${c.punchIn ? `\nIn ${time(c.punchIn)}  Out ${time(c.punchOut)}  ${c.worked}h` : ""}${c.shift ? `\nRoster: ${c.shift}` : ""}${c.outside ? `\nOutside office: ${outsideText(c.outside)}` : ""}`} className={`relative h-7 w-8 rounded text-[10px] font-medium flex items-center justify-center ${d?.cls || "bg-card text-muted-foreground/50"} ${c.late ? "ring-1 ring-red-400" : ""}`}>
         {c.code || "·"}
         {c.outside && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-orange-500 ring-2 ring-card" />}
       </div>
@@ -111,7 +111,7 @@ const AttendanceReport = () => {
                 <tbody>
                   {report.rows.map((r) => (
                     <tr key={r.user._id}>
-                      <td className="p-1 sticky left-0 bg-card font-medium whitespace-nowrap">{r.user.fullname}{r.shift && r.shift.name !== "Regular" && <div className="text-[10px] font-normal text-muted-foreground">{r.shift.name} · {r.shift.start}</div>}</td>
+                      <td className="p-1 sticky left-0 bg-card font-medium whitespace-nowrap">{r.user.fullname}{r.shift && r.shift.name !== "Regular" && <div className="text-[10px] font-normal text-muted-foreground">{r.shift.name} · {r.shift.start} IST</div>}</td>
                       {r.cells.map((c) => <Cell key={c.date} c={c} />)}
                       {SUMMARY.map(([k]) => <td key={k} className="p-1 text-center">{r.summary[k]}</td>)}
                     </tr>

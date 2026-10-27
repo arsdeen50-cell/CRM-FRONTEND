@@ -55,6 +55,7 @@ import EmployeeProfile from "./pages/HR/EmployeeProfile";
 import AttendanceReport from "./pages/HR/AttendanceReport";
 import Payroll from "./pages/HR/Payroll";
 import HrSettings from "./pages/HR/HrSettings";
+import Roster from "./pages/HR/Roster";
 import Exits from "./pages/HR/Exits";
 import ExitDetail from "./pages/HR/ExitDetail";
 
@@ -220,6 +221,7 @@ function App() {
         { path: "hr/attendance", element: <AttendanceReport /> },
         { path: "hr/payroll", element: <Payroll /> },
         { path: "hr/settings", element: <HrSettings /> },
+        { path: "hr/roster", element: <Roster /> },
         { path: "hr/exits", element: <Exits /> },
         { path: "hr/exits/:userId", element: <ExitDetail /> },
         {
