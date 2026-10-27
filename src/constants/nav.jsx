@@ -67,6 +67,7 @@ export const NAV_GROUPS = [
       { label: "My profile", to: (u) => `/hr/people/${u?._id}`, icon: UserCircle },
       { label: "People", to: "/hr/people", icon: Users },
       { label: "Attendance", to: "/hr/attendance", icon: CalendarCheck },
+      { label: "Shift roster", to: "/hr/roster", icon: CalendarRange, show: (c) => c.admin || c.teamLead },
       { label: "Leave", to: "/leave", icon: CalendarDays },
       { label: "Payroll", to: "/hr/payroll", icon: Wallet, show: (c) => c.admin },
       { label: "Onboarding", to: "/crm/goonboardingdata", icon: UserPlus, show: (c) => c.admin },

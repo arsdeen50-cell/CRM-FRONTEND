@@ -70,6 +70,9 @@ const GeofenceSettings = ({ value, onChange, onSave }) => {
   );
 };
 
+// Time zones a shift's start time can be written in (US shifts follow daylight saving automatically)
+const SHIFT_ZONES = [["", "India (IST)"], ["America/New_York", "US Eastern"], ["America/Chicago", "US Central"], ["America/Denver", "US Mountain"], ["America/Phoenix", "US Arizona (no DST)"], ["America/Los_Angeles", "US Pacific"], ["Europe/London", "UK"]];
+
 const HrSettings = () => {
   const [s, setS] = useState(null);
   const [year, setYear] = useState(String(new Date().getFullYear()));
@@ -153,14 +156,15 @@ const HrSettings = () => {
               </div>
               <div>
                 <p className="font-medium">Other shifts</p>
-                <p className="text-xs text-muted-foreground mb-2">For people with different hours, e.g. interns 2 PM - 8 PM. Pick the shift on each person's profile. Late = after the shift start + the grace above.</p>
+                <p className="text-xs text-muted-foreground mb-2">For people with different hours, e.g. interns 2 PM - 8 PM or a US 6-3 Eastern shift. Pick the usual shift on each person's profile, or plan day by day in Shift roster. A US time zone follows US daylight saving, so the IST time moves by an hour in March and November. Late = after the shift start + the grace above.</p>
                 <div className="space-y-2">
                   {(s.shifts || []).map((sh, i) => {
                     const upd = (k, v) => set("shifts", s.shifts.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
                     return (
-                      <div key={sh._id || `new-${i}`} className="grid grid-cols-2 sm:grid-cols-[1fr_120px_120px_120px_auto] gap-2 items-end">
+                      <div key={sh._id || `new-${i}`} className="grid grid-cols-2 sm:grid-cols-[1fr_110px_150px_100px_100px_auto] gap-2 items-end">
                         <div className="grid gap-1"><Label className="text-xs">Name</Label><Input value={sh.name} onChange={(e) => upd("name", e.target.value)} placeholder="Interns" /></div>
                         <div className="grid gap-1"><Label className="text-xs">Starts</Label><Input type="time" value={sh.start} onChange={(e) => upd("start", e.target.value)} /></div>
+                        <div className="grid gap-1"><Label className="text-xs">Time zone</Label><select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={sh.timeZone || ""} onChange={(e) => upd("timeZone", e.target.value)}>{SHIFT_ZONES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
                         <div className="grid gap-1"><Label className="text-xs">Full day (h)</Label><Input type="number" min="0" step="0.5" value={sh.fullDayHours} onChange={(e) => upd("fullDayHours", e.target.value)} /></div>
                         <div className="grid gap-1"><Label className="text-xs">Half day (h)</Label><Input type="number" min="0" step="0.5" value={sh.halfDayHours} onChange={(e) => upd("halfDayHours", e.target.value)} /></div>
                         <Button variant="ghost" size="icon" title="Remove shift" onClick={() => set("shifts", s.shifts.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
