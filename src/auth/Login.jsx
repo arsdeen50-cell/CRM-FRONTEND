@@ -76,8 +76,8 @@ const submitHandler = async (e) => {
         <AuthShell title="Welcome back" subtitle="Log in to your workspace">
             <form onSubmit={submitHandler} className="space-y-4">
                 <div className="space-y-1.5">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" autoComplete="email" value={input.email} name="email" onChange={changeEventhandler} placeholder="you@company.com" required />
+                    <Label htmlFor="email">Email or username</Label>
+                    <Input id="email" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} value={input.email} name="email" onChange={changeEventhandler} placeholder="you@company.com or username" required />
                 </div>
                 <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
