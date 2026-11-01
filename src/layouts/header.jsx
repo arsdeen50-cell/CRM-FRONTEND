@@ -17,6 +17,7 @@ import axios from "axios";
 import { logout, setUser } from "@/redux/authSlice";
 import axiosInstance from "@/utils/axiosConfig";
 import DemoResetItem from "@/components/DemoResetItem";
+import NotificationBell from "@/components/NotificationBell";
 
 export const Header = ({ collapsed, setCollapsed }) => {
     const { theme, setTheme } = useTheme();
@@ -92,6 +93,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
                 </button>
             </div>
             <div className="flex shrink-0 items-center gap-1">
+                <NotificationBell />
                 <button className="btn-ghost size-9 shrink-0" onClick={() => setTheme(theme === "light" ? "dark" : "light")} title="Light / dark">
                     <Sun size={18} className="dark:hidden" />
                     <Moon size={18} className="hidden dark:block" />
