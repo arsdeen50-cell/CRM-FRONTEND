@@ -11,7 +11,8 @@ import axiosInstance from "@/utils/axiosConfig";
 
 const POSITION_TYPES = ["Any", "Full Time", "Internship", "Contract", "Part Time"];
 const FIELD_TYPES = [["text", "Text"], ["textarea", "Long text"], ["money", "Amount (₹)"], ["number", "Number"], ["date", "Date"]];
-const keyOf = (label) => String(label || "").replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).map((w, i) => (i ? w[0]?.toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase())).join("").replace(/^[^a-zA-Z]+/, "").slice(0, 40);
+const SIGNERS = [["both", "Both co-founders"], ["Arsalan", "Arsalan only"], ["Fardeen", "Fardeen only"]];
+const keyOf =(label) => String(label || "").replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).map((w, i) => (i ? w[0]?.toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase())).join("").replace(/^[^a-zA-Z]+/, "").slice(0, 40);
 const blank = () => ({ name: "New template", positionType: "Any", designations: [], title: "{{positionType}} Offer - {{designation}}", intro: "We are pleased to offer you the position of {{designation}} at {{company}}.", payTitle: "Compensation", sections: [{ heading: "Details", body: "- Date of joining: {{doj}}" }], fields: [], terms: [], closing: "To confirm your acceptance, please sign and return this letter by {{doj}}." });
 const move = (arr, i, d) => {
   const a = [...arr];
@@ -111,7 +112,12 @@ const OfferTemplatesSettings = () => {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="grid gap-1"><Label>Letter title</Label><Input value={current.title} onChange={(e) => set("title", e.target.value)} /></div>
+            <div className="grid gap-1"><Label>Signed by</Label><select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={current.signedBy || "both"} onChange={(e) => set("signedBy", e.target.value)}>{SIGNERS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
             <div className="grid gap-1"><Label>Pay table heading</Label><Input value={current.payTitle} onChange={(e) => set("payTitle", e.target.value)} /></div>
+            <div className="grid gap-1"><Label>Amount column</Label><Input value={current.payAmountLabel ?? "Amount"} onChange={(e) => set("payAmountLabel", e.target.value)} placeholder="Monthly (₹)" /></div>
+            <div className="grid gap-1"><Label>Total row (blank = no total)</Label><Input value={current.payTotalLabel || ""} onChange={(e) => set("payTotalLabel", e.target.value)} placeholder="Total Gross Salary (per month)" /></div>
           </div>
           <div className="grid gap-1"><Label>Opening paragraph</Label><Textarea rows={3} value={current.intro} onChange={(e) => set("intro", e.target.value)} /></div>
 
@@ -134,7 +140,7 @@ const OfferTemplatesSettings = () => {
             </div>
           </div>
 
-          <div className="grid gap-1"><Label>Terms & conditions (one per line)</Label><Textarea rows={5} value={(current.terms || []).join("\n")} onChange={(e) => set("terms", e.target.value.split("\n"))} /></div>
+          <div className="grid gap-1"><Label>Terms & conditions (one per line; “Heading: text” shows the heading in bold)</Label><Textarea rows={5} value={(current.terms || []).join("\n")} onChange={(e) => set("terms", e.target.value.split("\n"))} /></div>
           <div className="grid gap-1"><Label>Closing (before the signatures)</Label><Textarea rows={3} value={current.closing} onChange={(e) => set("closing", e.target.value)} /></div>
 
           <div className="rounded-md bg-muted p-3 text-xs">

@@ -53,6 +53,7 @@ const OfferLetterPanel = ({ onboardingId, designation, positionType, initialTemp
     setDirty(true);
   };
   const valueOf = (f) => values[f.key] ?? f.default ?? "";
+  const payTotal = (template?.fields || []).filter((f) => f.type === "money" && f.inPayTable).reduce((sum, f) => sum + (Number(valueOf(f)) || 0), 0);
 
   const save = async () => {
     try {
@@ -109,6 +110,12 @@ const OfferLetterPanel = ({ onboardingId, designation, positionType, initialTemp
           ))}
           {template.fields.length === 0 && <p className="text-sm text-muted-foreground">This template needs no extra details.</p>}
         </div>
+      )}
+      {template?.payTotalLabel && (
+        <p className="text-sm">
+          {template.payTotalLabel}: <span className="font-semibold">₹{payTotal.toLocaleString("en-IN")}</span>
+          <span className="text-muted-foreground"> (₹{(payTotal * 12).toLocaleString("en-IN")} a year)</span>
+        </p>
       )}
 
       {missing.length > 0 && !dirty && <p className="text-sm text-destructive">Still needed before approving: {missing.join(", ")}</p>}
