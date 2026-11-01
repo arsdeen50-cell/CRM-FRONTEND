@@ -12,6 +12,7 @@ import ExistingFilePreview from "./ExistingFilePreview";
 import CandidateInfoCard from "./CandidateInfoCard";
 import ResponsibilitiesPopup from "./ResponsibilitiesPopup";
 import OfferLetterPreviewPopup from "./OfferLetterPreviewPopup";
+import OfferLetterPanel from "./OfferLetterPanel";
 import useDesignation from "@/hooks/useDesignation";
 import axiosInstance from "@/utils/axiosConfig";
 import { USER_API_END_POINT, ONBOARDING_API_END_POINT } from "@/constants";
@@ -911,25 +912,17 @@ const handleSubmit = async (e) => {
                                         </Select>
                                     </div>
                                     
-                                    {/* NEW: Preview Offer Letter Button */}
-                                    <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h4 className="font-semibold text-blue-800">Offer Letter Preview</h4>
-                                                <p className="text-sm text-brand mt-1">
-                                                    Generate and preview the offer letter before sending it to the candidate.
-                                                </p>
-                                            </div>
-                                            <Button 
-                                                type="button" 
-                                                onClick={handlePreviewOfferLetter}
-                                                disabled={isGeneratingPreview || loading}
-                                                className=""
-                                            >
-                                                {isGeneratingPreview ? "Generating..." : "Preview Offer Letter"}
-                                            </Button>
-                                        </div>
-                                    </div>
+                                    {/* Offer letter: template for this role, its details, preview */}
+                                    <OfferLetterPanel
+                                        onboardingId={id}
+                                        designation={designation}
+                                        positionType={positionType}
+                                        initialTemplateId={candidateData?.offerTemplateId}
+                                        initialFields={candidateData?.offerFields}
+                                        locked={candidateData?.candidateStatus === "Approved"}
+                                        onPreview={handlePreviewOfferLetter}
+                                        previewing={isGeneratingPreview}
+                                    />
                                 </div>
                                 {candidateData && <CandidateInfoCard candidateData={candidateData} />}
                             </section>

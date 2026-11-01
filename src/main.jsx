@@ -11,6 +11,10 @@ import { PersistGate } from "redux-persist/lib/integration/react";
 
 const persistor = persistStore(store);
 applyBrand();
+// Installable on phones (home-screen app) and quicker to reopen; production builds only
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

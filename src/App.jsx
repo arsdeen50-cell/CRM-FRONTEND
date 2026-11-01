@@ -7,57 +7,59 @@ import DashboardPage from "@/routes/dashboard/page";
 import Login from "@/auth/Login";
 import Signup from "@/auth/Signup";
 import NotFound from "./pages/NotFound";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
+// Pages load when first opened, so the first visit downloads far less
+import PageLoader from "@/components/PageLoader";
 import { setUser } from "./redux/authSlice";
 import axios from "@/utils/axiosConfig";
-import Task from "./components/Task";
+const Task = lazy(() => import("./components/Task"));
 import AdminRoute from "./utils/AdminRoute";
 import EmployeeRoute from "./utils/EmployeeRoute";
-import EmployeeTask from "./components/EmployeeTask";
-import RoleBasedAccess from "./pages/RoleBasedAccess";
-import AdminAssign from "./components/AdminAssign";
-import EmployeeLeave from "./components/EmployeeLeave";
-import Crm from "./components/crm/Crm";
-import LeadSource from "./pages/Crm/LeadSource";
-import GoOnBoarding from "./pages/Crm/GoOnBoarding/index";
-import CreateGoOnBoardingForm from "./components/crm/GoOnBoarding/CreateGoOnBoardingForm";
-import EditGoOnBoardingForm from "./components/crm/GoOnBoarding/EditGoOnBoardingForm";
-import CandidateForm from "./components/crm/GoOnBoarding/CandidateForm";
+const EmployeeTask = lazy(() => import("./components/EmployeeTask"));
+const RoleBasedAccess = lazy(() => import("./pages/RoleBasedAccess"));
+const AdminAssign = lazy(() => import("./components/AdminAssign"));
+const EmployeeLeave = lazy(() => import("./components/EmployeeLeave"));
+const Crm = lazy(() => import("./components/crm/Crm"));
+const LeadSource = lazy(() => import("./pages/Crm/LeadSource"));
+const GoOnBoarding = lazy(() => import("./pages/Crm/GoOnBoarding/index"));
+const CreateGoOnBoardingForm = lazy(() => import("./components/crm/GoOnBoarding/CreateGoOnBoardingForm"));
+const EditGoOnBoardingForm = lazy(() => import("./components/crm/GoOnBoarding/EditGoOnBoardingForm"));
+const CandidateForm = lazy(() => import("./components/crm/GoOnBoarding/CandidateForm"));
 import ForgotPassword from "./auth/ForgotPassword";
-import LeadClientList from "./pages/Crm/LeadClientList";
+const LeadClientList = lazy(() => import("./pages/Crm/LeadClientList"));
 import CrmMemberRoute from "./components/crm/CrmMemberRoute";
 import { SalesRoute } from "./components/crm/AccessRoute";
-import FollowUps from "./pages/Crm/FollowUps";
-import Reports from "./pages/Crm/Reports";
-import ImportLeads from "./pages/Crm/ImportLeads";
-import Templates from "./pages/Crm/Templates";
-import Proposals from "./pages/Crm/Proposals";
-import Projects from "./pages/Crm/Projects";
-import AuditLog from "./pages/Crm/AuditLog";
-import Messages from "./pages/Crm/Messages";
-import Sequences from "./pages/Crm/Sequences";
-import LeadForms from "./pages/Crm/LeadForms";
-import Targets from "./pages/Crm/Targets";
-import Invoices from "./pages/Crm/Invoices";
-import Retainers from "./pages/Crm/Retainers";
-import ContentCalendar from "./pages/Crm/ContentCalendar";
-import PortalAccess from "./pages/Crm/PortalAccess";
-import TimeTracking from "./pages/Crm/TimeTracking";
-import Profitability from "./pages/Crm/Profitability";
-import Integrations from "./pages/Crm/Integrations";
-import PublicLeadForm from "./pages/Public/PublicLeadForm";
-import PublicProposal from "./pages/Public/PublicProposal";
-import PublicInvoice from "./pages/Public/PublicInvoice";
-import ClientPortal from "./pages/Public/ClientPortal";
-import HrHome from "./pages/HR/HrHome";
-import People from "./pages/HR/People";
-import EmployeeProfile from "./pages/HR/EmployeeProfile";
-import AttendanceReport from "./pages/HR/AttendanceReport";
-import Payroll from "./pages/HR/Payroll";
-import HrSettings from "./pages/HR/HrSettings";
-import Roster from "./pages/HR/Roster";
-import Exits from "./pages/HR/Exits";
-import ExitDetail from "./pages/HR/ExitDetail";
+const FollowUps = lazy(() => import("./pages/Crm/FollowUps"));
+const Reports = lazy(() => import("./pages/Crm/Reports"));
+const ImportLeads = lazy(() => import("./pages/Crm/ImportLeads"));
+const Templates = lazy(() => import("./pages/Crm/Templates"));
+const Proposals = lazy(() => import("./pages/Crm/Proposals"));
+const Projects = lazy(() => import("./pages/Crm/Projects"));
+const AuditLog = lazy(() => import("./pages/Crm/AuditLog"));
+const Messages = lazy(() => import("./pages/Crm/Messages"));
+const Sequences = lazy(() => import("./pages/Crm/Sequences"));
+const LeadForms = lazy(() => import("./pages/Crm/LeadForms"));
+const Targets = lazy(() => import("./pages/Crm/Targets"));
+const Invoices = lazy(() => import("./pages/Crm/Invoices"));
+const Retainers = lazy(() => import("./pages/Crm/Retainers"));
+const ContentCalendar = lazy(() => import("./pages/Crm/ContentCalendar"));
+const PortalAccess = lazy(() => import("./pages/Crm/PortalAccess"));
+const TimeTracking = lazy(() => import("./pages/Crm/TimeTracking"));
+const Profitability = lazy(() => import("./pages/Crm/Profitability"));
+const Integrations = lazy(() => import("./pages/Crm/Integrations"));
+const PublicLeadForm = lazy(() => import("./pages/Public/PublicLeadForm"));
+const PublicProposal = lazy(() => import("./pages/Public/PublicProposal"));
+const PublicInvoice = lazy(() => import("./pages/Public/PublicInvoice"));
+const ClientPortal = lazy(() => import("./pages/Public/ClientPortal"));
+const HrHome = lazy(() => import("./pages/HR/HrHome"));
+const People = lazy(() => import("./pages/HR/People"));
+const EmployeeProfile = lazy(() => import("./pages/HR/EmployeeProfile"));
+const AttendanceReport = lazy(() => import("./pages/HR/AttendanceReport"));
+const Payroll = lazy(() => import("./pages/HR/Payroll"));
+const HrSettings = lazy(() => import("./pages/HR/HrSettings"));
+const Roster = lazy(() => import("./pages/HR/Roster"));
+const Exits = lazy(() => import("./pages/HR/Exits"));
+const ExitDetail = lazy(() => import("./pages/HR/ExitDetail"));
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -246,7 +248,9 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <RouterProvider router={router} />
+      <Suspense fallback={<PageLoader />}>
+        <RouterProvider router={router} />
+      </Suspense>
       <AppDialogs />
     </ThemeProvider>
   );
