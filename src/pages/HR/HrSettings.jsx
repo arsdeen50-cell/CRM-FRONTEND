@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import axiosInstance from "@/utils/axiosConfig";
 import { HrHeader, LEAVE_TYPES, WEEKDAYS, fmtDate } from "./hrShared";
+import OfferTemplatesSettings from "./OfferTemplatesSettings";
+import { useSearchParams } from "react-router-dom";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -74,6 +76,7 @@ const GeofenceSettings = ({ value, onChange, onSave }) => {
 const SHIFT_ZONES = [["", "India (IST)"], ["America/New_York", "US Eastern"], ["America/Chicago", "US Central"], ["America/Denver", "US Mountain"], ["America/Phoenix", "US Arizona (no DST)"], ["America/Los_Angeles", "US Pacific"], ["Europe/London", "UK"]];
 
 const HrSettings = () => {
+  const [params] = useSearchParams();
   const [s, setS] = useState(null);
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [holidays, setHolidays] = useState([]);
@@ -125,9 +128,9 @@ const HrSettings = () => {
   return (
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
-        <HrHeader icon={Settings} title="HR settings" subtitle="Leave quotas, holidays, weekly offs, office timing and punch-in location." />
-        <Tabs defaultValue="leave">
-          <TabsList><TabsTrigger value="leave">Leave & attendance rules</TabsTrigger><TabsTrigger value="geofence">Office geofence</TabsTrigger><TabsTrigger value="holidays">Holidays</TabsTrigger><TabsTrigger value="balances">Leave balances</TabsTrigger></TabsList>
+        <HrHeader icon={Settings} title="HR settings" subtitle="Leave quotas, holidays, office timing, punch-in location and offer letter templates." />
+        <Tabs defaultValue={params.get("tab") || "leave"}>
+          <TabsList><TabsTrigger value="leave">Leave & attendance rules</TabsTrigger><TabsTrigger value="geofence">Office geofence</TabsTrigger><TabsTrigger value="offers">Offer letters</TabsTrigger><TabsTrigger value="holidays">Holidays</TabsTrigger><TabsTrigger value="balances">Leave balances</TabsTrigger></TabsList>
           <TabsContent value="leave">
             <Card><CardContent className="p-4 grid gap-5">
               <div>
@@ -180,6 +183,9 @@ const HrSettings = () => {
           </TabsContent>
           <TabsContent value="geofence">
             <GeofenceSettings value={s.geofence} onChange={(g) => set("geofence", g)} onSave={save} />
+          </TabsContent>
+          <TabsContent value="offers">
+            <OfferTemplatesSettings />
           </TabsContent>
           <TabsContent value="holidays">
             <Card><CardContent className="p-4 space-y-3">
