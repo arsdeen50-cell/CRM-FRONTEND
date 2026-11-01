@@ -1,4 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { Suspense } from "react";
+import PageLoader from "@/components/PageLoader";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { useClickOutside } from "@/hooks/use-click-outside";
 
@@ -60,7 +62,9 @@ const Layout = () => {
       >
         {user && <Header collapsed={collapsed} setCollapsed={setCollapsed} />}
         <div className="mx-auto w-full max-w-[1600px] overflow-x-hidden p-3 sm:p-4 md:p-6">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </div>
       </div>
     </div>
