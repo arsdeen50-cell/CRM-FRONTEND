@@ -44,6 +44,8 @@ const LeadClientList = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  // "client" = paying companies (won deal, retainer, project or sent invoice); "prospect" = everyone else
+  const [kind, setKind] = useState("client");
   const [openModal, setOpenModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [formData, setFormData] = useState({
@@ -81,11 +83,18 @@ const LeadClientList = () => {
     fetchClients();
   }, []);
 
+  const kindCounts = useMemo(() => ({ client: clients.filter((c) => c.isClient).length, prospect: clients.filter((c) => !c.isClient).length }), [clients]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [kind, searchTerm]);
+
   // Filter clients
   const filteredClients = useMemo(() => {
-    if (!searchTerm) return clients;
+    const ofKind = clients.filter((c) => !!c.isClient === (kind === "client"));
+    if (!searchTerm) return ofKind;
     const lower = searchTerm.toLowerCase();
-    return clients.filter(
+    return ofKind.filter(
       (client) =>
         client.brandName?.toLowerCase().includes(lower) ||
         client.contactPerson?.toLowerCase().includes(lower) ||
@@ -93,7 +102,7 @@ const LeadClientList = () => {
         client.phone?.includes(searchTerm) ||
         client.leadId?.toLowerCase().includes(lower)
     );
-  }, [clients, searchTerm]);
+  }, [clients, searchTerm, kind]);
 
   // Pagination
   const totalPages = Math.ceil(filteredClients.length / itemsPerPage);
@@ -219,7 +228,7 @@ const LeadClientList = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `lead-clients-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `${kind === "client" ? "clients" : "prospects"}-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -230,7 +239,22 @@ const LeadClientList = () => {
     <div className="p-4">
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Client List</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-xl font-semibold">Client List</h2>
+            <div className="inline-flex rounded-md border border-border p-0.5" role="tablist">
+              {[["client", "Clients"], ["prospect", "Prospects"]].map(([k, label]) => (
+                <button
+                  key={k}
+                  role="tab"
+                  aria-selected={kind === k}
+                  onClick={() => setKind(k)}
+                  className={`rounded px-3 py-1 text-sm ${kind === k ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {label} <span className="opacity-80">({kindCounts[k]})</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
@@ -276,7 +300,8 @@ const LeadClientList = () => {
           </div>
         </div>
         <div className="text-sm text-muted-foreground mt-2">
-          Showing {filteredClients.length} clients
+          Showing {filteredClients.length} {kind === "client" ? "clients" : "prospects"}
+          {kind === "prospect" ? " · companies you're pitching. They move to Clients once a deal is won or they get a retainer, project or invoice." : " · companies with a won deal, retainer, project or invoice."}
         </div>
       </div>
 
@@ -304,7 +329,7 @@ const LeadClientList = () => {
                   {paginatedClients.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                        No clients found
+                        {kind === "client" && !searchTerm ? "No current clients yet. A company moves here once a deal is won or it gets a retainer, project or invoice." : `No ${kind === "client" ? "clients" : "prospects"} found`}
                       </TableCell>
                     </TableRow>
                   ) : (
