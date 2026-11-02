@@ -6,7 +6,7 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 
 import { Sidebar } from "@/layouts/sidebar";
 import { Header } from "@/layouts/header";
-import { UpdateBanner } from "@/components/AppUpdates";
+import { InstallHelp, UpdateBanner } from "@/components/AppUpdates";
 import { cn } from "@/utils/cn";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -69,6 +69,7 @@ const Layout = () => {
         </div>
       </div>
       <UpdateBanner />
+      <InstallHelp />
     </div>
   );
 };
