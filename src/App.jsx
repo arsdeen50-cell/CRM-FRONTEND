@@ -31,6 +31,7 @@ import ChangePassword from "./auth/ChangePassword";
 const LeadClientList = lazy(() => import("./pages/Crm/LeadClientList"));
 const ClientDetail = lazy(() => import("./pages/Crm/ClientDetail"));
 const Revenue = lazy(() => import("./pages/Crm/Revenue"));
+const Automations = lazy(() => import("./pages/Crm/Automations"));
 import CrmMemberRoute from "./components/crm/CrmMemberRoute";
 import { SalesRoute } from "./components/crm/AccessRoute";
 const FollowUps = lazy(() => import("./pages/Crm/FollowUps"));
@@ -212,6 +213,7 @@ function App() {
         { path: "crm/projects", element: <Projects /> },
         { path: "crm/reports", element: <Reports /> },
         { path: "crm/revenue", element: <Revenue /> },
+        { path: "crm/automations", element: <Automations /> },
         { path: "crm/import", element: <ImportLeads /> },
         { path: "crm/templates", element: <Templates /> },
         { path: "crm/audit-log", element: <AuditLog /> },
