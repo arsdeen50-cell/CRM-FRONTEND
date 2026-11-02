@@ -18,6 +18,7 @@ import { logout, setUser } from "@/redux/authSlice";
 import axiosInstance from "@/utils/axiosConfig";
 import DemoResetItem from "@/components/DemoResetItem";
 import NotificationBell from "@/components/NotificationBell";
+import { InstallAppItem } from "@/components/AppUpdates";
 
 export const Header = ({ collapsed, setCollapsed }) => {
     const { theme, setTheme } = useTheme();
@@ -116,6 +117,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
                         </div>
                         <div className="p-1">
                             <Link to={`/hr/people/${user?._id}`} className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent"><User2 size={16} /> My profile</Link>
+                            <InstallAppItem />
                             <DemoResetItem />
                             <button onClick={logOutHandler} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-accent"><LogOut size={16} /> Log out</button>
                         </div>
