@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, CheckSquare, Target, Users, CalendarClock, FileText, Trophy, Inbox, Repeat, ClipboardList,
   Briefcase, CalendarRange, Timer, Receipt, Repeat2, TrendingUp, KeyRound, UserCircle, CalendarCheck, CalendarDays,
-  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee,
+  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee, LineChart,
 } from "lucide-react";
 import { pageHidden } from "@/constants/brand";
 
@@ -56,6 +56,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Invoices", to: "/crm/invoices", icon: Receipt },
       { label: "Retainers", to: "/crm/retainers", icon: Repeat2 },
+      { label: "Revenue & forecast", to: "/crm/revenue", icon: LineChart },
       { label: "Profit per client", to: "/crm/profitability", icon: TrendingUp },
       { label: "Client portal", to: "/crm/portal", icon: KeyRound },
     ],
