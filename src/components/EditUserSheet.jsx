@@ -15,6 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { KeyRound, Copy } from "lucide-react";
+import { toast } from "sonner";
+import axiosInstance from "@/utils/axiosConfig";
+import { USER_API_END_POINT } from "@/constants";
 
 const EditUserSheet = ({ open, setOpen, user, onUpdate }) => {
   const [formData, setFormData] = useState({
@@ -22,7 +26,10 @@ const EditUserSheet = ({ open, setOpen, user, onUpdate }) => {
     email: "",
     phoneNumber: "",
     role: "employee",
+    mustChangePassword: false,
   });
+  const [link, setLink] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -31,9 +38,25 @@ const EditUserSheet = ({ open, setOpen, user, onUpdate }) => {
         email: user.email || "",
         phoneNumber: user.phoneNumber || "",
         role: user.role || "employee",
+        mustChangePassword: !!user.mustChangePassword,
       });
+      setLink("");
     }
   }, [user]);
+
+  // Email them a one-time "set your password" link (also shown here, to send another way if needed)
+  const sendLink = async () => {
+    try {
+      setSending(true);
+      const r = await axiosInstance.post(`${USER_API_END_POINT}/admin/users/${user._id}/password-link`);
+      setLink(r.data.link);
+      toast.success(r.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not create the link");
+    } finally {
+      setSending(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,7 +74,7 @@ const EditUserSheet = ({ open, setOpen, user, onUpdate }) => {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Edit User</SheetTitle>
         </SheetHeader>
@@ -103,6 +126,28 @@ const EditUserSheet = ({ open, setOpen, user, onUpdate }) => {
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={formData.mustChangePassword}
+              onChange={(e) => setFormData((prev) => ({ ...prev, mustChangePassword: e.target.checked }))}
+            />
+            <span>Must choose a new password at next login<span className="block text-xs text-muted-foreground">Until they do, they can't use the CRM. Use it when someone else knows their password.</span></span>
+          </label>
+          <div className="space-y-2 rounded-md border border-border p-3">
+            <p className="text-sm font-medium">Password</p>
+            <p className="text-xs text-muted-foreground">Sends a one-time link (valid 24 hours) so they choose their own password. Nobody else sees it.</p>
+            <Button type="button" variant="outline" size="sm" onClick={sendLink} disabled={sending || user?.isActive === false}>
+              <KeyRound className="mr-1 h-4 w-4" /> {sending ? "Creating..." : "Send set-password link"}
+            </Button>
+            {link && (
+              <div className="flex items-center gap-1">
+                <Input readOnly value={link} className="h-8 text-xs" onFocus={(e) => e.target.select()} />
+                <Button type="button" variant="ghost" size="icon" title="Copy" onClick={() => navigator.clipboard?.writeText(link).then(() => toast.success("Link copied"))}><Copy className="h-4 w-4" /></Button>
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button

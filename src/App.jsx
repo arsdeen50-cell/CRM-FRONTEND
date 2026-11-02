@@ -26,6 +26,8 @@ const CreateGoOnBoardingForm = lazy(() => import("./components/crm/GoOnBoarding/
 const EditGoOnBoardingForm = lazy(() => import("./components/crm/GoOnBoarding/EditGoOnBoardingForm"));
 const CandidateForm = lazy(() => import("./components/crm/GoOnBoarding/CandidateForm"));
 import ForgotPassword from "./auth/ForgotPassword";
+import SetPassword from "./auth/SetPassword";
+import ChangePassword from "./auth/ChangePassword";
 const LeadClientList = lazy(() => import("./pages/Crm/LeadClientList"));
 import CrmMemberRoute from "./components/crm/CrmMemberRoute";
 import { SalesRoute } from "./components/crm/AccessRoute";
@@ -78,6 +80,8 @@ const PrivateRoute = ({ children }) => {
   }, []);
 
   if (!user) return <Navigate to="/login" replace />;
+  // HR set this password: choose your own before using the CRM (the server enforces it too)
+  if (user.mustChangePassword) return <Navigate to="/change-password" replace />;
   return children;
 };
 
@@ -116,6 +120,8 @@ function App() {
   path: "/forgot-password",
   element: <ForgotPassword />,
 },
+    { path: "/set-password/:token", element: <SetPassword /> },
+    { path: "/change-password", element: <ChangePassword /> },
     {
       path: "/signup",
       element: <Signup />,
