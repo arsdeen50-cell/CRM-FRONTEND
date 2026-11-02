@@ -13,6 +13,7 @@ import CandidateInfoCard from "./CandidateInfoCard";
 import ResponsibilitiesPopup from "./ResponsibilitiesPopup";
 import OfferLetterPreviewPopup from "./OfferLetterPreviewPopup";
 import OfferLetterPanel from "./OfferLetterPanel";
+import InterviewsPanel from "./InterviewsPanel";
 import useDesignation from "@/hooks/useDesignation";
 import axiosInstance from "@/utils/axiosConfig";
 import { USER_API_END_POINT, ONBOARDING_API_END_POINT } from "@/constants";
@@ -923,6 +924,7 @@ const handleSubmit = async (e) => {
                                         onPreview={handlePreviewOfferLetter}
                                         previewing={isGeneratingPreview}
                                     />
+                                    <InterviewsPanel onboardingId={id} />
                                 </div>
                                 {candidateData && <CandidateInfoCard candidateData={candidateData} />}
                             </section>
