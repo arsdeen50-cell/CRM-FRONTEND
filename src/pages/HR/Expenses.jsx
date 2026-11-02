@@ -46,7 +46,7 @@ const NewClaimDialog = ({ categories, onClose, onSaved }) => {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>New expense claim</DialogTitle>
-          <DialogDescription>Something you paid for the company. An admin approves it and marks it paid when you're reimbursed.</DialogDescription>
+          <DialogDescription>Something you paid for the company. An admin approves it and marks it paid when you&apos;re reimbursed.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
           <div className="grid grid-cols-2 gap-3">

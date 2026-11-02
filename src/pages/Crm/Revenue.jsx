@@ -128,7 +128,7 @@ const Revenue = () => {
             <Card><CardContent className="space-y-3 p-4">
               <div>
                 <p className="font-medium">Forecast, next 6 months</p>
-                <p className="text-xs text-muted-foreground">Retainers that are running, plus each open deal's value × the chance of closing at its stage, in the month it's expected to close.</p>
+                <p className="text-xs text-muted-foreground">Retainers that are running, plus each open deal&apos;s value × the chance of closing at its stage, in the month it&apos;s expected to close.</p>
               </div>
               <div style={{ height: 260 }}>
                 <ResponsiveContainer width="100%" height="100%">
