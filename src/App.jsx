@@ -29,6 +29,7 @@ import ForgotPassword from "./auth/ForgotPassword";
 import SetPassword from "./auth/SetPassword";
 import ChangePassword from "./auth/ChangePassword";
 const LeadClientList = lazy(() => import("./pages/Crm/LeadClientList"));
+const ClientDetail = lazy(() => import("./pages/Crm/ClientDetail"));
 import CrmMemberRoute from "./components/crm/CrmMemberRoute";
 import { SalesRoute } from "./components/crm/AccessRoute";
 const FollowUps = lazy(() => import("./pages/Crm/FollowUps"));
@@ -203,6 +204,7 @@ function App() {
             </SalesRoute>
           ),
         },
+        { path: "crm/clients/:id", element: <SalesRoute><ClientDetail /></SalesRoute> },
         // Sales suite: member pages (employees see only their assigned leads) + admin pages (CrmRoute inside)
         { path: "crm/follow-ups", element: <FollowUps /> },
         { path: "crm/proposals", element: <Proposals /> },
