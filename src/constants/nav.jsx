@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, CheckSquare, Target, Users, CalendarClock, FileText, Trophy, Inbox, Repeat, ClipboardList,
   Briefcase, CalendarRange, Timer, Receipt, Repeat2, TrendingUp, KeyRound, UserCircle, CalendarCheck, CalendarDays,
-  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact,
+  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee, LineChart, Workflow, SlidersHorizontal,
 } from "lucide-react";
 import { pageHidden } from "@/constants/brand";
 
@@ -56,6 +56,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Invoices", to: "/crm/invoices", icon: Receipt },
       { label: "Retainers", to: "/crm/retainers", icon: Repeat2 },
+      { label: "Revenue & forecast", to: "/crm/revenue", icon: LineChart },
       { label: "Profit per client", to: "/crm/profitability", icon: TrendingUp },
       { label: "Client portal", to: "/crm/portal", icon: KeyRound },
     ],
@@ -69,6 +70,7 @@ export const NAV_GROUPS = [
       { label: "Attendance", to: "/hr/attendance", icon: CalendarCheck },
       { label: "Shift roster", to: "/hr/roster", icon: CalendarRange, show: (c) => c.admin || c.teamLead },
       { label: "Leave", to: "/leave", icon: CalendarDays },
+      { label: "Expenses", to: "/hr/expenses", icon: ReceiptIndianRupee },
       { label: "Payroll", to: "/hr/payroll", icon: Wallet, show: (c) => c.admin },
       { label: "Onboarding", to: "/crm/goonboardingdata", icon: UserPlus, show: (c) => c.admin },
       { label: "Exits", to: "/hr/exits", icon: DoorOpen, show: (c) => c.admin },
@@ -83,6 +85,8 @@ export const NAV_GROUPS = [
       { label: "Reports", to: "/crm/reports", icon: BarChart3 },
       { label: "HR settings", to: "/hr/settings", icon: Settings },
       { label: "Templates", to: "/crm/templates", icon: MessageSquareText },
+      { label: "Automations", to: "/crm/automations", icon: Workflow },
+      { label: "Custom fields", to: "/crm/custom-fields", icon: SlidersHorizontal },
       { label: "Import CSV", to: "/crm/import", icon: FileUp },
       { label: "Integrations", to: "/crm/integrations", icon: Plug },
       { label: "Audit log", to: "/crm/audit-log", icon: History },

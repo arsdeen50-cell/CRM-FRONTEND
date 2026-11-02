@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -311,7 +312,7 @@ const LeadClientList = () => {
                       <TableRow key={client._id}>
                         <TableCell className="font-mono text-xs">{client._id?.slice(-6) || "—"}</TableCell>
                         <TableCell className="font-mono text-xs">{client.leadId || "—"}</TableCell>
-                        <TableCell className="font-medium">{client.brandName}</TableCell>
+                        <TableCell className="font-medium"><Link to={`/crm/clients/${client._id}`} className="hover:text-brand hover:underline">{client.brandName}</Link></TableCell>
                         <TableCell>
                           {client.research?.tier ? (
                             <span

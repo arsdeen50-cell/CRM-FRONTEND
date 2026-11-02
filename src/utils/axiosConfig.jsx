@@ -1,6 +1,6 @@
 import axios from 'axios';
 import  store  from '@/redux/store';
-import { logout } from '@/redux/authSlice';
+import { logout, setUser } from '@/redux/authSlice';
 import { toast } from 'sonner';
 import { backend_url } from '@/constants';
 
@@ -29,6 +29,13 @@ axiosInstance.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response;
       const message = data?.message || 'Something went wrong';
+
+      // HR set this password (e.g. flagged after someone was signed in): go and choose a new one
+      if (status === 403 && data?.code === 'MUST_CHANGE_PASSWORD') {
+        const { user, token } = store.getState().auth;
+        if (user && !user.mustChangePassword) store.dispatch(setUser({ user: { ...user, mustChangePassword: true }, token }));
+        if (window.location.pathname !== '/change-password') window.location.assign('/change-password');
+      }
 
       // 🔴 Handle ALL 401 errors
       // if (status === 401) {

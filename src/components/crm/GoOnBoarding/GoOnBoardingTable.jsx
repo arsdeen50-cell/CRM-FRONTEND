@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import useGoOnBoarding from "@/hooks/useGoOnBoarding";
-import { Settings } from "lucide-react";
+import { Settings, MessagesSquare } from "lucide-react";
+import axiosInstance from "@/utils/axiosConfig";
 import DesignationManager from "@/components/DesignationManager";
 
 const GoOnBoardingTable = () => {
@@ -15,8 +16,10 @@ const GoOnBoardingTable = () => {
     const { onboardings, loading, fetchOnboardings } = useGoOnBoarding();
     const [showDesignationManager, setShowDesignationManager] = useState(false);
 
+    const [upcoming, setUpcoming] = useState([]);
     useEffect(() => {
         fetchOnboardings();
+        axiosInstance.get("/v1/onboarding/interviews/upcoming").then((r) => setUpcoming(r.data.interviews || [])).catch(() => {});
     }, []);
 
     const getStatusBadge = (status) => {
@@ -32,6 +35,22 @@ const GoOnBoardingTable = () => {
     };
 
     return (
+        <div className="space-y-4">
+        {upcoming.length > 0 && (
+            <Card>
+                <CardContent className="p-4">
+                    <p className="mb-2 flex items-center gap-2 text-sm font-medium"><MessagesSquare className="h-4 w-4 text-brand" /> Upcoming interviews</p>
+                    <div className="flex flex-wrap gap-2">
+                        {upcoming.map((i) => (
+                            <button key={i._id} onClick={() => navigate(`/crm/goonboarding/${i.onboardingId}`)} className="rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-accent">
+                                <p className="font-medium">{i.candidateName} <span className="font-normal text-muted-foreground">· {i.round}</span></p>
+                                <p className="text-xs text-muted-foreground">{new Date(i.scheduledAt).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })} · {i.mode}{i.interviewerNames?.length ? ` · ${i.interviewerNames.join(", ")}` : ""}</p>
+                            </button>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        )}
         <Card className="w-full">
             <CardHeader className="flex flex-row justify-between items-center">
                 <div>
@@ -98,6 +117,7 @@ const GoOnBoardingTable = () => {
                 onClose={() => setShowDesignationManager(false)}
             />
         </Card>
+        </div>
     );
 };
 

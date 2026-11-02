@@ -26,7 +26,13 @@ const CreateGoOnBoardingForm = lazy(() => import("./components/crm/GoOnBoarding/
 const EditGoOnBoardingForm = lazy(() => import("./components/crm/GoOnBoarding/EditGoOnBoardingForm"));
 const CandidateForm = lazy(() => import("./components/crm/GoOnBoarding/CandidateForm"));
 import ForgotPassword from "./auth/ForgotPassword";
+import SetPassword from "./auth/SetPassword";
+import ChangePassword from "./auth/ChangePassword";
 const LeadClientList = lazy(() => import("./pages/Crm/LeadClientList"));
+const ClientDetail = lazy(() => import("./pages/Crm/ClientDetail"));
+const Revenue = lazy(() => import("./pages/Crm/Revenue"));
+const Automations = lazy(() => import("./pages/Crm/Automations"));
+const CustomFields = lazy(() => import("./pages/Crm/CustomFields"));
 import CrmMemberRoute from "./components/crm/CrmMemberRoute";
 import { SalesRoute } from "./components/crm/AccessRoute";
 const FollowUps = lazy(() => import("./pages/Crm/FollowUps"));
@@ -59,6 +65,7 @@ const Payroll = lazy(() => import("./pages/HR/Payroll"));
 const HrSettings = lazy(() => import("./pages/HR/HrSettings"));
 const Roster = lazy(() => import("./pages/HR/Roster"));
 const Exits = lazy(() => import("./pages/HR/Exits"));
+const Expenses = lazy(() => import("./pages/HR/Expenses"));
 const ExitDetail = lazy(() => import("./pages/HR/ExitDetail"));
 
 const PrivateRoute = ({ children }) => {
@@ -78,6 +85,8 @@ const PrivateRoute = ({ children }) => {
   }, []);
 
   if (!user) return <Navigate to="/login" replace />;
+  // HR set this password: choose your own before using the CRM (the server enforces it too)
+  if (user.mustChangePassword) return <Navigate to="/change-password" replace />;
   return children;
 };
 
@@ -116,6 +125,8 @@ function App() {
   path: "/forgot-password",
   element: <ForgotPassword />,
 },
+    { path: "/set-password/:token", element: <SetPassword /> },
+    { path: "/change-password", element: <ChangePassword /> },
     {
       path: "/signup",
       element: <Signup />,
@@ -196,11 +207,15 @@ function App() {
             </SalesRoute>
           ),
         },
+        { path: "crm/clients/:id", element: <SalesRoute><ClientDetail /></SalesRoute> },
         // Sales suite: member pages (employees see only their assigned leads) + admin pages (CrmRoute inside)
         { path: "crm/follow-ups", element: <FollowUps /> },
         { path: "crm/proposals", element: <Proposals /> },
         { path: "crm/projects", element: <Projects /> },
         { path: "crm/reports", element: <Reports /> },
+        { path: "crm/revenue", element: <Revenue /> },
+        { path: "crm/automations", element: <Automations /> },
+        { path: "crm/custom-fields", element: <CustomFields /> },
         { path: "crm/import", element: <ImportLeads /> },
         { path: "crm/templates", element: <Templates /> },
         { path: "crm/audit-log", element: <AuditLog /> },
@@ -225,6 +240,7 @@ function App() {
         { path: "hr/settings", element: <HrSettings /> },
         { path: "hr/roster", element: <Roster /> },
         { path: "hr/exits", element: <Exits /> },
+        { path: "hr/expenses", element: <Expenses /> },
         { path: "hr/exits/:userId", element: <ExitDetail /> },
         {
           path: "crm/goonboardingdata",
