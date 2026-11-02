@@ -14,6 +14,7 @@ import { Textarea } from "../ui/textarea";
 import axiosInstance from "@/utils/axiosConfig";
 import { toast } from "sonner";
 import { useTeams } from "@/hooks/useTeams";
+import CustomFieldsCard from "./CustomFieldsCard";
 
 const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
     const isEditMode = !!editData;
@@ -794,6 +795,9 @@ const AddLeadsDialog = ({ open, onOpenChange, onCreate, editData }) => {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Admin-defined extra fields; saved on their own with the card's Save button */}
+                            {isEditMode && editData?._id && <CustomFieldsCard entity="lead" recordId={editData._id} initial={editData.custom} className="mt-4" />}
 
                             <DialogFooter className="flex flex-col justify-end gap-2 mt-6 sm:flex-row sm:gap-4">
                                 <Button

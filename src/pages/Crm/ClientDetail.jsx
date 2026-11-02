@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { confirmDialog } from "@/components/ui/app-dialogs";
 import axiosInstance from "@/utils/axiosConfig";
+import CustomFieldsCard from "@/components/crm/CustomFieldsCard";
 
 const KINDS = {
   note: { label: "Notes", icon: StickyNote, tone: "text-amber-600" },
@@ -270,6 +271,7 @@ const ClientDetail = () => {
               ))}
             </CardContent></Card>
           )}
+          <CustomFieldsCard entity="client" recordId={client._id} initial={client.custom} className="bg-card" />
           {client.leadInformation && (
             <Card><CardContent className="p-3"><p className="mb-1 text-sm font-medium">About</p><p className="whitespace-pre-wrap text-sm text-muted-foreground">{client.leadInformation}</p></CardContent></Card>
           )}
