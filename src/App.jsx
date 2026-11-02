@@ -61,6 +61,7 @@ const Payroll = lazy(() => import("./pages/HR/Payroll"));
 const HrSettings = lazy(() => import("./pages/HR/HrSettings"));
 const Roster = lazy(() => import("./pages/HR/Roster"));
 const Exits = lazy(() => import("./pages/HR/Exits"));
+const Expenses = lazy(() => import("./pages/HR/Expenses"));
 const ExitDetail = lazy(() => import("./pages/HR/ExitDetail"));
 
 const PrivateRoute = ({ children }) => {
@@ -231,6 +232,7 @@ function App() {
         { path: "hr/settings", element: <HrSettings /> },
         { path: "hr/roster", element: <Roster /> },
         { path: "hr/exits", element: <Exits /> },
+        { path: "hr/expenses", element: <Expenses /> },
         { path: "hr/exits/:userId", element: <ExitDetail /> },
         {
           path: "crm/goonboardingdata",

@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, CheckSquare, Target, Users, CalendarClock, FileText, Trophy, Inbox, Repeat, ClipboardList,
   Briefcase, CalendarRange, Timer, Receipt, Repeat2, TrendingUp, KeyRound, UserCircle, CalendarCheck, CalendarDays,
-  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact,
+  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee,
 } from "lucide-react";
 import { pageHidden } from "@/constants/brand";
 
@@ -69,6 +69,7 @@ export const NAV_GROUPS = [
       { label: "Attendance", to: "/hr/attendance", icon: CalendarCheck },
       { label: "Shift roster", to: "/hr/roster", icon: CalendarRange, show: (c) => c.admin || c.teamLead },
       { label: "Leave", to: "/leave", icon: CalendarDays },
+      { label: "Expenses", to: "/hr/expenses", icon: ReceiptIndianRupee },
       { label: "Payroll", to: "/hr/payroll", icon: Wallet, show: (c) => c.admin },
       { label: "Onboarding", to: "/crm/goonboardingdata", icon: UserPlus, show: (c) => c.admin },
       { label: "Exits", to: "/hr/exits", icon: DoorOpen, show: (c) => c.admin },
