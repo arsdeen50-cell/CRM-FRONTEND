@@ -36,7 +36,7 @@ const Messages = () => {
   return (
     <OutreachRoute>
       <div className="p-4 md:p-6 space-y-4">
-        <PageHeader icon={Inbox} title="Messages" subtitle="Emails and WhatsApp messages sent from the CRM, with opens, clicks and replies.">
+        <PageHeader icon={Inbox} title="Messages" subtitle="Emails and WhatsApp messages with clients: what the CRM sent, opens, clicks and replies.">
           <Button variant="outline" onClick={load} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
@@ -48,8 +48,9 @@ const Messages = () => {
             See CRM → Integrations.
           </p>
         )}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
           <Stat label="Emails sent" value={s.emailsSent ?? "–"} sub={s.failed ? `${s.failed} failed` : undefined} />
+          <Stat label="Email replies" value={s.emailReplies ?? "–"} sub={s.unreadEmail ? `${s.unreadEmail} unread` : undefined} tone={s.unreadEmail ? "bad" : undefined} />
           <Stat label="Opened" value={rate(s.opened || 0)} sub={`${s.opened || 0} emails`} />
           <Stat label="Clicked" value={rate(s.clicked || 0)} sub={`${s.clicked || 0} emails`} />
           <Stat label="WhatsApp sent" value={s.whatsappOut ?? "–"} />
@@ -66,8 +67,9 @@ const Messages = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Sent</TableHead>
+                      <TableHead>When</TableHead>
                       <TableHead>Client</TableHead>
+                      <TableHead></TableHead>
                       <TableHead>Subject</TableHead>
                       <TableHead>By</TableHead>
                       <TableHead>Tracking</TableHead>
@@ -75,16 +77,21 @@ const Messages = () => {
                   </TableHeader>
                   <TableBody>
                     {(data?.emails || []).length === 0 && (
-                      <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : "No emails sent from the CRM yet."}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">{loading ? "Loading..." : "No emails sent from the CRM yet."}</TableCell></TableRow>
                     )}
-                    {(data?.emails || []).map((e) => (
-                      <TableRow key={e._id}>
+                    {(data?.emails || []).map((e) => {
+                      const reply = e.direction === "in";
+                      return (
+                      <TableRow key={e._id} className={reply && !e.readByTeam ? "bg-brand-soft" : ""}>
                         <TableCell className="whitespace-nowrap text-sm">{when(e.createdAt)}</TableCell>
-                        <TableCell>{e.clientName}<div className="text-xs text-muted-foreground">{e.to}</div></TableCell>
-                        <TableCell className="max-w-xs truncate" title={e.subject}>{e.subject}{e.source !== "manual" && <span className="text-xs text-muted-foreground/70"> · {e.source}</span>}</TableCell>
-                        <TableCell className="text-sm">{e.sentBy}</TableCell>
+                        <TableCell>{e.clientName}<div className="text-xs text-muted-foreground">{reply ? e.from : e.to}</div></TableCell>
+                        <TableCell><Pill className={reply ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}>{reply ? "Reply" : "Sent"}</Pill></TableCell>
+                        <TableCell className="max-w-xs truncate" title={reply ? e.body : e.subject}>{e.subject}{!["manual", "reply"].includes(e.source) && <span className="text-xs text-muted-foreground/70"> · {e.source}</span>}</TableCell>
+                        <TableCell className="text-sm">{reply ? e.fromName || e.from : e.sentBy}</TableCell>
                         <TableCell>
-                          {e.status === "Failed" ? (
+                          {reply ? (
+                            <span className="text-xs text-muted-foreground line-clamp-2 max-w-[16rem]">{e.body}</span>
+                          ) : e.status === "Failed" ? (
                             <Pill className="bg-red-100 text-red-700">Failed</Pill>
                           ) : (
                             <div className="flex gap-3 text-xs">
@@ -94,7 +101,8 @@ const Messages = () => {
                           )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
