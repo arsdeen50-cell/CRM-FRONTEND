@@ -35,8 +35,21 @@ const Integrations = () => {
     <CrmRoute>
       <div className="p-4 md:p-6 space-y-4">
         <PageHeader icon={Plug} title="Integrations" subtitle="What's connected. Keys live in the server's .env file - add them there and restart the backend." />
-        <Row on={i.email?.configured} title="Send email from the CRM" vars="EMAIL, EMAIL_PASSWORD (Gmail app password) · optional SMTP_HOST, SMTP_PORT">
-          <p>Sends from {i.email?.from || "your mailbox"}, with open and click tracking. Replies go to the sender's own email. Used by Contact, sequences, proposal links, invoices and portal invites.</p>
+        <Row
+          on={i.email?.configured}
+          title={`Send email from the CRM${i.email?.configured ? ` · ${{ microsoft: "Microsoft 365", smtp: "SMTP", gmail: "Gmail" }[i.email?.provider] || ""}` : ""}`}
+          vars={
+            i.email?.provider === "microsoft"
+              ? "EMAIL, MAIL_PROVIDER=microsoft, MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET"
+              : "EMAIL, EMAIL_PASSWORD (Gmail app password) · optional SMTP_HOST, SMTP_PORT · Microsoft 365: MAIL_PROVIDER=microsoft, MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET"
+          }
+        >
+          <p>Sends from {i.email?.from || "your mailbox"}, with open and click tracking. Used by Contact, sequences, proposal links, invoices, offer letters and portal invites.</p>
+          <p className="text-xs">Microsoft 365: register an app in Microsoft Entra, give it the Mail.Send and Mail.Read application permissions (admin consent), and limit it to the CRM mailbox.</p>
+        </Row>
+        <Row on={i.email?.configured && i.email?.replies} title="Client email replies" vars="optional EMAIL_REPLIES_DISABLED=true · IMAP_HOST for SMTP mailboxes">
+          <p>{"Every 5 minutes the CRM mailbox is checked for replies to emails sent from the CRM, and mail from clients' addresses on file. They appear on the lead's conversation next to WhatsApp, are logged as \"Replied\", stop sequences set to stop on reply, and notify the people on the lead. Other mail in the mailbox is never stored."}</p>
+          <p className="text-xs">Replies go to the CRM mailbox and to the person who sent the email.</p>
         </Row>
         <Row on={i.whatsapp?.configured && i.whatsapp?.webhookReady} title="WhatsApp Business API (Meta Cloud API)" vars="WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_VERIFY_TOKEN, WHATSAPP_APP_SECRET" url={i.whatsapp?.webhookUrl}>
           <p>Send messages from the CRM and receive replies on the lead. In Meta's WhatsApp settings, paste the webhook URL, use WHATSAPP_VERIFY_TOKEN as the verify token, and subscribe to "messages".</p>

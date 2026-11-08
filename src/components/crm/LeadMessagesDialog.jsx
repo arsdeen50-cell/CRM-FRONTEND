@@ -38,9 +38,9 @@ const LeadMessagesDialog = ({ open, onOpenChange, lead }) => {
                 <div className={`max-w-[85%] rounded-lg border p-3 text-sm ${inbound ? "bg-white dark:bg-slate-800" : m.kind === "email" ? "bg-brand-soft border-brand/20" : "bg-brand-soft border-emerald-200"}`}>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                     {m.kind === "email" ? <Mail className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
-                    <span>{inbound ? m.profileName || "Client" : m.sentBy || "You"}</span>
+                    <span>{inbound ? m.profileName || m.fromName || m.from || "Client" : m.sentBy || "You"}</span>
                     <span>· {when(m.createdAt)}</span>
-                    {m.source && m.source !== "manual" && <span>· {m.source}</span>}
+                    {m.source && !["manual", "reply"].includes(m.source) && <span>· {m.source}</span>}
                   </div>
                   {m.kind === "email" && <p className="font-medium">{m.subject}</p>}
                   <p className="whitespace-pre-wrap">{m.kind === "email" ? m.body : m.text}</p>
