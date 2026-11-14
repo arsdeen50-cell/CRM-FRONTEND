@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   ArrowLeft, Briefcase, CalendarCheck, CircleCheck, CircleX, ExternalLink, FileText, Globe, Instagram, Mail, MessageCircle,
-  MessageSquareText, Phone, Pin, PinOff, Receipt, Repeat2, Send, Sparkles, StickyNote, Trash2, Wallet,
+  MessageSquareText, Paperclip, Phone, Pin, PinOff, Receipt, Repeat2, Send, Sparkles, StickyNote, Trash2, Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { confirmDialog } from "@/components/ui/app-dialogs";
 import axiosInstance from "@/utils/axiosConfig";
 import CustomFieldsCard from "@/components/crm/CustomFieldsCard";
+import ClientDocumentsCard from "@/components/crm/ClientDocumentsCard";
 
 const KINDS = {
   note: { label: "Notes", icon: StickyNote, tone: "text-amber-600" },
@@ -27,6 +28,7 @@ const KINDS = {
   project: { label: "Projects & content", icon: Briefcase, tone: "text-indigo-600" },
   content: { label: "Projects & content", icon: Sparkles, tone: "text-indigo-600" },
   lead: { label: "Calls & meetings", icon: CalendarCheck, tone: "text-sky-600" },
+  document: { label: "Documents", icon: Paperclip, tone: "text-slate-600" },
 };
 const FILTERS = ["All", ...new Set(Object.values(KINDS).map((k) => k.label))];
 const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
@@ -271,6 +273,7 @@ const ClientDetail = () => {
               ))}
             </CardContent></Card>
           )}
+          <ClientDocumentsCard clientId={client._id} canDeleteAll={user?.role === "admin"} userId={user?._id} onChange={load} />
           <CustomFieldsCard entity="client" recordId={client._id} initial={client.custom} className="bg-card" />
           {client.leadInformation && (
             <Card><CardContent className="p-3"><p className="mb-1 text-sm font-medium">About</p><p className="whitespace-pre-wrap text-sm text-muted-foreground">{client.leadInformation}</p></CardContent></Card>

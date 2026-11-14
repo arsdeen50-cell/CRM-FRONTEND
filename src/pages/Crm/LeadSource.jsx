@@ -799,7 +799,7 @@ const createLeadClient = async (lead) => {
                                 items={[
                                   { label: "Messages", icon: MessagesSquare, onClick: () => setMessagesLead(lead), hidden: !canOutreach },
                                   { label: "Add to sequence", icon: Repeat, onClick: () => setSequenceLead(lead), hidden: !canOutreach || ["Won", "Lost"].includes(stage) },
-                                  { label: "Create proposal", icon: FileText, onClick: () => setProposalLead(lead), hidden: ["Won", "Lost"].includes(stage) },
+                                  { label: stage === "Won" ? "New proposal / agreement" : "Create proposal", icon: FileText, onClick: () => setProposalLead(lead) },
                                   { label: "Log activity", icon: Clock, onClick: () => handleOpenActivity(lead) },
                                   { label: "Edit", icon: Edit, onClick: () => handleEditClick(lead) },
                                   "-",
