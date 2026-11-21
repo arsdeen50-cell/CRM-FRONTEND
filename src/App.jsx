@@ -50,6 +50,8 @@ const Invoices = lazy(() => import("./pages/Crm/Invoices"));
 const Retainers = lazy(() => import("./pages/Crm/Retainers"));
 const Influencers = lazy(() => import("./pages/Crm/Influencers"));
 const InfluencerDetail = lazy(() => import("./pages/Crm/InfluencerDetail"));
+const Campaigns = lazy(() => import("./pages/Crm/Campaigns"));
+const CampaignDetail = lazy(() => import("./pages/Crm/CampaignDetail"));
 const ContentCalendar = lazy(() => import("./pages/Crm/ContentCalendar"));
 const PortalAccess = lazy(() => import("./pages/Crm/PortalAccess"));
 const TimeTracking = lazy(() => import("./pages/Crm/TimeTracking"));
@@ -57,6 +59,7 @@ const Profitability = lazy(() => import("./pages/Crm/Profitability"));
 const Integrations = lazy(() => import("./pages/Crm/Integrations"));
 const PublicLeadForm = lazy(() => import("./pages/Public/PublicLeadForm"));
 const PublicProposal = lazy(() => import("./pages/Public/PublicProposal"));
+const CampaignReport = lazy(() => import("./pages/Public/CampaignReport"));
 const PublicInvoice = lazy(() => import("./pages/Public/PublicInvoice"));
 const ClientPortal = lazy(() => import("./pages/Public/ClientPortal"));
 const HrHome = lazy(() => import("./pages/HR/HrHome"));
@@ -117,6 +120,7 @@ function App() {
     // Client-facing pages (no CRM login): lead form, proposal signing, invoice, client portal
     { path: "/f/:key", element: <PublicLeadForm /> },
     { path: "/p/:token", element: <PublicProposal /> },
+    { path: "/campaign-report/:token", element: <CampaignReport /> },
     { path: "/i/:token", element: <PublicInvoice /> },
     { path: "/portal/:token", element: <ClientPortal /> },
     {
@@ -231,6 +235,8 @@ function App() {
         { path: "crm/content", element: <ContentCalendar /> },
         { path: "crm/influencers", element: <InfluencersRoute><Influencers /></InfluencersRoute> },
         { path: "crm/influencers/:id", element: <InfluencersRoute><InfluencerDetail /></InfluencersRoute> },
+        { path: "crm/campaigns", element: <InfluencersRoute><Campaigns /></InfluencersRoute> },
+        { path: "crm/campaigns/:id", element: <InfluencersRoute><CampaignDetail /></InfluencersRoute> },
         { path: "crm/portal", element: <PortalAccess /> },
         { path: "crm/time", element: <TimeTracking /> },
         { path: "crm/profitability", element: <Profitability /> },

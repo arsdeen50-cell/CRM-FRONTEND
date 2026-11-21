@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, CheckSquare, Target, Users, CalendarClock, FileText, Trophy, Inbox, Repeat, ClipboardList,
   Briefcase, CalendarRange, Timer, Receipt, Repeat2, TrendingUp, KeyRound, UserCircle, CalendarCheck, CalendarDays,
-  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee, LineChart, Workflow, SlidersHorizontal, Star,
+  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee, LineChart, Workflow, SlidersHorizontal, Star, Megaphone,
 } from "lucide-react";
 import { pageHidden } from "@/constants/brand";
 
@@ -47,6 +47,7 @@ export const NAV_GROUPS = [
       { label: "Projects", to: "/crm/projects", icon: Briefcase },
       { label: "Content calendar", to: "/crm/content", icon: CalendarRange },
       { label: "Influencers", to: "/crm/influencers", icon: Star, show: (c) => c.admin || c.influencers },
+      { label: "Influencer campaigns", to: "/crm/campaigns", icon: Megaphone, show: (c) => c.admin || c.influencers },
       { label: "Time tracking", to: "/crm/time", icon: Timer },
     ],
   },

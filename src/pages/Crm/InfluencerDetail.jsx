@@ -1,91 +1,64 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Edit, ExternalLink, Mail, Megaphone, MessageCircle, Phone, Plus, Star, Trash2, UserRound } from "lucide-react";
+import { Edit, Mail, Megaphone, MessageCircle, Phone, Plus, Star, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import PageHeader, { Stat, Pill } from "@/components/crm/PageHeader";
 import InfluencerEditor, { STATUS_STYLE, compact } from "@/components/crm/InfluencerEditor";
 import { useAccess } from "@/components/crm/AccessRoute";
-import RowActions from "@/components/ui/row-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { confirmDialog } from "@/components/ui/app-dialogs";
 import axiosInstance from "@/utils/axiosConfig";
 import { day, errMsg } from "@/lib/publicApi";
-import { toDateInput } from "@/lib/crmOutreach";
+import { CAMPAIGN_STATUS_STYLE, ENTRY_STATUS_STYLE, compactNum, entryEngagement } from "@/lib/campaigns";
 
-const COLLAB_STATUSES = ["Planned", "Confirmed", "Live", "Completed", "Cancelled"];
-const COLLAB_STYLE = { Planned: "bg-slate-100 text-slate-700", Confirmed: "bg-sky-100 text-sky-800", Live: "bg-violet-100 text-violet-800", Completed: "bg-green-100 text-green-700", Cancelled: "bg-gray-100 text-muted-foreground" };
-const NO_CLIENT = "__none";
 const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
 const waLink = (phone) => {
   const d = String(phone || "").replace(/\D/g, "");
   return d.length >= 10 ? `https://wa.me/${d.length === 10 ? `91${d}` : d}` : "";
 };
 
-const CampaignEditor = ({ open, onOpenChange, influencerId, campaign, clients, onSaved }) => {
-  const [f, setF] = useState(null);
+/* Put this influencer into one of the campaigns (or start a new campaign). */
+const AddToCampaignDialog = ({ open, onOpenChange, influencer, onDone }) => {
+  const navigate = useNavigate();
+  const [list, setList] = useState(null);
+  const [pick, setPick] = useState("");
   useEffect(() => {
     if (!open) return;
-    setF(campaign ? { ...campaign, clientId: campaign.clientId || "", date: toDateInput(campaign.date), links: (campaign.links || []).join("\n") } : { clientId: "", clientName: "", campaign: "", deliverables: "", fee: "", barter: false, date: toDateInput(new Date()), status: "Planned", links: "", results: "", rating: 0 });
-  }, [open, campaign]);
-  if (!f) return null;
-  const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
-  const save = async () => {
-    const payload = { ...f, links: f.links.split(/\s+/).filter(Boolean) };
+    setPick("");
+    axiosInstance.get("/v1/campaign").then((r) => setList(r.data.campaigns || [])).catch(() => setList([]));
+  }, [open]);
+  const add = async () => {
     try {
-      const url = `/v1/influencer/${influencerId}/collaborations${campaign?._id ? `/${campaign._id}` : ""}`;
-      const r = campaign?._id ? await axiosInstance.put(url, payload) : await axiosInstance.post(url, payload);
-      toast.success("Campaign saved");
-      onSaved(r.data.influencer);
+      const r = await axiosInstance.post(`/v1/campaign/${pick}/entries`, { influencerIds: [influencer._id] });
+      toast.success(r.data.added ? "Added to the campaign" : "Already in that campaign");
+      onDone();
       onOpenChange(false);
     } catch (err) {
-      toast.error(errMsg(err, "Could not save"));
+      toast.error(errMsg(err));
     }
   };
+  const open_ = (list || []).filter((c) => c.status !== "Cancelled");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{campaign?._id ? "Edit campaign" : "Add campaign"}</DialogTitle>
-          <DialogDescription>A campaign this influencer did (or will do) for one of your clients.</DialogDescription>
+          <DialogTitle>Add {influencer?.name} to a campaign</DialogTitle>
+          <DialogDescription>Deliverables, fee, post links and results are filled in on the campaign page.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div className="grid gap-1">
-              <Label>Client</Label>
-              <Select value={f.clientId || NO_CLIENT} onValueChange={(v) => set("clientId", v === NO_CLIENT ? "" : v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_CLIENT}>Not in the CRM / type below</SelectItem>
-                  {clients.map((c) => <SelectItem key={c._id} value={c._id}>{c.brandName}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {!f.clientId && <Input placeholder="Brand name" value={f.clientName} onChange={(e) => set("clientName", e.target.value)} />}
-            </div>
-            <div className="grid gap-1"><Label>Campaign</Label><Input value={f.campaign} onChange={(e) => set("campaign", e.target.value)} placeholder="e.g. Diwali launch" /></div>
+          {list === null ? <p className="text-sm text-muted-foreground">Loading...</p> : open_.length ? (
+            <Select value={pick} onValueChange={setPick}>
+              <SelectTrigger><SelectValue placeholder="Pick a campaign" /></SelectTrigger>
+              <SelectContent>{open_.map((c) => <SelectItem key={c._id} value={c._id}>{c.clientName} · {c.name}</SelectItem>)}</SelectContent>
+            </Select>
+          ) : <p className="text-sm text-muted-foreground">No campaigns yet.</p>}
+          <div className="flex flex-wrap justify-between gap-2">
+            <Button variant="ghost" onClick={() => navigate("/crm/campaigns")}>New campaign</Button>
+            <Button disabled={!pick} onClick={add}>Add</Button>
           </div>
-          <div className="grid gap-1"><Label>Deliverables</Label><Input value={f.deliverables} onChange={(e) => set("deliverables", e.target.value)} placeholder="1 reel + 3 stories" /></div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="grid gap-1"><Label>Fee (₹)</Label><Input type="number" min="0" value={f.fee || ""} onChange={(e) => set("fee", e.target.value)} /></div>
-            <div className="grid gap-1"><Label>Date</Label><Input type="date" value={f.date || ""} onChange={(e) => set("date", e.target.value)} /></div>
-            <div className="grid gap-1">
-              <Label>Status</Label>
-              <Select value={f.status} onValueChange={(v) => set("status", v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{COLLAB_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
-            </div>
-            <div className="grid gap-1">
-              <Label>Rating</Label>
-              <Select value={String(f.rating || 0)} onValueChange={(v) => set("rating", Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{[0, 1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n ? "★".repeat(n) : "—"}</SelectItem>)}</SelectContent></Select>
-            </div>
-          </div>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={f.barter} onChange={(e) => set("barter", e.target.checked)} /> Barter / product exchange</label>
-          <div className="grid gap-1"><Label>Post links (one per line)</Label><Textarea rows={2} value={f.links} onChange={(e) => set("links", e.target.value)} placeholder="https://www.instagram.com/reel/..." /></div>
-          <div className="grid gap-1"><Label>Results</Label><Textarea rows={2} value={f.results} onChange={(e) => set("results", e.target.value)} placeholder="Views, reach, clicks, sales, what worked" /></div>
-          <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={save}>Save campaign</Button></div>
         </div>
       </DialogContent>
     </Dialog>
@@ -98,13 +71,15 @@ const InfluencerDetail = () => {
   const navigate = useNavigate();
   const { isAdmin } = useAccess();
   const [inf, setInf] = useState(null);
-  const [clients, setClients] = useState([]);
   const [editing, setEditing] = useState(false);
-  const [campaign, setCampaign] = useState(undefined);
+  const [campaigns, setCampaigns] = useState([]);
+  const [adding, setAdding] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      setInf((await axiosInstance.get(`/v1/influencer/${id}`)).data.influencer);
+      const r = (await axiosInstance.get(`/v1/influencer/${id}`)).data;
+      setInf(r.influencer);
+      setCampaigns(r.campaigns || []);
     } catch (err) {
       toast.error(errMsg(err, "Could not load"));
       if (err.response?.status === 404) navigate("/crm/influencers");
@@ -112,24 +87,14 @@ const InfluencerDetail = () => {
   }, [id, navigate]);
   useEffect(() => {
     load();
-    axiosInstance.get("/v1/time/options").then((r) => setClients(r.data.clients || [])).catch(() => {});
   }, [load]);
 
   if (!inf) return <p className="p-6 text-sm text-muted-foreground">Loading...</p>;
-  const collabs = [...(inf.collaborations || [])].sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
-  const done = collabs.filter((c) => c.status === "Completed");
-  const spent = done.reduce((t, c) => t + (Number(c.fee) || 0), 0);
-  const rated = done.filter((c) => c.rating);
-  const avgRating = rated.length ? (rated.reduce((t, c) => t + c.rating, 0) / rated.length).toFixed(1) : "—";
+  const active = campaigns.filter((c) => c.entry.status !== "Dropped");
+  const posted = active.filter((c) => ["Posted", "Paid"].includes(c.entry.status));
+  const spent = posted.reduce((t, c) => t + (Number(c.entry.fee) || 0), 0);
+  const views = active.reduce((t, c) => t + (Number(c.entry.metrics?.views) || 0), 0);
 
-  const removeCampaign = async (c) => {
-    if (!(await confirmDialog("Remove this campaign?"))) return;
-    try {
-      setInf((await axiosInstance.delete(`/v1/influencer/${id}/collaborations/${c._id}`)).data.influencer);
-    } catch (err) {
-      toast.error(errMsg(err));
-    }
-  };
   const removeInfluencer = async () => {
     if (!(await confirmDialog(`Delete ${inf.name}? They no longer show in the list; campaign history is kept for records.`))) return;
     try {
@@ -147,15 +112,15 @@ const InfluencerDetail = () => {
       <PageHeader icon={Star} title={inf.name} back="/crm/influencers" subtitle={[inf.tier && `${inf.tier} influencer`, (inf.niches || []).join(", "), [inf.city, inf.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}>
         <Pill className={`${STATUS_STYLE[inf.status]} self-center`}>{inf.status}</Pill>
         <Button variant="outline" onClick={() => setEditing(true)}><Edit className="h-4 w-4 mr-1" /> Edit</Button>
-        <Button onClick={() => setCampaign(null)}><Plus className="h-4 w-4 mr-1" /> Add campaign</Button>
+        <Button onClick={() => setAdding(true)}><Plus className="h-4 w-4 mr-1" /> Add to campaign</Button>
         {isAdmin && <Button variant="ghost" size="icon" className="text-red-600" title="Delete influencer" onClick={removeInfluencer}><Trash2 className="h-4 w-4" /></Button>}
       </PageHeader>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="Biggest audience" value={compact(inf.followers)} sub={inf.platforms?.find((p) => p.followers === inf.followers)?.platform} />
-        <Stat label="Campaigns" value={collabs.length} sub={`${done.length} completed`} />
-        <Stat label="Paid so far" value={inr(spent)} sub="completed campaigns" />
-        <Stat label="Campaign rating" value={avgRating} sub={inf.rating ? `Our rating ${"★".repeat(inf.rating)}` : undefined} />
+        <Stat label="Campaigns" value={active.length} sub={`${posted.length} posted · ${[...new Set(active.map((c) => c.clientName))].length} clients`} />
+        <Stat label="Paid so far" value={inr(spent)} sub="posted campaigns" />
+        <Stat label="Views delivered" value={views ? compactNum(views) : "—"} sub={inf.rating ? `Our rating ${"★".repeat(inf.rating)}` : undefined} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
@@ -163,27 +128,23 @@ const InfluencerDetail = () => {
           <Card>
             <CardContent className="p-0">
               <div className="flex items-center justify-between p-3 border-b"><p className="flex items-center gap-2 text-sm font-medium"><Megaphone className="h-4 w-4 text-brand" /> Campaigns</p></div>
-              {collabs.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">No campaigns yet. Add one when you book {inf.name} for a client.</p>}
+              {campaigns.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">{`Not in any campaign yet. Use "Add to campaign" when you book ${inf.name} for a client.`}</p>}
               <div className="divide-y">
-                {collabs.map((c) => (
-                  <div key={c._id} className="p-3 flex gap-3">
-                    <div className="min-w-0 flex-1 space-y-0.5">
+                {campaigns.map((c) => {
+                  const e = c.entry;
+                  const eng = entryEngagement(e.metrics);
+                  return (
+                    <Link key={c._id} to={`/crm/campaigns/${c._id}`} className="block p-3 hover:bg-accent/50">
                       <div className="flex flex-wrap items-center gap-2">
-                        {c.clientId ? <Link to={`/crm/clients/${c.clientId}`} className="font-medium hover:underline">{c.clientName}</Link> : <span className="font-medium">{c.clientName || "—"}</span>}
-                        {c.campaign && <span className="text-sm text-muted-foreground">· {c.campaign}</span>}
-                        <Pill className={COLLAB_STYLE[c.status]}>{c.status}</Pill>
+                        <span className="font-medium">{c.clientName}</span>
+                        <span className="text-sm text-muted-foreground">· {c.name}</span>
+                        <Pill className={CAMPAIGN_STATUS_STYLE[c.status]}>{c.status}</Pill>
+                        <Pill className={ENTRY_STATUS_STYLE[e.status]}>{e.status}</Pill>
                       </div>
-                      <p className="text-sm text-muted-foreground">{[c.date && day(c.date), c.deliverables, c.barter ? "Barter" : c.fee ? inr(c.fee) : "", c.rating ? "★".repeat(c.rating) : ""].filter(Boolean).join(" · ")}</p>
-                      {c.results && <p className="text-sm whitespace-pre-wrap">{c.results}</p>}
-                      {c.links?.length > 0 && (
-                        <div className="flex flex-wrap gap-3 text-xs">
-                          {c.links.map((l, i) => <a key={i} href={l} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-brand hover:underline">Post {c.links.length > 1 ? i + 1 : ""} <ExternalLink className="h-3 w-3" /></a>)}
-                        </div>
-                      )}
-                    </div>
-                    <RowActions items={[{ label: "Edit", icon: Edit, onClick: () => setCampaign(c) }, "-", { label: "Remove", icon: Trash2, onClick: () => removeCampaign(c), danger: true }]} />
-                  </div>
-                ))}
+                      <p className="text-sm text-muted-foreground">{[e.postDate ? day(e.postDate) : c.startDate ? day(c.startDate) : "", e.deliverables, e.barter ? "Barter" : e.fee ? inr(e.fee) : "", e.metrics?.views ? `${compactNum(e.metrics.views)} views` : "", eng ? `${compactNum(eng)} engagements` : "", (e.links || []).length ? `${e.links.length} post${e.links.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</p>
+                    </Link>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -251,7 +212,7 @@ const InfluencerDetail = () => {
       </div>
 
       <InfluencerEditor open={editing} onOpenChange={setEditing} influencer={inf} onSaved={setInf} />
-      <CampaignEditor open={campaign !== undefined} onOpenChange={(v) => !v && setCampaign(undefined)} influencerId={id} campaign={campaign} clients={clients} onSaved={setInf} />
+      <AddToCampaignDialog open={adding} onOpenChange={setAdding} influencer={inf} onDone={load} />
     </div>
   );
 };

@@ -187,6 +187,7 @@ const Influencers = () => {
   return (
     <div className="p-4 md:p-6 space-y-4">
       <PageHeader icon={Star} title="Influencers" subtitle="Creators you work with or want to: reach, rates, contacts and every campaign done for clients.">
+        <Button variant="outline" onClick={() => navigate("/crm/campaigns")}>Campaigns</Button>
         <Button variant="outline" onClick={() => setImporting(true)}><FileUp className="h-4 w-4 mr-1" /> Import</Button>
         {isAdmin && <Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4 mr-1" /> Export</Button>}
         <Button onClick={() => setEditing(null)} className="bg-primary hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" /> Add influencer</Button>
