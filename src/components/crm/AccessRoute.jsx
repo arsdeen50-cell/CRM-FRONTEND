@@ -8,7 +8,7 @@ const NoAccess = ({ area }) => (
   <div className="flex min-h-[60vh] items-center justify-center p-6">
     <div className="max-w-md text-center space-y-2">
       <Lock className="h-8 w-8 mx-auto text-muted-foreground/70" />
-      <h2 className="text-lg font-semibold">{area} is limited to admins and the sales team</h2>
+      <h2 className="text-lg font-semibold">{area === "Influencers" ? "Influencers are limited to admins and teams with Influencers access" : `${area} is limited to admins and the sales team`}</h2>
       <p className="text-sm text-muted-foreground">Ask an admin to add you to a team with {area.toLowerCase()} access in Role Based Access.</p>
       <Link to="/crm" className="text-sm text-brand underline">Back to CRM</Link>
     </div>
@@ -35,10 +35,20 @@ export const OutreachRoute = ({ children }) => {
   return me.canOutreach ? children : <NoAccess area="Outreach automation" />;
 };
 
+// Influencer database: admins + teams with Influencers access
+export const InfluencersRoute = ({ children }) => {
+  const { user } = useSelector((s) => s.auth);
+  const me = useMyTeams();
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === "admin") return children;
+  if (me.loading) return null;
+  return me.canInfluencers ? children : <NoAccess area="Influencers" />;
+};
+
 // For hiding buttons and links
 export const useAccess = () => {
   const { user } = useSelector((s) => s.auth);
   const me = useMyTeams();
   const isAdmin = user?.role === "admin";
-  return { isAdmin, loading: me.loading, canSales: isAdmin || !!me.canSales, canOutreach: isAdmin || !!me.canOutreach, isTeamLead: !!me.isTeamLead };
+  return { isAdmin, loading: me.loading, canSales: isAdmin || !!me.canSales, canOutreach: isAdmin || !!me.canOutreach, canInfluencers: isAdmin || !!me.canInfluencers, isTeamLead: !!me.isTeamLead };
 };

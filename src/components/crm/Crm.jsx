@@ -9,7 +9,7 @@ import { visibleNav } from "@/constants/nav";
 const Crm = () => {
   const { user } = useSelector((s) => s.auth);
   const a = useAccess();
-  const groups = visibleNav({ admin: a.isAdmin, sales: a.canSales, outreach: a.canOutreach, teamLead: a.isTeamLead }, user).filter((g) => g.key !== "home");
+  const groups = visibleNav({ admin: a.isAdmin, sales: a.canSales, outreach: a.canOutreach, influencers: a.canInfluencers, teamLead: a.isTeamLead }, user).filter((g) => g.key !== "home");
   return (
     <CrmMemberRoute>
       <div className="space-y-6">

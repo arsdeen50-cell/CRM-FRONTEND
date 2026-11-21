@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   ArrowLeft, Briefcase, CalendarCheck, CircleCheck, CircleX, ExternalLink, FileText, Globe, Instagram, Mail, MessageCircle,
-  MessageSquareText, Paperclip, Phone, Pin, PinOff, Receipt, Repeat2, Send, Sparkles, StickyNote, Trash2, Wallet,
+  Megaphone, MessageSquareText, Paperclip, Phone, Pin, PinOff, Receipt, Repeat2, Send, Sparkles, StickyNote, Trash2, Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +29,7 @@ const KINDS = {
   content: { label: "Projects & content", icon: Sparkles, tone: "text-indigo-600" },
   lead: { label: "Calls & meetings", icon: CalendarCheck, tone: "text-sky-600" },
   document: { label: "Documents", icon: Paperclip, tone: "text-slate-600" },
+  campaign: { label: "Projects & content", icon: Megaphone, tone: "text-pink-600" },
 };
 const FILTERS = ["All", ...new Set(Object.values(KINDS).map((k) => k.label))];
 const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
