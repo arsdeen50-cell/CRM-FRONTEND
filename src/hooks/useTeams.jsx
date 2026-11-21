@@ -37,7 +37,7 @@ const loadMe = () => {
     mePromise = axiosInstance
       .get("/v1/team/me")
       .then((r) => (meCache = r.data))
-      .catch(() => (meCache = { teams: [], isTeamLead: false, canSales: false, canOutreach: false }));
+      .catch(() => (meCache = { teams: [], isTeamLead: false, canSales: false, canOutreach: false, canInfluencers: false }));
   }
   return mePromise;
 };

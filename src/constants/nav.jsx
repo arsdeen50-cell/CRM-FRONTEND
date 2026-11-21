@@ -1,12 +1,12 @@
 import {
   LayoutDashboard, CheckSquare, Target, Users, CalendarClock, FileText, Trophy, Inbox, Repeat, ClipboardList,
   Briefcase, CalendarRange, Timer, Receipt, Repeat2, TrendingUp, KeyRound, UserCircle, CalendarCheck, CalendarDays,
-  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee, LineChart, Workflow, SlidersHorizontal,
+  Wallet, DoorOpen, UserPlus, Settings, ShieldCheck, BarChart3, FileUp, MessageSquareText, History, Plug, Contact, ReceiptIndianRupee, LineChart, Workflow, SlidersHorizontal, Star,
 } from "lucide-react";
 import { pageHidden } from "@/constants/brand";
 
 /* Every page in one place. `show` decides who sees it (the API enforces access; this just hides links
-   people can't use). ctx = { admin, sales, outreach, teamLead }. The sidebar, the CRM page and the
+   people can't use). ctx = { admin, sales, outreach, influencers, teamLead }. The sidebar, the CRM page and the
    Ctrl+K search all read this list. */
 export const NAV_GROUPS = [
   {
@@ -46,6 +46,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Projects", to: "/crm/projects", icon: Briefcase },
       { label: "Content calendar", to: "/crm/content", icon: CalendarRange },
+      { label: "Influencers", to: "/crm/influencers", icon: Star, show: (c) => c.admin || c.influencers },
       { label: "Time tracking", to: "/crm/time", icon: Timer },
     ],
   },

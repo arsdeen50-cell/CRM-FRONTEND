@@ -24,7 +24,7 @@ const readClosed = () => {
 export const Sidebar = forwardRef(({ collapsed, onNavigate }, ref) => {
   const { user } = useSelector((state) => state.auth);
   const access = useAccess();
-  const groups = visibleNav({ admin: access.isAdmin, sales: access.canSales, outreach: access.canOutreach, teamLead: access.isTeamLead }, user);
+  const groups = visibleNav({ admin: access.isAdmin, sales: access.canSales, outreach: access.canOutreach, influencers: access.canInfluencers, teamLead: access.isTeamLead }, user);
   const [closed, setClosed] = useState(readClosed);
   const toggle = (key) => {
     const next = closed.includes(key) ? closed.filter((k) => k !== key) : [...closed, key];

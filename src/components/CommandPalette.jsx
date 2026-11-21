@@ -17,7 +17,7 @@ const CommandPalette = ({ open, onOpenChange }) => {
   const [clients, setClients] = useState([]);
   const [leads, setLeads] = useState([]);
   const timer = useRef(null);
-  const pages = useMemo(() => visibleNav({ admin: access.isAdmin, sales: access.canSales, outreach: access.canOutreach, teamLead: access.isTeamLead }, user).flatMap((g) => g.items.map((i) => ({ ...i, group: g.title }))), [access.isAdmin, access.canSales, access.canOutreach, access.isTeamLead, user]);
+  const pages = useMemo(() => visibleNav({ admin: access.isAdmin, sales: access.canSales, outreach: access.canOutreach, influencers: access.canInfluencers, teamLead: access.isTeamLead }, user).flatMap((g) => g.items.map((i) => ({ ...i, group: g.title }))), [access.isAdmin, access.canSales, access.canOutreach, access.canInfluencers, access.isTeamLead, user]);
 
   useEffect(() => {
     if (open && people === null) axiosInstance.get("/v1/hr/employees").then((r) => setPeople(r.data.people || [])).catch(() => setPeople([]));
